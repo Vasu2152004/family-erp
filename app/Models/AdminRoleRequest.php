@@ -39,4 +39,42 @@ class AdminRoleRequest extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Check if user can request admin role again (2 days must have passed).
+     */
+    public function canRequestAgain(): bool
+    {
+        if (!$this->last_requested_at) {
+            return true;
+        }
+
+        $nextRequestDate = $this->last_requested_at->copy()->addDays(2);
+        return $nextRequestDate->isPast();
+    }
+
+    /**
+     * Get the number of days until the next request is allowed.
+     */
+    public function getDaysUntilNextRequest(): int
+    {
+        if (!$this->last_requested_at) {
+            return 0;
+        }
+
+        $nextRequestDate = $this->last_requested_at->copy()->addDays(2);
+        if ($nextRequestDate->isPast()) {
+            return 0;
+        }
+
+        return now()->diffInDays($nextRequestDate, false) + 1;
+    }
+
+    /**
+     * Check if this request is eligible for auto-promotion (3+ requests).
+     */
+    public function isEligibleForAutoPromotion(): bool
+    {
+        return $this->status === 'pending' && $this->request_count >= 3;
+    }
 }

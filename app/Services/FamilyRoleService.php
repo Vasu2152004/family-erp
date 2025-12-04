@@ -8,6 +8,7 @@ use App\Models\AdminRoleRequest;
 use App\Models\FamilyUserRole;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class FamilyRoleService
 {
@@ -69,25 +70,45 @@ class FamilyRoleService
         return DB::transaction(function () use ($userId, $familyId) {
             $family = \App\Models\Family::findOrFail($familyId);
 
-            $request = AdminRoleRequest::firstOrNew(
-                [
+            $request = AdminRoleRequest::where('family_id', $familyId)
+                ->where('user_id', $userId)
+                ->where('status', 'pending')
+                ->first();
+
+            // If request exists, check if 2 days have passed since last request
+            if ($request && $request->last_requested_at) {
+                $nextRequestDate = $request->last_requested_at->copy()->addDays(2);
+                
+                if ($nextRequestDate->isFuture()) {
+                    $daysRemaining = now()->diffInDays($nextRequestDate, false) + 1;
+                    throw ValidationException::withMessages([
+                        'request' => ["You can only request admin role again after 2 days from your last request. Please try again in {$daysRemaining} day(s)."],
+                    ]);
+                }
+            }
+
+            // Create new request or update existing one
+            if (!$request) {
+                $request = AdminRoleRequest::create([
+                    'tenant_id' => $family->tenant_id,
                     'family_id' => $familyId,
                     'user_id' => $userId,
-                    'status' => 'pending',
-                ],
-                [
-                    'tenant_id' => $family->tenant_id,
-                    'request_count' => 0,
+                    'request_count' => 1,
                     'last_requested_at' => now(),
-                ]
-            );
+                    'status' => 'pending',
+                ]);
+            } else {
+                $request->request_count++;
+                $request->last_requested_at = now();
+                $request->save();
+            }
 
-            $request->request_count++;
-            $request->last_requested_at = now();
-            $request->save();
-
+            // If this is the 3rd request, check for auto-promotion
             if ($request->request_count >= 3) {
-                $this->checkAndAutoPromote($familyId);
+                $promotedRole = $this->checkAndAutoPromote($familyId);
+                if ($promotedRole) {
+                    $request->refresh();
+                }
             }
 
             return $request->fresh();
@@ -97,17 +118,25 @@ class FamilyRoleService
     public function checkAndAutoPromote(int $familyId): ?FamilyUserRole
     {
         return DB::transaction(function () use ($familyId) {
+            // Check for active OWNER or ADMIN roles (excluding deceased members)
+            // A user is active if they don't have a familyMember OR their familyMember is not deceased
             $activeAdmins = FamilyUserRole::where('family_id', $familyId)
                 ->whereIn('role', ['OWNER', 'ADMIN'])
-                ->whereHas('user.familyMember', function ($query) {
-                    $query->where('is_deceased', false);
+                ->whereHas('user', function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereHas('familyMember', function ($memberQuery) {
+                            $memberQuery->where('is_deceased', false);
+                        })->orWhereDoesntHave('familyMember');
+                    });
                 })
                 ->exists();
 
+            // If active admins exist, don't auto-promote
             if ($activeAdmins) {
                 return null;
             }
 
+            // Find the first eligible request (3+ requests, pending status)
             $request = AdminRoleRequest::where('family_id', $familyId)
                 ->where('status', 'pending')
                 ->where('request_count', '>=', 3)
@@ -118,6 +147,7 @@ class FamilyRoleService
                 return null;
             }
 
+            // Auto-promote to ADMIN role
             $role = $this->assignRole($request->user_id, $familyId, 'ADMIN');
             $request->update(['status' => 'auto_promoted']);
 

@@ -106,6 +106,58 @@
                 </div>
             @endif
         </div>
+
+        <!-- Roles Section -->
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Family Roles</h2>
+                <a href="{{ route('families.roles.index', $family) }}">
+                    <x-button variant="primary" size="sm">Manage Roles</x-button>
+                </a>
+            </div>
+
+            @if($family->roles->count() > 0)
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-[var(--color-border-primary)]">
+                        <thead class="bg-[var(--color-bg-secondary)]">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">User</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Role</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[var(--color-text-secondary)] uppercase tracking-wider">Backup Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-[var(--color-bg-primary)] divide-y divide-[var(--color-border-primary)]">
+                            @foreach($family->roles as $role)
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[var(--color-text-primary)]">
+                                        {{ $role->user->name }} ({{ $role->user->email }})
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+                                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                            @if($role->role === 'OWNER') bg-purple-100 text-purple-800
+                                            @elseif($role->role === 'ADMIN') bg-blue-100 text-blue-800
+                                            @elseif($role->role === 'MEMBER') bg-green-100 text-green-800
+                                            @else bg-gray-100 text-gray-800
+                                            @endif">
+                                            {{ $role->role }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
+                                        @if($role->is_backup_admin)
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Yes</span>
+                                        @else
+                                            <span class="text-[var(--color-text-tertiary)]">No</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="text-[var(--color-text-secondary)]">No roles assigned for this family yet.</p>
+            @endif
+        </div>
     </div>
 </x-app-layout>
 

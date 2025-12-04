@@ -45,8 +45,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Family Member Routes (nested under families)
     Route::resource('families.members', \App\Http\Controllers\FamilyMemberController::class)
-        ->except(['index'])
-        ->shallow();
+        ->except(['index']);
 
     Route::get('families/{family}/members', [\App\Http\Controllers\FamilyMemberController::class, 'index'])
         ->name('families.members.index');
