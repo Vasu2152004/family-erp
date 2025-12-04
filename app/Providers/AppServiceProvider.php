@@ -2,10 +2,22 @@
 
 namespace App\Providers;
 
+use App\Models\Family;
+use App\Policies\FamilyRolePolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * The policy mappings for the application.
+     *
+     * @var array<class-string, class-string>
+     */
+    protected $policies = [
+        Family::class => FamilyRolePolicy::class,
+    ];
+
     /**
      * Register any application services.
      */
@@ -19,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register the policy
+        Gate::policy(Family::class, FamilyRolePolicy::class);
     }
 }

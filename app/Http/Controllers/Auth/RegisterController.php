@@ -28,10 +28,16 @@ class RegisterController extends Controller
      */
     public function register(RegisterRequest $request): RedirectResponse
     {
+        // Create a unique tenant for the new user
+        $tenant = \App\Models\Tenant::create([
+            'name' => $request->name . "'s Family",
+        ]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'tenant_id' => $tenant->id,
         ]);
 
         event(new Registered($user));

@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tenant;
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +14,30 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create a default tenant
+        $tenant = Tenant::firstOrCreate(
+            ['name' => 'Default Family'],
+            ['name' => 'Default Family']
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create a test user with known credentials
+        $user = User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+                'password' => Hash::make('password'), // Password: password
+                'tenant_id' => $tenant->id,
+            ]
+        );
+
+        // Update existing user if tenant_id is missing
+        if ($user->tenant_id === null) {
+            $user->update(['tenant_id' => $tenant->id]);
+        }
+
+        $this->command->info('Test user created:');
+        $this->command->info('Email: test@example.com');
+        $this->command->info('Password: password');
     }
 }
