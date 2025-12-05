@@ -39,10 +39,10 @@ class FamilyMemberRequestController extends Controller
         try {
             $member = $this->requestService->acceptRequest($request->id, Auth::id());
 
-            return redirect()->route('family-member-requests.index')
+            return redirect()->route('families.show', $request->family_id)
                 ->with('success', 'Request accepted. Family member has been added successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->route('family-member-requests.index')
+            return redirect()->route('families.show', $request->family_id)
                 ->withErrors($e->errors());
         }
     }
@@ -55,10 +55,10 @@ class FamilyMemberRequestController extends Controller
         try {
             $this->requestService->rejectRequest($request->id, Auth::id());
 
-            return redirect()->route('family-member-requests.index')
+            return redirect()->route('families.show', $request->family_id)
                 ->with('success', 'Request rejected.');
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->route('family-member-requests.index')
+            return redirect()->route('families.show', $request->family_id)
                 ->withErrors($e->errors());
         }
     }

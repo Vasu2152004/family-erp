@@ -60,6 +60,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('roles/backup-admin', [\App\Http\Controllers\FamilyRoleController::class, 'assignBackupAdmin'])->name('roles.backup-admin');
         Route::delete('roles/backup-admin', [\App\Http\Controllers\FamilyRoleController::class, 'removeBackupAdmin'])->name('roles.remove-backup-admin');
         Route::post('roles/request-admin', [\App\Http\Controllers\FamilyRoleController::class, 'requestAdminRole'])->name('roles.request-admin');
+        Route::post('roles/approve-admin-request', [\App\Http\Controllers\FamilyRoleController::class, 'approveAdminRoleRequest'])->name('roles.approve-admin-request');
+        Route::post('roles/reject-admin-request', [\App\Http\Controllers\FamilyRoleController::class, 'rejectAdminRoleRequest'])->name('roles.reject-admin-request');
     });
 
     // Family Member Request Routes

@@ -110,7 +110,38 @@ class FamilyController extends Controller
             'roles.user',
         ]);
 
-        return view('families.show', compact('family'));
+        // Get pending family member requests for this family (where current user is the requested user)
+        $pendingMemberRequests = \App\Models\FamilyMemberRequest::where('family_id', $family->id)
+            ->where('requested_user_id', Auth::id())
+            ->where('status', 'pending')
+            ->with(['family', 'requestedBy'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Get pending admin role requests for this family (where current user is the requester)
+        $pendingAdminRequests = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'pending')
+            ->first();
+
+        // Get admin role requests that need admin/owner attention (for admins/owners only)
+        $adminRequestsToReview = collect();
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+        
+        if ($isOwnerOrAdmin) {
+            // Get all pending admin role requests for this family (excluding current user's own requests)
+            $adminRequestsToReview = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+                ->where('user_id', '!=', Auth::id())
+                ->where('status', 'pending')
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('families.show', compact('family', 'pendingMemberRequests', 'pendingAdminRequests', 'adminRequestsToReview', 'isOwnerOrAdmin'));
     }
     
     /**

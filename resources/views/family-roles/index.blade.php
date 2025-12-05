@@ -228,6 +228,44 @@
                 <p class="text-[var(--color-text-secondary)]">No roles assigned for this family yet.</p>
             @endif
 
+            <!-- Admin Role Requests to Review (for admins/owners) -->
+            @if($isOwnerOrAdmin && isset($adminRequestsToReview) && $adminRequestsToReview->count() > 0)
+                <div class="mt-8 pt-6 border-t border-[var(--color-border-primary)]">
+                    <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Admin Role Requests to Review</h3>
+                    <div class="space-y-4">
+                        @foreach($adminRequestsToReview as $adminRequest)
+                            <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <h4 class="font-semibold text-[var(--color-text-primary)]">
+                                            {{ $adminRequest->user->name }} ({{ $adminRequest->user->email }})
+                                        </h4>
+                                        <p class="text-sm text-[var(--color-text-secondary)]">
+                                            Request #{{ $adminRequest->request_count }} of 3
+                                        </p>
+                                        <p class="text-xs text-[var(--color-text-tertiary)] mt-1">
+                                            Requested {{ $adminRequest->last_requested_at->diffForHumans() }}
+                                        </p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <form action="{{ route('families.roles.approve-admin-request', $family) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
+                                            <x-button type="submit" variant="primary" size="sm">Approve</x-button>
+                                        </form>
+                                        <form action="{{ route('families.roles.reject-admin-request', $family) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
+                                            <x-button type="submit" variant="outline" size="sm">Reject</x-button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             <!-- Assign Role Form (Hidden by default) -->
             @can('manageFamily', $family)
                 <div id="assignRoleForm" class="hidden mt-6 bg-[var(--color-bg-secondary)] rounded-lg p-6 border border-[var(--color-border-primary)]">

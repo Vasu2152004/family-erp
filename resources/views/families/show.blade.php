@@ -107,6 +107,109 @@
             @endif
         </div>
 
+        <!-- Requests Section -->
+        @if($pendingMemberRequests->count() > 0 || $pendingAdminRequests || ($isOwnerOrAdmin && $adminRequestsToReview->count() > 0))
+            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Requests</h2>
+                
+                <!-- Family Member Requests (for current user) -->
+                @if($pendingMemberRequests->count() > 0)
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Family Member Requests</h3>
+                        <div class="space-y-4">
+                            @foreach($pendingMemberRequests as $request)
+                                <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <h4 class="font-semibold text-[var(--color-text-primary)]">
+                                                {{ $request->first_name }} {{ $request->last_name }}
+                                            </h4>
+                                            <p class="text-sm text-[var(--color-text-secondary)]">
+                                                Requested by {{ $request->requestedBy->name }} • Relation: {{ $request->relation }}
+                                            </p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <form action="{{ route('family-member-requests.accept', $request) }}" method="POST">
+                                                @csrf
+                                                <x-button type="submit" variant="primary" size="sm">Accept</x-button>
+                                            </form>
+                                            <form action="{{ route('family-member-requests.reject', $request) }}" method="POST">
+                                                @csrf
+                                                <x-button type="submit" variant="outline" size="sm">Reject</x-button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Admin Role Requests (for current user) -->
+                @if($pendingAdminRequests)
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Your Admin Role Request</h3>
+                        <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                            <p class="text-sm text-[var(--color-text-secondary)] mb-2">
+                                Status: <span class="font-medium text-[var(--color-text-primary)]">Pending</span>
+                            </p>
+                            <p class="text-sm text-[var(--color-text-secondary)] mb-2">
+                                Request Count: <span class="font-medium text-[var(--color-text-primary)]">{{ $pendingAdminRequests->request_count }} of 3</span>
+                            </p>
+                            @if(!$pendingAdminRequests->canRequestAgain())
+                                <p class="text-sm text-yellow-600">
+                                    ⏰ You can request again in {{ $pendingAdminRequests->getDaysUntilNextRequest() }} day(s)
+                                </p>
+                            @endif
+                            @if($pendingAdminRequests->isEligibleForAutoPromotion())
+                                <p class="text-sm text-blue-600 mt-2">
+                                    <strong>Note:</strong> You have submitted 3 requests. You will be automatically promoted to ADMIN if admins don't respond.
+                                </p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Admin Role Requests to Review (for admins/owners) -->
+                @if($isOwnerOrAdmin && $adminRequestsToReview->count() > 0)
+                    <div>
+                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Admin Role Requests to Review</h3>
+                        <div class="space-y-4">
+                            @foreach($adminRequestsToReview as $adminRequest)
+                                <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <h4 class="font-semibold text-[var(--color-text-primary)]">
+                                                {{ $adminRequest->user->name }} ({{ $adminRequest->user->email }})
+                                            </h4>
+                                            <p class="text-sm text-[var(--color-text-secondary)]">
+                                                Request #{{ $adminRequest->request_count }} of 3
+                                            </p>
+                                            <p class="text-xs text-[var(--color-text-tertiary)] mt-1">
+                                                Requested {{ $adminRequest->last_requested_at->diffForHumans() }}
+                                            </p>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <form action="{{ route('families.roles.approve-admin-request', $family) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
+                                                <x-button type="submit" variant="primary" size="sm">Approve</x-button>
+                                            </form>
+                                            <form action="{{ route('families.roles.reject-admin-request', $family) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
+                                                <x-button type="submit" variant="outline" size="sm">Reject</x-button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
         <!-- Roles Section -->
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <div class="flex items-center justify-between mb-6">

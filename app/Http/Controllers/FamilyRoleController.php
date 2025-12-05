@@ -122,7 +122,28 @@ class FamilyRoleController extends Controller
                 ->first();
         }
 
-        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers', 'isOwnerOrAdmin'));
+        $hasActiveAdmins = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->whereIn('role', ['OWNER', 'ADMIN'])
+            ->whereHas('user', function ($query) {
+                $query->whereHas('familyMember', function ($q) {
+                    $q->where('is_deceased', false);
+                })->orWhereDoesntHave('familyMember');
+            })
+            ->exists();
+
+        // Get admin role requests that need admin/owner attention (for admins/owners only)
+        $adminRequestsToReview = collect();
+        if ($isOwnerOrAdmin) {
+            // Get all pending admin role requests for this family (excluding current user's own requests)
+            $adminRequestsToReview = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+                ->where('user_id', '!=', Auth::id())
+                ->where('status', 'pending')
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+
+        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers', 'isOwnerOrAdmin', 'hasActiveAdmins', 'adminRequestsToReview'));
     }
 
     /**
@@ -216,6 +237,56 @@ class FamilyRoleController extends Controller
                 ->with('success', $message);
         } catch (ValidationException $e) {
             return redirect()->route('families.roles.index', $family)
+                ->withErrors($e->errors());
+        }
+    }
+
+    /**
+     * Approve an admin role request.
+     */
+    public function approveAdminRoleRequest(Request $request, Family $family): RedirectResponse
+    {
+        $this->authorize('manageFamily', $family);
+
+        $validated = $request->validate([
+            'request_id' => ['required', 'exists:admin_role_requests,id'],
+        ]);
+
+        try {
+            $role = $this->familyRoleService->approveAdminRoleRequest(
+                (int) $validated['request_id'],
+                Auth::id()
+            );
+
+            return redirect()->route('families.show', $family)
+                ->with('success', 'Admin role request approved. User has been assigned ADMIN role.');
+        } catch (ValidationException $e) {
+            return redirect()->route('families.show', $family)
+                ->withErrors($e->errors());
+        }
+    }
+
+    /**
+     * Reject an admin role request.
+     */
+    public function rejectAdminRoleRequest(Request $request, Family $family): RedirectResponse
+    {
+        $this->authorize('manageFamily', $family);
+
+        $validated = $request->validate([
+            'request_id' => ['required', 'exists:admin_role_requests,id'],
+        ]);
+
+        try {
+            $this->familyRoleService->rejectAdminRoleRequest(
+                (int) $validated['request_id'],
+                Auth::id()
+            );
+
+            return redirect()->route('families.show', $family)
+                ->with('success', 'Admin role request rejected.');
+        } catch (ValidationException $e) {
+            return redirect()->route('families.show', $family)
                 ->withErrors($e->errors());
         }
     }

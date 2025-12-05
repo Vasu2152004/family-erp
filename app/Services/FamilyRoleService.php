@@ -275,6 +275,112 @@ class FamilyRoleService
         });
     }
 
+    /**
+     * Approve an admin role request.
+     */
+    public function approveAdminRoleRequest(int $requestId, int $approvedByUserId): FamilyUserRole
+    {
+        return DB::transaction(function () use ($requestId, $approvedByUserId) {
+            $request = AdminRoleRequest::findOrFail($requestId);
+            
+            // Verify the approver is an admin or owner of the family
+            $approverRole = FamilyUserRole::where('family_id', $request->family_id)
+                ->where('user_id', $approvedByUserId)
+                ->first();
+            
+            if (!$approverRole || ($approverRole->role !== 'OWNER' && $approverRole->role !== 'ADMIN')) {
+                throw ValidationException::withMessages([
+                    'request' => ['Only admins and owners can approve admin role requests.'],
+                ]);
+            }
+            
+            // Check if request is still pending
+            if ($request->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'request' => ['This request has already been processed.'],
+                ]);
+            }
+            
+            // Assign ADMIN role to the requesting user
+            $role = $this->assignRole($request->user_id, $request->family_id, 'ADMIN', false);
+            
+            // Update request status to approved
+            $request->update(['status' => 'approved']);
+            
+            // Clear cache
+            $this->clearRoleCache($request->user_id, $request->family_id);
+            
+            // Create notification for the requesting user
+            $family = \App\Models\Family::findOrFail($request->family_id);
+            $approver = \App\Models\User::findOrFail($approvedByUserId);
+            \App\Models\Notification::create([
+                'tenant_id' => $family->tenant_id,
+                'user_id' => $request->user_id,
+                'type' => 'admin_role_approved',
+                'title' => 'Admin Role Approved',
+                'message' => "Your admin role request for {$family->name} has been approved by {$approver->name}.",
+                'data' => [
+                    'family_id' => $request->family_id,
+                    'family_name' => $family->name,
+                    'request_id' => $request->id,
+                    'approved_by_user_id' => $approvedByUserId,
+                    'approved_by_user_name' => $approver->name,
+                ],
+            ]);
+            
+            return $role;
+        });
+    }
+
+    /**
+     * Reject an admin role request.
+     */
+    public function rejectAdminRoleRequest(int $requestId, int $rejectedByUserId): void
+    {
+        DB::transaction(function () use ($requestId, $rejectedByUserId) {
+            $request = AdminRoleRequest::findOrFail($requestId);
+            
+            // Verify the rejector is an admin or owner of the family
+            $rejectorRole = FamilyUserRole::where('family_id', $request->family_id)
+                ->where('user_id', $rejectedByUserId)
+                ->first();
+            
+            if (!$rejectorRole || ($rejectorRole->role !== 'OWNER' && $rejectorRole->role !== 'ADMIN')) {
+                throw ValidationException::withMessages([
+                    'request' => ['Only admins and owners can reject admin role requests.'],
+                ]);
+            }
+            
+            // Check if request is still pending
+            if ($request->status !== 'pending') {
+                throw ValidationException::withMessages([
+                    'request' => ['This request has already been processed.'],
+                ]);
+            }
+            
+            // Update request status to rejected
+            $request->update(['status' => 'rejected']);
+            
+            // Create notification for the requesting user
+            $family = \App\Models\Family::findOrFail($request->family_id);
+            $rejector = \App\Models\User::findOrFail($rejectedByUserId);
+            \App\Models\Notification::create([
+                'tenant_id' => $family->tenant_id,
+                'user_id' => $request->user_id,
+                'type' => 'admin_role_rejected',
+                'title' => 'Admin Role Rejected',
+                'message' => "Your admin role request for {$family->name} has been rejected by {$rejector->name}.",
+                'data' => [
+                    'family_id' => $request->family_id,
+                    'family_name' => $family->name,
+                    'request_id' => $request->id,
+                    'rejected_by_user_id' => $rejectedByUserId,
+                    'rejected_by_user_name' => $rejector->name,
+                ],
+            ]);
+        });
+    }
+
     private function clearRoleCache(int $userId, int $familyId): void
     {
         Cache::forget("user_role_{$userId}_{$familyId}");
