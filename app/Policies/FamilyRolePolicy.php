@@ -43,8 +43,13 @@ class FamilyRolePolicy
      */
     public function update(User $user, Family $family): bool
     {
-        return $user->tenant_id === $family->tenant_id
-            && ($user->isFamilyOwner($family->id) || $user->isFamilyAdmin($family->id));
+        // Query database directly (bypass cache) to ensure fresh data
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->first();
+        
+        // Allow if user has OWNER or ADMIN role (regardless of tenant_id - families can have cross-tenant members)
+        return $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
     }
 
     /**
@@ -52,7 +57,13 @@ class FamilyRolePolicy
      */
     public function delete(User $user, Family $family): bool
     {
-        return $user->tenant_id === $family->tenant_id && $user->isFamilyOwner($family->id);
+        // Only owners can delete, and they must be from the same tenant as the family
+        // (deletion is more restrictive than other operations)
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->first();
+        
+        return $userRole && $userRole->role === 'OWNER' && $user->tenant_id === $family->tenant_id;
     }
 
     /**
@@ -60,7 +71,12 @@ class FamilyRolePolicy
      */
     public function manageFamily(User $user, Family $family): bool
     {
-        return $user->tenant_id === $family->tenant_id
-            && ($user->isFamilyOwner($family->id) || $user->isFamilyAdmin($family->id));
+        // Query database directly (bypass cache) to ensure fresh data
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->first();
+        
+        // Allow if user has OWNER or ADMIN role (regardless of tenant_id - families can have cross-tenant members)
+        return $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
     }
 }

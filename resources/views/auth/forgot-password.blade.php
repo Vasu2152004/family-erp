@@ -1,7 +1,5 @@
 <x-auth-layout title="Forgot Password" subtitle="Enter your email to receive a password reset link">
-    <form method="POST" action="{{ route('forgot-password') }}" class="space-y-6">
-        @csrf
-
+    <x-form method="POST" action="{{ route('forgot-password') }}">
         @if(session('status'))
             <x-alert type="success" dismissible>
                 {{ session('status') }}
@@ -12,9 +10,7 @@
             Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.
         </p>
 
-        <!-- Email Address -->
-        <div>
-            <x-label for="email" :required="true">Email Address</x-label>
+        <x-form-field label="Email Address" labelFor="email" :required="true" :error="$errors->has('email')">
             <x-input
                 type="email"
                 name="email"
@@ -25,20 +21,17 @@
                 :autofocus="true"
                 :error="$errors->has('email')"
             />
-            @error('email')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
-        </div>
+            <x-error-message field="email" />
+        </x-form-field>
 
-        <!-- Submit Button -->
         <div class="flex items-center justify-between">
-            <a href="{{ route('login') }}" class="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+            <x-link href="{{ route('login') }}" variant="secondary" class="text-sm">
                 Back to login
-            </a>
+            </x-link>
             <x-button type="submit" variant="primary" size="md">
                 Send Reset Link
             </x-button>
         </div>
-    </form>
+    </x-form>
 </x-auth-layout>
 

@@ -4,7 +4,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "build:prod": "NODE_ENV=production vite build --mode production"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

@@ -68,4 +68,11 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('{request}/accept', [\App\Http\Controllers\FamilyMemberRequestController::class, 'accept'])->name('accept');
         Route::post('{request}/reject', [\App\Http\Controllers\FamilyMemberRequestController::class, 'reject'])->name('reject');
     });
+
+    // Notification Routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+        Route::post('{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
+        Route::post('read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
+    });
 });

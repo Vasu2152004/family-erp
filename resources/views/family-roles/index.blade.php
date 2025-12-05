@@ -17,8 +17,13 @@
 
         <!-- Admin Role Request Section -->
         @php
-            $userRole = $family->roles()->where('user_id', Auth::id())->first();
-            $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+            // Use the isOwnerOrAdmin from controller (already calculated with fresh data)
+            // If not set, calculate it fresh
+            if (!isset($isOwnerOrAdmin)) {
+                $userRole = $family->roles()->where('user_id', Auth::id())->first();
+                $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+            }
+            
             $hasActiveAdmins = \App\Models\FamilyUserRole::where('family_id', $family->id)
                 ->whereIn('role', ['OWNER', 'ADMIN'])
                 ->whereHas('user', function ($query) {
@@ -29,56 +34,72 @@
                 ->exists();
         @endphp
 
-        @if(isset($userAdminRequest) && $userAdminRequest)
-            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
-                <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Your Admin Role Request</h2>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
+        @if(isset($userAdminRequest) && $userAdminRequest && !$isOwnerOrAdmin)
+            @if($userAdminRequest->status === 'auto_promoted')
+                <div class="bg-green-50 border border-green-200 rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex items-center space-x-3">
+                        <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
                         <div>
-                            <p class="text-sm text-[var(--color-text-secondary)]">
-                                Request Status: <span class="font-medium text-[var(--color-text-primary)]">Pending</span>
-                            </p>
-                            <p class="text-sm text-[var(--color-text-secondary)] mt-1">
-                                Request Count: <span class="font-medium text-[var(--color-text-primary)]">{{ $userAdminRequest->request_count }} of 3</span>
-                            </p>
+                            <h2 class="text-xl font-bold text-green-800">Congratulations! You've been promoted to ADMIN</h2>
+                            <p class="text-sm text-green-700 mt-1">You have been automatically promoted to ADMIN role after 3 requests with no response from admins.</p>
                         </div>
-                        @if(!$userAdminRequest->canRequestAgain())
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                                <p class="text-sm text-yellow-800 font-medium">
-                                    ⏰ Cooldown Active
+                    </div>
+                </div>
+            @else
+                <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+                    <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Your Admin Role Request</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-[var(--color-text-secondary)]">
+                                    Request Status: <span class="font-medium text-[var(--color-text-primary)]">Pending</span>
                                 </p>
-                                <p class="text-xs text-yellow-600 mt-1">
-                                    You can request again in {{ $userAdminRequest->getDaysUntilNextRequest() }} day(s)
+                                <p class="text-sm text-[var(--color-text-secondary)] mt-1">
+                                    Request Count: <span class="font-medium text-[var(--color-text-primary)]">{{ $userAdminRequest->request_count }} of 3</span>
                                 </p>
                             </div>
-                        @else
-                            <form action="{{ route('families.roles.request-admin', $family) }}" method="POST">
-                                @csrf
-                                <x-button type="submit" variant="primary" size="sm">
-                                    Submit Request #{{ $userAdminRequest->request_count + 1 }}
-                                </x-button>
-                            </form>
+                            @if(!$userAdminRequest->canRequestAgain())
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p class="text-sm text-yellow-800 font-medium">
+                                        ⏰ Cooldown Active
+                                    </p>
+                                    <p class="text-xs text-yellow-600 mt-1">
+                                        You can request again in {{ $userAdminRequest->getDaysUntilNextRequest() }} day(s)
+                                    </p>
+                                </div>
+                            @else
+                                <form action="{{ route('families.roles.request-admin', $family) }}" method="POST">
+                                    @csrf
+                                    <x-button type="submit" variant="primary" size="sm">
+                                        Submit Request #{{ $userAdminRequest->request_count + 1 }}
+                                    </x-button>
+                                </form>
+                            @endif
+                        </div>
+                        @if($userAdminRequest->isEligibleForAutoPromotion())
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Note:</strong> You have submitted 3 requests. You will be automatically promoted to ADMIN role immediately if admins don't respond, regardless of whether active admins exist.
+                                </p>
+                            </div>
                         @endif
                     </div>
-                    @if($userAdminRequest->isEligibleForAutoPromotion())
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <p class="text-sm text-blue-800">
-                                <strong>Note:</strong> You have submitted 3 requests. You will be automatically promoted to ADMIN if no active admins exist.
-                            </p>
-                        </div>
-                    @endif
                 </div>
-            </div>
-        @elseif(!$isOwnerOrAdmin)
+            @endif
+        @endif
+
+        @if(!$isOwnerOrAdmin && (!isset($userAdminRequest) || !$userAdminRequest))
             <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Request Admin Role</h2>
                 @if(!$hasActiveAdmins)
                     <p class="text-sm text-[var(--color-text-secondary)] mb-4">
-                        No active admins exist for this family. You can request admin role. You need to submit 3 requests (with 2 days between each) to be automatically promoted.
+                        No active admins exist for this family. You can request admin role. You need to submit 3 requests (with 2 days between each) to be automatically promoted to ADMIN.
                     </p>
                 @else
                     <p class="text-sm text-[var(--color-text-secondary)] mb-4">
-                        You can request admin role. You need to submit 3 requests (with 2 days between each) to be automatically promoted if no active admins exist.
+                        You can request admin role. You need to submit 3 requests (with 2 days between each) to be automatically promoted to ADMIN if admins don't respond, regardless of whether active admins exist.
                     </p>
                 @endif
                 <form action="{{ route('families.roles.request-admin', $family) }}" method="POST">
@@ -154,7 +175,7 @@
                                                         </form>
                                                     @endif
                                                 @endif
-                                                @if(Auth::user()->isFamilyOwner($family->id) && $role->role !== 'OWNER')
+                                                @if($isOwnerOrAdmin && $role->role !== 'OWNER')
                                                     <button onclick="document.getElementById('editRoleForm{{ $role->id }}').classList.toggle('hidden')" class="px-3 py-1 text-xs border border-[var(--color-border-primary)] rounded-lg text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]">
                                                         Edit
                                                     </button>
@@ -164,7 +185,7 @@
                                     </td>
                                 </tr>
                                 @can('manageFamily', $family)
-                                    @if(Auth::user()->isFamilyOwner($family->id) && $role->role !== 'OWNER')
+                                    @if($isOwnerOrAdmin && $role->role !== 'OWNER')
                                         <!-- Edit Role Form (Hidden by default) -->
                                         <tr id="editRoleForm{{ $role->id }}" class="hidden">
                                             <td colspan="4" class="px-6 py-4 bg-[var(--color-bg-secondary)]">
@@ -246,6 +267,9 @@
                                 <option value="MEMBER">MEMBER</option>
                                 <option value="VIEWER">VIEWER</option>
                             </select>
+                            @if($isOwnerOrAdmin && !Auth::user()->isFamilyOwner($family->id))
+                                <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Note: Only owners can assign OWNER role.</p>
+                            @endif
                             @error('role')
                                 <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
                             @enderror

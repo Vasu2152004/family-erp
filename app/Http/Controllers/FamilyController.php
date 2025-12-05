@@ -101,6 +101,9 @@ class FamilyController extends Controller
     public function show(Family $family): View
     {
         $this->authorize('view', $family);
+        
+        // Check if user should be auto-promoted (if they have 3+ requests)
+        $this->checkAndPromoteIfNeeded($family);
 
         $family->load([
             'members' => fn($q) => $q->orderBy('created_at', 'desc'),
@@ -108,6 +111,47 @@ class FamilyController extends Controller
         ]);
 
         return view('families.show', compact('family'));
+    }
+    
+    /**
+     * Check if user should be auto-promoted and promote if needed.
+     */
+    private function checkAndPromoteIfNeeded(Family $family): void
+    {
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        
+        $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+        
+        if (!$isOwnerOrAdmin) {
+            $userAdminRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+                ->where('user_id', Auth::id())
+                ->whereIn('status', ['pending', 'auto_promoted'])
+                ->first();
+            
+            // If user has auto_promoted status, ensure they have ADMIN role
+            if ($userAdminRequest && $userAdminRequest->status === 'auto_promoted') {
+                $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                    ->where('user_id', Auth::id())
+                    ->first();
+                
+                if (!$userRole || ($userRole->role !== 'OWNER' && $userRole->role !== 'ADMIN')) {
+                    // Role missing or wrong - create/update it
+                    $familyRoleService = app(\App\Services\FamilyRoleService::class);
+                    $familyRoleService->assignRole(Auth::id(), $family->id, 'ADMIN');
+                    \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                }
+            }
+            // If user has 3+ pending requests, try to promote
+            elseif ($userAdminRequest && $userAdminRequest->status === 'pending' && $userAdminRequest->request_count >= 3) {
+                $familyRoleService = app(\App\Services\FamilyRoleService::class);
+                $promotedRole = $familyRoleService->checkAndAutoPromote($family->id, $userAdminRequest->id);
+                if ($promotedRole) {
+                    \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                }
+            }
+        }
     }
 
     /**

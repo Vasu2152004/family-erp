@@ -68,6 +68,16 @@ class User extends Authenticatable
         return $this->hasMany(FamilyUserRole::class);
     }
 
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotifications(): HasMany
+    {
+        return $this->notifications()->whereNull('read_at');
+    }
+
     /**
      * Get user's role for a specific family (cached).
      */

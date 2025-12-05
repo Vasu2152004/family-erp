@@ -67,7 +67,7 @@ class AdminRoleRequest extends Model
             return 0;
         }
 
-        return now()->diffInDays($nextRequestDate, false) + 1;
+        return (int) ceil(now()->diffInDays($nextRequestDate, false) + 1);
     }
 
     /**

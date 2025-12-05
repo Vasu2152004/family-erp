@@ -46,13 +46,83 @@ class FamilyRoleController extends Controller
         // Also get all family members (even if they don't have a role yet)
         $allFamilyMembers = $family->members()->with('user')->get();
 
-        // Get user's admin role request if exists
+        // CRITICAL: Always check for auto-promotion FIRST, before checking current role
+        // This ensures promoted users get their role immediately
+        
+        // Check if user has an auto_promoted request - if so, ensure they have ADMIN role
         $userAdminRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
             ->where('user_id', Auth::id())
-            ->where('status', 'pending')
+            ->where('status', 'auto_promoted')
             ->first();
+        
+        if ($userAdminRequest) {
+            // User was promoted - verify and ensure ADMIN role exists
+            $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                ->where('user_id', Auth::id())
+                ->first();
+            
+            if (!$userRole || ($userRole->role !== 'OWNER' && $userRole->role !== 'ADMIN')) {
+                // Role missing or wrong - create/update it immediately using direct DB update
+                if ($userRole) {
+                    // Update existing role directly using DB query
+                    \Illuminate\Support\Facades\DB::table('family_user_roles')
+                        ->where('id', $userRole->id)
+                        ->update(['role' => 'ADMIN']);
+                } else {
+                    // Create new role
+                    $this->familyRoleService->assignRole(Auth::id(), $family->id, 'ADMIN');
+                }
+                \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                \Illuminate\Support\Facades\Cache::forget("family_roles_{$family->id}");
+                
+                // Refresh to get the new role
+                $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                    ->where('user_id', Auth::id())
+                    ->first();
+            }
+        }
+        
+        // Check for pending requests that need promotion
+        if (!$userAdminRequest || $userAdminRequest->status !== 'auto_promoted') {
+            $pendingRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'pending')
+                ->where('request_count', '>=', 3)
+                ->first();
+            
+            if ($pendingRequest) {
+                $promotedRole = $this->familyRoleService->checkAndAutoPromote($family->id, $pendingRequest->id);
+                if ($promotedRole) {
+                    \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                    \Illuminate\Support\Facades\Cache::forget("family_roles_{$family->id}");
+                    session()->flash('success', 'Congratulations! You have been automatically promoted to ADMIN role after 3 requests with no response from admins.');
+                    
+                    // Refresh to get the new role
+                    $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                        ->where('user_id', Auth::id())
+                        ->first();
+                }
+            }
+        }
+        
+        // Now get the current role (after ensuring promotion is handled)
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+        
+        // Only show request UI if user is NOT admin/owner
+        if ($isOwnerOrAdmin) {
+            $userAdminRequest = null;
+        } else {
+            // Get pending request for display
+            $userAdminRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
+                ->where('user_id', Auth::id())
+                ->whereIn('status', ['pending', 'auto_promoted'])
+                ->first();
+        }
 
-        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers'));
+        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers', 'isOwnerOrAdmin'));
     }
 
     /**
@@ -67,6 +137,13 @@ class FamilyRoleController extends Controller
             'role' => ['required', Rule::in(['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'])],
             'is_backup_admin' => ['boolean'],
         ]);
+
+        // Only owners can assign OWNER role
+        if ($validated['role'] === 'OWNER' && !Auth::user()->isFamilyOwner($family->id)) {
+            return redirect()->back()
+                ->withErrors(['role' => 'Only owners can assign OWNER role.'])
+                ->withInput();
+        }
 
         $this->familyRoleService->assignRole(
             (int) $validated['user_id'],
@@ -127,9 +204,9 @@ class FamilyRoleController extends Controller
             if ($adminRequest->request_count >= 3) {
                 // Check if user was auto-promoted
                 if ($adminRequest->status === 'auto_promoted') {
-                    $message = "Congratulations! You have been automatically promoted to ADMIN role after 3 requests.";
+                    $message = "Congratulations! You have been automatically promoted to ADMIN role after 3 requests with no response from admins.";
                 } else {
-                    $message .= " You will be automatically promoted if no active admins exist.";
+                    $message .= " You will be automatically promoted to ADMIN if admins don't respond. Promotion happens immediately after 3 requests if no response is received.";
                 }
             } else {
                 $message .= " You can request again after 2 days from your last request.";

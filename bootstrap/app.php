@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => \App\Http\Middleware\EnsureTenantAccess::class,
         ]);
+        
+        // Add performance headers globally
+        $middleware->append(\App\Http\Middleware\AddPerformanceHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

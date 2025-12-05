@@ -17,21 +17,39 @@ class FamilyRoleService
         return DB::transaction(function () use ($userId, $familyId, $role, $isBackupAdmin) {
             $family = \App\Models\Family::findOrFail($familyId);
 
-            $userRole = FamilyUserRole::updateOrCreate(
-                [
+            // Find existing role or create new one
+            $userRole = FamilyUserRole::where('family_id', $familyId)
+                ->where('user_id', $userId)
+                ->first();
+
+            if ($userRole) {
+                // Force update existing role using direct DB query to ensure it works
+                DB::table('family_user_roles')
+                    ->where('id', $userRole->id)
+                    ->update([
+                        'role' => $role,
+                        'is_backup_admin' => $isBackupAdmin,
+                        'tenant_id' => $family->tenant_id,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                // Create new role
+                $userRole = FamilyUserRole::create([
+                    'tenant_id' => $family->tenant_id,
                     'family_id' => $familyId,
                     'user_id' => $userId,
-                ],
-                [
-                    'tenant_id' => $family->tenant_id,
                     'role' => $role,
                     'is_backup_admin' => $isBackupAdmin,
-                ]
-            );
+                ]);
+            }
 
+            // Clear all caches
             $this->clearRoleCache($userId, $familyId);
-
-            return $userRole;
+            
+            // Return fresh instance from database (not from model cache)
+            return FamilyUserRole::where('family_id', $familyId)
+                ->where('user_id', $userId)
+                ->firstOrFail();
         });
     }
 
@@ -103,9 +121,44 @@ class FamilyRoleService
                 $request->save();
             }
 
-            // If this is the 3rd request, check for auto-promotion
+            // Get requesting user
+            $requestingUser = \App\Models\User::findOrFail($userId);
+
+            // Get all admins and owners for this family (excluding deceased)
+            $adminsAndOwners = FamilyUserRole::where('family_id', $familyId)
+                ->whereIn('role', ['OWNER', 'ADMIN'])
+                ->whereHas('user', function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereHas('familyMember', function ($memberQuery) {
+                            $memberQuery->where('is_deceased', false);
+                        })->orWhereDoesntHave('familyMember');
+                    });
+                })
+                ->with('user')
+                ->get();
+
+            // Create notifications for all admins and owners
+            foreach ($adminsAndOwners as $role) {
+                \App\Models\Notification::create([
+                    'tenant_id' => $family->tenant_id,
+                    'user_id' => $role->user_id,
+                    'type' => 'admin_role_request',
+                    'title' => 'Admin Role Request',
+                    'message' => "{$requestingUser->name} has requested admin role for {$family->name}. This is request #{$request->request_count} of 3.",
+                    'data' => [
+                        'family_id' => $familyId,
+                        'family_name' => $family->name,
+                        'request_id' => $request->id,
+                        'requesting_user_id' => $userId,
+                        'requesting_user_name' => $requestingUser->name,
+                        'request_count' => $request->request_count,
+                    ],
+                ]);
+            }
+
+            // If this is the 3rd request, check for auto-promotion immediately
             if ($request->request_count >= 3) {
-                $promotedRole = $this->checkAndAutoPromote($familyId);
+                $promotedRole = $this->checkAndAutoPromote($familyId, $request->id);
                 if ($promotedRole) {
                     $request->refresh();
                 }
@@ -115,11 +168,26 @@ class FamilyRoleService
         });
     }
 
-    public function checkAndAutoPromote(int $familyId): ?FamilyUserRole
+    public function checkAndAutoPromote(int $familyId, ?int $specificRequestId = null): ?FamilyUserRole
     {
-        return DB::transaction(function () use ($familyId) {
+        return DB::transaction(function () use ($familyId, $specificRequestId) {
+            // Find the eligible request (3+ requests, pending status)
+            $query = AdminRoleRequest::where('family_id', $familyId)
+                ->where('status', 'pending')
+                ->where('request_count', '>=', 3);
+            
+            // If specific request ID provided, check that one first
+            if ($specificRequestId) {
+                $query->where('id', $specificRequestId);
+            }
+            
+            $request = $query->orderBy('last_requested_at', 'asc')->first();
+
+            if (!$request) {
+                return null;
+            }
+
             // Check for active OWNER or ADMIN roles (excluding deceased members)
-            // A user is active if they don't have a familyMember OR their familyMember is not deceased
             $activeAdmins = FamilyUserRole::where('family_id', $familyId)
                 ->whereIn('role', ['OWNER', 'ADMIN'])
                 ->whereHas('user', function ($query) {
@@ -131,29 +199,79 @@ class FamilyRoleService
                 })
                 ->exists();
 
-            // If active admins exist, don't auto-promote
-            if ($activeAdmins) {
-                return null;
+            // Check if any admin/owner has responded to this request's notifications
+            // Response means they read the notification (indicating awareness)
+            // Get all notifications for this request and check if any are read
+            $notifications = \App\Models\Notification::where('type', 'admin_role_request')
+                ->get()
+                ->filter(function($notification) use ($request) {
+                    $data = $notification->data ?? [];
+                    return isset($data['request_id']) && $data['request_id'] == $request->id;
+                });
+            
+            $hasResponse = $notifications->contains(function($notification) {
+                return $notification->read_at !== null;
+            });
+
+            // Auto-promote conditions (regardless of active admins):
+            // 1. If NO active admins exist → immediate promotion
+            // 2. If active admins exist BUT no response → also auto-promote
+            //    - Immediately on 3rd request if no response yet
+            //    - OR after 2 days from 3rd request if still no response
+            $shouldAutoPromote = false;
+            
+            if (!$activeAdmins) {
+                // No active admins - immediate auto-promotion
+                $shouldAutoPromote = true;
+            } elseif ($request->request_count >= 3 && !$hasResponse) {
+                // Active admins exist but haven't responded
+                // Auto-promote immediately on 3rd request (no waiting period)
+                $shouldAutoPromote = true;
             }
 
-            // Find the first eligible request (3+ requests, pending status)
-            $request = AdminRoleRequest::where('family_id', $familyId)
-                ->where('status', 'pending')
-                ->where('request_count', '>=', 3)
-                ->orderBy('last_requested_at', 'asc')
-                ->first();
-
-            if (!$request) {
-                return null;
+            if ($shouldAutoPromote) {
+                // Force assign ADMIN role (will update existing MEMBER/VIEWER role or create new)
+                $role = $this->assignRole($request->user_id, $familyId, 'ADMIN', false);
+                
+                // Double-check: Query database directly to verify role was set
+                $verifiedRole = FamilyUserRole::where('family_id', $familyId)
+                    ->where('user_id', $request->user_id)
+                    ->first();
+                
+                // If role is still not ADMIN, force update it directly using DB query
+                if (!$verifiedRole || $verifiedRole->role !== 'ADMIN') {
+                    if ($verifiedRole) {
+                        // Update existing using raw DB query to bypass any model issues
+                        DB::table('family_user_roles')
+                            ->where('id', $verifiedRole->id)
+                            ->update(['role' => 'ADMIN', 'updated_at' => now()]);
+                    } else {
+                        // Create new
+                        $family = \App\Models\Family::findOrFail($familyId);
+                        DB::table('family_user_roles')->insert([
+                            'tenant_id' => $family->tenant_id,
+                            'family_id' => $familyId,
+                            'user_id' => $request->user_id,
+                            'role' => 'ADMIN',
+                            'is_backup_admin' => false,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    // Get fresh instance
+                    $role = FamilyUserRole::where('family_id', $familyId)
+                        ->where('user_id', $request->user_id)
+                        ->firstOrFail();
+                }
+                
+                $request->update(['status' => 'auto_promoted']);
+                $this->clearRoleCache($request->user_id, $familyId);
+                
+                return $role;
             }
 
-            // Auto-promote to ADMIN role
-            $role = $this->assignRole($request->user_id, $familyId, 'ADMIN');
-            $request->update(['status' => 'auto_promoted']);
-
-            $this->clearRoleCache($request->user_id, $familyId);
-
-            return $role;
+            // Admins have responded, don't auto-promote
+            return null;
         });
     }
 

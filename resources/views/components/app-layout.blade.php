@@ -7,74 +7,76 @@
 
     <title>{{ $title ?? 'Dashboard' }} - {{ config('app.name', 'Family ERP') }}</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
+    <!-- Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.bunny.net">
+    <link rel="preload" href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet"></noscript>
 
     <!-- Styles / Scripts -->
-    @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <style>
-            body { font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; }
-        </style>
-    @endif
+    <x-asset-loader />
 </head>
-<body class="min-h-screen bg-[var(--color-bg-secondary)]">
-    <nav class="bg-[var(--color-bg-primary)] border-b border-[var(--color-border-primary)]">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex">
-                    <div class="flex-shrink-0 flex items-center">
-                        <a href="{{ route('dashboard') }}" class="text-xl font-bold text-[var(--color-text-primary)]">
-                            {{ config('app.name', 'Family ERP') }}
-                        </a>
-                    </div>
-                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                        <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary)]">
-                            Dashboard
-                        </a>
-                        <a href="{{ route('families.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary)]">
-                            Families
-                        </a>
-                        <a href="{{ route('family-member-requests.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-primary)]">
-                            Requests
-                        </a>
-                    </div>
+<body class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+    <!-- Sidebar -->
+    <x-sidebar />
+
+    <!-- Main Content Area -->
+    <div class="lg:pl-64 min-h-screen">
+        <!-- Top Navigation Bar -->
+        <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
+            <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
+                <!-- Mobile Menu Button -->
+                <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+
+                <!-- Page Title -->
+                <div class="flex-1 lg:flex-none">
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                        {{ $title ?? 'Dashboard' }}
+                    </h1>
                 </div>
-                <div class="flex items-center">
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <x-button type="submit" variant="outline" size="sm">
-                            Logout
-                        </x-button>
-                    </form>
+
+                <!-- User Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Notifications (Optional) -->
+                    <button class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors relative">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
-        </div>
-    </nav>
+        </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        @if(session('success'))
-            <x-alert type="success" dismissible class="mb-6">
-                {{ session('success') }}
-            </x-alert>
-        @endif
+        <!-- Main Content -->
+        <main class="p-4 sm:p-6 lg:p-8">
+            <!-- Flash Messages -->
+            @if(session('success'))
+                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
+                    {{ session('success') }}
+                </x-alert>
+            @endif
 
-        @if(session('info'))
-            <x-alert type="info" dismissible class="mb-6">
-                {{ session('info') }}
-            </x-alert>
-        @endif
+            @if(session('info'))
+                <x-alert type="info" dismissible class="mb-6 animate-fade-in">
+                    {{ session('info') }}
+                </x-alert>
+            @endif
 
-        @if(session('error'))
-            <x-alert type="error" dismissible class="mb-6">
-                {{ session('error') }}
-            </x-alert>
-        @endif
+            @if(session('error'))
+                <x-alert type="error" dismissible class="mb-6 animate-fade-in">
+                    {{ session('error') }}
+                </x-alert>
+            @endif
 
-        {{ $slot }}
-    </main>
+            {{ $slot }}
+        </main>
+    </div>
 </body>
 </html>
+
+
 
