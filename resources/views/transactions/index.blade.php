@@ -113,7 +113,14 @@
                                         {{ $transaction->category?->name ?? 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                                        {{ $transaction->familyMember ? $transaction->familyMember->first_name . ' ' . $transaction->familyMember->last_name : 'N/A' }}
+                                        <div class="flex items-center gap-2">
+                                            {{ $transaction->familyMember ? $transaction->familyMember->first_name . ' ' . $transaction->familyMember->last_name : 'N/A' }}
+                                            @if($transaction->is_shared)
+                                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800" title="Shared with other members">
+                                                    👁️ Shared
+                                                </span>
+                                            @endif
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                                         @if($transaction->budget)

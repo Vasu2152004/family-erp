@@ -25,7 +25,6 @@ class Transaction extends Model
         'transaction_date',
         'is_shared',
         'transfer_to_account_id',
-        'budget_allocation',
         'budget_id',
     ];
 

@@ -35,7 +35,6 @@ class TransactionService
                 'transaction_date' => $data['transaction_date'],
                 'is_shared' => $data['is_shared'] ?? false,
                 'transfer_to_account_id' => $data['transfer_to_account_id'] ?? null,
-                'budget_allocation' => $data['budget_allocation'] ?? null,
                 'budget_id' => $data['budget_id'] ?? null,
             ]);
 
@@ -70,9 +69,8 @@ class TransactionService
                 'amount' => $data['amount'] ?? $transaction->amount,
                 'description' => $data['description'] ?? $transaction->description,
                 'transaction_date' => $data['transaction_date'] ?? $transaction->transaction_date,
-                'is_shared' => $data['is_shared'] ?? $transaction->is_shared,
+                'is_shared' => isset($data['is_shared']) ? (bool) $data['is_shared'] : $transaction->is_shared,
                 'transfer_to_account_id' => $data['transfer_to_account_id'] ?? $transaction->transfer_to_account_id,
-                'budget_allocation' => $data['budget_allocation'] ?? $transaction->budget_allocation,
                 'budget_id' => $data['budget_id'] ?? $transaction->budget_id,
             ]);
 

@@ -182,11 +182,14 @@ class TransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'transaction_date' => ['required', 'date'],
-            'is_shared' => ['boolean'],
+            'is_shared' => ['nullable', 'boolean'],
             'transfer_to_account_id' => ['required_if:type,TRANSFER', 'nullable', 'exists:finance_accounts,id'],
-            'budget_allocation' => ['required_if:type,EXPENSE', 'nullable', 'in:personal,family,both'],
+            'budget_allocation' => ['nullable', 'in:personal,family,both'],
             'budget_id' => ['nullable', 'exists:budgets,id'],
         ]);
+        
+        // Convert checkbox value to boolean (checkbox sends "1" when checked, nothing when unchecked)
+        $validated['is_shared'] = (bool) ($request->has('is_shared') && $request->input('is_shared') == '1');
 
         $this->transactionService->createTransaction(
             $validated,
@@ -283,10 +286,13 @@ class TransactionController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'description' => ['nullable', 'string'],
             'transaction_date' => ['required', 'date'],
-            'is_shared' => ['boolean'],
-            'budget_allocation' => ['required_if:type,EXPENSE', 'nullable', 'in:personal,family,both'],
+            'is_shared' => ['nullable', 'boolean'],
+            'budget_allocation' => ['nullable', 'in:personal,family,both'],
             'budget_id' => ['nullable', 'exists:budgets,id'],
         ]);
+        
+        // Convert checkbox value to boolean (checkbox sends "1" when checked, nothing when unchecked)
+        $validated['is_shared'] = (bool) ($request->has('is_shared') && $request->input('is_shared') == '1');
 
         $this->transactionService->updateTransaction($transaction->id, $validated);
 
