@@ -128,4 +128,74 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
         Route::post('read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
     });
+
+    // Inventory Routes (nested under families)
+    Route::prefix('families/{family}')->name('families.')->group(function () {
+        // Inventory Categories
+        Route::prefix('inventory/categories')->name('inventory.categories.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\InventoryCategoryController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\InventoryCategoryController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\InventoryCategoryController::class, 'store'])->name('store');
+            Route::get('{category}/edit', [\App\Http\Controllers\InventoryCategoryController::class, 'edit'])->name('edit');
+            Route::patch('{category}', [\App\Http\Controllers\InventoryCategoryController::class, 'update'])->name('update');
+            Route::delete('{category}', [\App\Http\Controllers\InventoryCategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        // Inventory Items
+        Route::prefix('inventory/items')->name('inventory.items.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\InventoryItemController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\InventoryItemController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\InventoryItemController::class, 'store'])->name('store');
+            Route::get('{item}/edit', [\App\Http\Controllers\InventoryItemController::class, 'edit'])->name('edit');
+            Route::patch('{item}', [\App\Http\Controllers\InventoryItemController::class, 'update'])->name('update');
+            Route::delete('{item}', [\App\Http\Controllers\InventoryItemController::class, 'destroy'])->name('destroy');
+            Route::patch('{item}/quantity', [\App\Http\Controllers\InventoryItemController::class, 'updateQuantity'])->name('update-quantity');
+        });
+
+        // Shopping List
+        Route::prefix('shopping-list')->name('shopping-list.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\ShoppingListController::class, 'index'])->name('index');
+            Route::post('/', [\App\Http\Controllers\ShoppingListController::class, 'store'])->name('store');
+            Route::patch('{item}', [\App\Http\Controllers\ShoppingListController::class, 'update'])->name('update');
+            Route::delete('{item}', [\App\Http\Controllers\ShoppingListController::class, 'destroy'])->name('destroy');
+            Route::patch('{item}/purchased', [\App\Http\Controllers\ShoppingListController::class, 'markPurchased'])->name('mark-purchased');
+            Route::patch('{item}/pending', [\App\Http\Controllers\ShoppingListController::class, 'markPending'])->name('mark-pending');
+            Route::post('auto-add-low-stock', [\App\Http\Controllers\ShoppingListController::class, 'autoAddLowStock'])->name('auto-add-low-stock');
+            Route::delete('purchased/clear', [\App\Http\Controllers\ShoppingListController::class, 'clearPurchased'])->name('clear-purchased');
+        });
+    });
+
+    // Standalone Inventory Routes (for easier access)
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\InventoryCategoryController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\InventoryCategoryController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\InventoryCategoryController::class, 'store'])->name('store');
+            Route::get('{category}/edit', [\App\Http\Controllers\InventoryCategoryController::class, 'edit'])->name('edit');
+            Route::patch('{category}', [\App\Http\Controllers\InventoryCategoryController::class, 'update'])->name('update');
+            Route::delete('{category}', [\App\Http\Controllers\InventoryCategoryController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('items')->name('items.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\InventoryItemController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\InventoryItemController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\InventoryItemController::class, 'store'])->name('store');
+            Route::get('{item}/edit', [\App\Http\Controllers\InventoryItemController::class, 'edit'])->name('edit');
+            Route::patch('{item}', [\App\Http\Controllers\InventoryItemController::class, 'update'])->name('update');
+            Route::patch('{item}/quantity', [\App\Http\Controllers\InventoryItemController::class, 'updateQuantity'])->name('update-quantity');
+            Route::delete('{item}', [\App\Http\Controllers\InventoryItemController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // Standalone Shopping List Routes
+    Route::prefix('shopping-list')->name('shopping-list.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ShoppingListController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ShoppingListController::class, 'store'])->name('store');
+        Route::patch('{item}', [\App\Http\Controllers\ShoppingListController::class, 'update'])->name('update');
+        Route::delete('{item}', [\App\Http\Controllers\ShoppingListController::class, 'destroy'])->name('destroy');
+        Route::patch('{item}/purchased', [\App\Http\Controllers\ShoppingListController::class, 'markPurchased'])->name('mark-purchased');
+        Route::patch('{item}/pending', [\App\Http\Controllers\ShoppingListController::class, 'markPending'])->name('mark-pending');
+        Route::post('auto-add-low-stock', [\App\Http\Controllers\ShoppingListController::class, 'autoAddLowStock'])->name('auto-add-low-stock');
+        Route::delete('purchased/clear', [\App\Http\Controllers\ShoppingListController::class, 'clearPurchased'])->name('clear-purchased');
+    });
 });

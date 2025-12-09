@@ -90,7 +90,6 @@ class FinanceAccountController extends Controller
         return redirect()->route('finance.accounts.index', ['family_id' => $family->id])
             ->with('success', 'Finance account created successfully.');
     }
-    }
 
     /**
      * Show the form for editing the specified finance account.
