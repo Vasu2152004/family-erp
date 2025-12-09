@@ -31,7 +31,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Register the policy
+        // Register policies
         Gate::policy(Family::class, FamilyRolePolicy::class);
+        Gate::policy(\App\Models\FinanceAccount::class, \App\Policies\FinanceAccountPolicy::class);
+        Gate::policy(\App\Models\Transaction::class, \App\Policies\TransactionPolicy::class);
+        Gate::policy(\App\Models\Budget::class, \App\Policies\BudgetPolicy::class);
     }
 }

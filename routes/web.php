@@ -64,6 +64,57 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('roles/reject-admin-request', [\App\Http\Controllers\FamilyRoleController::class, 'rejectAdminRoleRequest'])->name('roles.reject-admin-request');
     });
 
+    // Finance Routes (Standalone - not nested under families)
+    Route::prefix('finance')->name('finance.')->group(function () {
+        // Finance Dashboard/Index
+        Route::get('/', [\App\Http\Controllers\FinanceController::class, 'index'])->name('index');
+        
+        // Finance Accounts
+        Route::resource('accounts', \App\Http\Controllers\FinanceAccountController::class)->names([
+            'index' => 'accounts.index',
+            'create' => 'accounts.create',
+            'store' => 'accounts.store',
+            'edit' => 'accounts.edit',
+            'update' => 'accounts.update',
+            'destroy' => 'accounts.destroy',
+        ]);
+        
+        // Transactions
+        Route::resource('transactions', \App\Http\Controllers\TransactionController::class);
+        
+        // Budgets
+        Route::resource('budgets', \App\Http\Controllers\BudgetController::class);
+        
+        // Analytics
+        Route::get('analytics', [\App\Http\Controllers\FinanceAnalyticsController::class, 'dashboard'])->name('analytics.dashboard');
+        Route::get('analytics/monthly-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMonthlyData'])->name('analytics.monthly-data');
+        Route::get('analytics/member-wise-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMemberWiseData'])->name('analytics.member-wise-data');
+    });
+
+    // Legacy Finance Routes (nested under families) - Keep for backward compatibility
+    Route::prefix('families/{family}')->name('families.')->group(function () {
+        // Finance Accounts
+        Route::resource('finance-accounts', \App\Http\Controllers\FinanceAccountController::class)->names([
+            'index' => 'finance-accounts.index',
+            'create' => 'finance-accounts.create',
+            'store' => 'finance-accounts.store',
+            'edit' => 'finance-accounts.edit',
+            'update' => 'finance-accounts.update',
+            'destroy' => 'finance-accounts.destroy',
+        ]);
+        
+        // Transactions
+        Route::resource('transactions', \App\Http\Controllers\TransactionController::class);
+        
+        // Budgets
+        Route::resource('budgets', \App\Http\Controllers\BudgetController::class);
+        
+        // Analytics
+        Route::get('finance-analytics', [\App\Http\Controllers\FinanceAnalyticsController::class, 'dashboard'])->name('finance-analytics.dashboard');
+        Route::get('finance-analytics/monthly-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMonthlyData'])->name('finance-analytics.monthly-data');
+        Route::get('finance-analytics/member-wise-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMemberWiseData'])->name('finance-analytics.member-wise-data');
+    });
+
     // Family Member Request Routes
     Route::prefix('family-member-requests')->name('family-member-requests.')->group(function () {
         Route::get('/', [\App\Http\Controllers\FamilyMemberRequestController::class, 'index'])->name('index');

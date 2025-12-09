@@ -1,5 +1,10 @@
 <x-app-layout title="{{ $family->name }}">
     <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => $family->name]
+        ]" />
+
         <!-- Family Header -->
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <div class="flex items-center justify-between mb-6">
@@ -209,6 +214,21 @@
                 @endif
             </div>
         @endif
+
+        <!-- Finance Section - Quick Link -->
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Finance & Expenses</h2>
+                    <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                        Manage all finance activities for this family
+                    </p>
+                </div>
+                <a href="{{ route('finance.index', ['family_id' => $family->id]) }}">
+                    <x-button variant="primary" size="md">Go to Finance Module</x-button>
+                </a>
+            </div>
+        </div>
 
         <!-- Roles Section -->
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">

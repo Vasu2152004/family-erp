@@ -1,5 +1,11 @@
 <x-app-layout title="Family Roles: {{ $family->name }}">
     <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => $family->name, 'url' => route('families.show', $family)],
+            ['label' => 'Roles & Permissions']
+        ]" />
+
         <!-- Family Header -->
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <div class="flex items-center justify-between mb-6">
@@ -9,9 +15,6 @@
                         Manage roles and permissions for {{ $family->name }}
                     </p>
                 </div>
-                <a href="{{ route('families.show', $family) }}">
-                    <x-button variant="outline" size="md">Back to Family</x-button>
-                </a>
             </div>
         </div>
 

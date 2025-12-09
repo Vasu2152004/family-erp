@@ -38,6 +38,25 @@
 
     <!-- Navigation Menu -->
     <nav class="flex-1 overflow-y-auto py-4 px-3">
+        @php
+            $user = Auth::user();
+            $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)->pluck('family_id');
+            $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id');
+            $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
+            $accessibleFamilies = \App\Models\Family::whereIn('id', $familyIds)->orderBy('name')->get();
+            $activeFamily = request()->route('family') ?? $accessibleFamilies->first();
+
+            $familyRoutes = [
+                'families.index',
+                'families.create',
+                'families.show',
+                'families.edit',
+                'families.members.*',
+                'families.roles.*',
+                'family-member-requests.*',
+            ];
+
+        @endphp
         <ul class="space-y-1">
             <li>
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
@@ -47,14 +66,25 @@
                     <span class="font-medium">Dashboard</span>
                 </a>
             </li>
+
             <li>
-                <a href="{{ route('families.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('families.*') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                <a href="{{ route('families.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs($familyRoutes) ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     <span class="font-medium">Families</span>
                 </a>
             </li>
+
+            <li>
+                <a href="{{ route('finance.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('finance.*') ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="font-medium">Finance</span>
+                </a>
+            </li>
+
             <li>
                 <a href="{{ route('notifications.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

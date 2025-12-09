@@ -1,11 +1,17 @@
 <x-app-layout title="Family Member Requests">
-    <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Family Member Requests</h1>
-            <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
-                Review requests to join your family groups.
-            </p>
-        </div>
+    <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Family Member Requests']
+        ]" />
+
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Family Member Requests</h1>
+                <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    Review requests to join your family groups.
+                </p>
+            </div>
 
         @if($pendingRequests->count() > 0)
             <div class="space-y-6">
@@ -62,6 +68,7 @@
                 <p class="text-[var(--color-text-secondary)]">You're all caught up!</p>
             </div>
         @endif
+        </div>
     </div>
 </x-app-layout>
 

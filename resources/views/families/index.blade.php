@@ -1,18 +1,24 @@
 <x-app-layout title="Families">
-    <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Families</h1>
-                <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
-                    Manage your family groups and members
-                </p>
+    <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Families']
+        ]" />
+
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Families</h1>
+                    <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                        Manage your family groups and members
+                    </p>
+                </div>
+                <a href="{{ route('families.create') }}">
+                    <x-button variant="primary" size="md">
+                        Create Family
+                    </x-button>
+                </a>
             </div>
-            <a href="{{ route('families.create') }}">
-                <x-button variant="primary" size="md">
-                    Create Family
-                </x-button>
-            </a>
-        </div>
 
         @if($families->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,6 +77,8 @@
         @endif
     </div>
 </x-app-layout>
+
+
 
 
 

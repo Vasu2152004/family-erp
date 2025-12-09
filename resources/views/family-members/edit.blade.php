@@ -1,11 +1,20 @@
 <x-app-layout title="Edit Family Member: {{ $member->first_name }} {{ $member->last_name }}">
-    <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
-        <div class="mb-6">
-            <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Edit Family Member</h1>
-            <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
-                Update information for {{ $member->first_name }} {{ $member->last_name }}
-            </p>
-        </div>
+    <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => $family->name, 'url' => route('families.show', $family)],
+            ['label' => 'Members', 'url' => route('families.show', $family) . '#members'],
+            ['label' => $member->first_name . ' ' . $member->last_name, 'url' => route('families.members.show', [$family, $member])],
+            ['label' => 'Edit']
+        ]" />
+
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Edit Family Member</h1>
+                <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                    Update information for {{ $member->first_name }} {{ $member->last_name }}
+                </p>
+            </div>
 
         <form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6">
             @csrf
@@ -165,6 +174,9 @@
                 </a>
             </div>
         </form>
+        </div>
     </div>
 </x-app-layout>
+
+
 

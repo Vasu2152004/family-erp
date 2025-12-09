@@ -1,4 +1,8 @@
 <x-app-layout title="Dashboard">
+    <x-breadcrumb :items="[
+        ['label' => 'Dashboard']
+    ]" />
+
     @php
         $user = Auth::user();
         $familiesCount = \App\Models\FamilyUserRole::where('user_id', $user->id)
@@ -9,6 +13,15 @@
         $pendingRequestsCount = \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
             ->where('status', 'pending')
             ->count();
+        
+        // Get unread notifications, especially budget alerts
+        $unreadNotifications = $user->unreadNotifications()->orderBy('created_at', 'desc')->get();
+        $budgetAlerts = $unreadNotifications->filter(function($notification) {
+            return in_array($notification->type, ['budget_alert', 'budget_exceeded']);
+        });
+        $otherNotifications = $unreadNotifications->filter(function($notification) {
+            return !in_array($notification->type, ['budget_alert', 'budget_exceeded']);
+        });
     @endphp
 
     <!-- Welcome Section -->
@@ -22,6 +35,99 @@
             </div>
         </div>
     </div>
+
+    <!-- Budget Alerts - Prominent Section -->
+    @if($budgetAlerts->count() > 0)
+        <div class="mb-8 bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-2xl shadow-2xl p-6 border-4 border-red-600 animate-pulse">
+            <div class="bg-white/95 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-red-600">⚠️ Budget Alerts</h2>
+                            <p class="text-sm text-gray-600">Urgent attention required</p>
+                        </div>
+                    </div>
+                    <a href="{{ route('notifications.index') }}" class="px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors shadow-lg">
+                        View All ({{ $budgetAlerts->count() }})
+                    </a>
+                </div>
+                <div class="space-y-3 max-h-64 overflow-y-auto">
+                    @foreach($budgetAlerts->take(3) as $alert)
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-red-800 mb-1">{{ $alert->title }}</h3>
+                                    <p class="text-sm text-gray-700">{{ $alert->message }}</p>
+                                    @if($alert->data && isset($alert->data['family_id']))
+                                        @php
+                                            $family = \App\Models\Family::find($alert->data['family_id']);
+                                        @endphp
+                                        @if($family)
+                                            <a href="{{ route('finance.budgets.index', ['family_id' => $family->id]) }}" class="text-xs text-red-600 hover:text-red-800 font-semibold mt-2 inline-block">
+                                                View Budgets →
+                                            </a>
+                                        @endif
+                                    @endif
+                                </div>
+                                <form action="{{ route('notifications.read', $alert) }}" method="POST" class="ml-4">
+                                    @csrf
+                                    <button type="submit" class="text-gray-400 hover:text-gray-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @if($budgetAlerts->count() > 3)
+                    <div class="mt-4 text-center">
+                        <a href="{{ route('notifications.index') }}" class="text-red-600 font-semibold hover:text-red-800">
+                            View {{ $budgetAlerts->count() - 3 }} more alert(s) →
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- Other Important Notifications -->
+    @if($otherNotifications->count() > 0)
+        <div class="mb-8 bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">Other Notifications</h2>
+                <a href="{{ route('notifications.index') }}" class="text-blue-600 hover:text-blue-800 font-semibold text-sm">
+                    View All →
+                </a>
+            </div>
+            <div class="space-y-3">
+                @foreach($otherNotifications->take(3) as $notification)
+                    <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-gray-800 mb-1">{{ $notification->title }}</h3>
+                                <p class="text-sm text-gray-600">{{ $notification->message }}</p>
+                            </div>
+                            <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-4">
+                                @csrf
+                                <button type="submit" class="text-gray-400 hover:text-gray-600">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

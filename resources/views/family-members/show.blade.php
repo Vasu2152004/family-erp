@@ -1,5 +1,12 @@
 <x-app-layout title="Family Member: {{ $member->first_name }} {{ $member->last_name }}">
     <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => $family->name, 'url' => route('families.show', $family)],
+            ['label' => 'Members', 'url' => route('families.show', $family) . '#members'],
+            ['label' => $member->first_name . ' ' . $member->last_name]
+        ]" />
+
         <!-- Header -->
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <div class="flex items-center justify-between mb-6">
@@ -10,9 +17,6 @@
                     </p>
                 </div>
                 <div class="flex gap-2">
-                    <a href="{{ route('families.show', $family) }}">
-                        <x-button variant="outline" size="md">Back to Family</x-button>
-                    </a>
                     @can('manageFamily', $family)
                         <a href="{{ route('families.members.edit', [$family, $member]) }}">
                             <x-button variant="primary" size="md">Edit Member</x-button>
@@ -157,4 +161,6 @@
         @endcan
     </div>
 </x-app-layout>
+
+
 

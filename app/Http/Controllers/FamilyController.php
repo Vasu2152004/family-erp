@@ -91,6 +91,10 @@ class FamilyController extends Controller
             'is_backup_admin' => false,
         ]);
 
+        // Seed predefined transaction categories for this family
+        $seeder = new \Database\Seeders\TransactionCategorySeeder();
+        $seeder->seedForFamily($user->tenant_id, $family->id);
+
         return redirect()->route('families.show', $family)
             ->with('success', 'Family created successfully. You are now the owner.');
     }
