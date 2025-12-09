@@ -39,27 +39,58 @@
     <!-- Navigation Menu -->
     <nav class="flex-1 overflow-y-auto py-4 px-3">
         @php
+            $routeName = request()->route()?->getName();
             $user = Auth::user();
             $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)->pluck('family_id');
             $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id');
             $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
             $accessibleFamilies = \App\Models\Family::whereIn('id', $familyIds)->orderBy('name')->get();
-            $activeFamily = request()->route('family') ?? $accessibleFamilies->first();
+            
+            // Get active family - ensure it's a model instance, not a string/ID
+            $routeFamily = request()->route('family');
+            if ($routeFamily instanceof \App\Models\Family) {
+                $activeFamily = $routeFamily;
+            } elseif (is_numeric($routeFamily)) {
+                $activeFamily = \App\Models\Family::find($routeFamily) ?? $accessibleFamilies->first();
+            } else {
+                $activeFamily = $accessibleFamilies->first();
+            }
 
-            $familyRoutes = [
-                'families.index',
-                'families.create',
-                'families.show',
-                'families.edit',
-                'families.members.*',
-                'families.roles.*',
-                'family-member-requests.*',
-            ];
+            $currentRouteName = request()->route()?->getName() ?? '';
+            $currentPath = request()->path();
+            
+            $match = function (array $routes, array $paths = []) use ($currentRouteName, $currentPath) {
+                // Check route names with wildcard support
+                foreach ($routes as $pattern) {
+                    // Convert Laravel wildcard pattern to regex
+                    $regex = '/^' . str_replace(['*', '.'], ['.*', '\.'], $pattern) . '$/';
+                    if (preg_match($regex, $currentRouteName)) {
+                        return true;
+                    }
+                }
+                
+                // Use Laravel's routeIs() as fallback
+                if (request()->routeIs($routes)) {
+                    return true;
+                }
+                
+                // Fallback to URL path matching
+                foreach ($paths as $path) {
+                    if (request()->is($path) || str_contains($currentPath, trim($path, '/*'))) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            };
 
+            $activeClasses = 'nav-active';
+            $inactiveClasses = 'nav-inactive';
         @endphp
         <ul class="space-y-1">
             <li>
-                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                @php $isActive = $match(['dashboard'], ['dashboard']); @endphp
+                <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
@@ -68,7 +99,21 @@
             </li>
 
             <li>
-                <a href="{{ route('families.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs($familyRoutes) ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                @php
+                    // Families should be active for family routes, but NOT for inventory or shopping-list
+                    $currentRoute = request()->route()?->getName() ?? '';
+                    $isActive = (
+                        (str_starts_with($currentRoute, 'families.') && 
+                         !str_starts_with($currentRoute, 'families.inventory.') &&
+                         !str_starts_with($currentRoute, 'families.shopping-list.') &&
+                         !str_starts_with($currentRoute, 'families.transactions.') &&
+                         !str_starts_with($currentRoute, 'families.budgets.') &&
+                         !str_starts_with($currentRoute, 'families.finance-accounts.') &&
+                         !str_starts_with($currentRoute, 'families.finance-analytics.')) ||
+                        str_starts_with($currentRoute, 'family-member-requests.')
+                    );
+                @endphp
+                <a href="{{ route('families.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
@@ -77,7 +122,26 @@
             </li>
 
             <li>
-                <a href="{{ route('finance.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('finance.*') ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                @php
+                    $isActive = $match(
+                        [
+                            'finance.*',
+                            'finance-accounts.*',
+                            'families.finance-accounts.*',
+                            'families.transactions.*',
+                            'families.budgets.*',
+                            'families.finance-analytics.*',
+                        ],
+                        [
+                            'finance*',
+                            'families/*/finance-*',
+                            'families/*/transactions*',
+                            'families/*/budgets*',
+                            'families/*/finance-analytics*',
+                        ]
+                    );
+                @endphp
+                <a href="{{ route('finance.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -87,7 +151,23 @@
 
             @if($activeFamily)
                 <li>
-                    <a href="{{ route('inventory.items.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('inventory.*') ? 'bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-lg shadow-orange-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                    @php
+                        $isActive = $match(
+                            [
+                                'inventory.*',
+                                'inventory.items.*',
+                                'inventory.categories.*',
+                                'families.inventory.*',
+                                'families.inventory.items.*',
+                                'families.inventory.categories.*',
+                            ],
+                            [
+                                'inventory*',
+                                'families/*/inventory*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.inventory.items.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                         </svg>
@@ -96,7 +176,19 @@
                 </li>
 
                 <li>
-                    <a href="{{ route('shopping-list.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('shopping-list.*') ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                    @php
+                        $isActive = $match(
+                            [
+                                'shopping-list.*',
+                                'families.shopping-list.*',
+                            ],
+                            [
+                                'shopping-list*',
+                                'families/*/shopping-list*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.shopping-list.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                         </svg>
@@ -106,7 +198,13 @@
             @endif
 
             <li>
-                <a href="{{ route('notifications.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ request()->routeIs('notifications.*') ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30' : 'text-gray-300 hover:bg-gray-700/50 hover:text-white' }}">
+                @php
+                    $isActive = $match(
+                        ['notifications.*'],
+                        ['notifications*']
+                    );
+                @endphp
+                <a href="{{ route('notifications.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                     </svg>

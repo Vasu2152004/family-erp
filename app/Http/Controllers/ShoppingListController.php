@@ -39,19 +39,29 @@ class ShoppingListController extends Controller
 
         $pendingItems = ShoppingListItem::where('family_id', $family->id)
             ->pending()
-            ->with(['inventoryItem', 'addedBy'])
+            ->with([
+                'inventoryItem:id,name,unit,family_id',
+                'addedBy:id,name'
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
         $purchasedItems = ShoppingListItem::where('family_id', $family->id)
             ->purchased()
-            ->with(['inventoryItem', 'addedBy', 'purchasedBy'])
+            ->with([
+                'inventoryItem:id,name,unit,family_id',
+                'addedBy:id,name',
+                'purchasedBy:id,name'
+            ])
             ->orderBy('purchased_at', 'desc')
             ->limit(20)
             ->get();
 
+        // Only load inventory items that might be needed for the dropdown (limit to 100 most recent)
         $inventoryItems = InventoryItem::where('family_id', $family->id)
+            ->select('id', 'name', 'unit', 'family_id')
             ->orderBy('name')
+            ->limit(100)
             ->get();
 
         return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems'));

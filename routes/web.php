@@ -183,6 +183,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('{item}/edit', [\App\Http\Controllers\InventoryItemController::class, 'edit'])->name('edit');
             Route::patch('{item}', [\App\Http\Controllers\InventoryItemController::class, 'update'])->name('update');
             Route::patch('{item}/quantity', [\App\Http\Controllers\InventoryItemController::class, 'updateQuantity'])->name('update-quantity');
+            Route::post('{item}/batches', [\App\Http\Controllers\InventoryItemController::class, 'storeBatch'])->name('store-batch');
             Route::delete('{item}', [\App\Http\Controllers\InventoryItemController::class, 'destroy'])->name('destroy');
         });
     });

@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
+use App\Models\InventoryItemBatch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 
@@ -90,7 +91,7 @@ class InventoryService
             $item->update([
                 'category_id' => $data['category_id'] ?? $item->category_id,
                 'name' => $data['name'] ?? $item->name,
-                'qty' => $data['qty'] ?? $item->qty,
+                'qty' => $data['qty'] ?? $item->qty, // qty is a base quantity; batches are additive
                 'min_qty' => $data['min_qty'] ?? $item->min_qty,
                 'expiry_date' => $data['expiry_date'] ?? $item->expiry_date,
                 'unit' => $data['unit'] ?? $item->unit,
@@ -110,7 +111,35 @@ class InventoryService
     {
         DB::transaction(function () use ($itemId) {
             $item = InventoryItem::findOrFail($itemId);
+            // Delete batches first to maintain integrity
+            $item->batches()->delete();
             $item->delete();
+        });
+    }
+
+    /**
+     * Add a new batch (lot) to an inventory item.
+     */
+    public function addBatch(array $data, int $tenantId, int $familyId): InventoryItemBatch
+    {
+        return DB::transaction(function () use ($data, $tenantId, $familyId) {
+            $item = InventoryItem::findOrFail($data['inventory_item_id']);
+
+            $batch = InventoryItemBatch::create([
+                'tenant_id' => $tenantId,
+                'family_id' => $familyId,
+                'inventory_item_id' => $item->id,
+                'qty' => $data['qty'],
+                'unit' => $data['unit'] ?? $item->unit ?? 'piece',
+                'expiry_date' => $data['expiry_date'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'added_by' => $data['added_by'] ?? auth()->id(),
+            ]);
+
+            // Increment base qty to reflect total stock
+            $item->increment('qty', $batch->qty);
+
+            return $batch;
         });
     }
 
@@ -120,9 +149,14 @@ class InventoryService
     public function checkLowStock(int $familyId): Collection
     {
         return InventoryItem::where('family_id', $familyId)
-            ->lowStock()
+            ->withSum('batches', 'qty')
             ->with(['category', 'createdBy'])
-            ->get();
+            ->get()
+            ->filter(function (InventoryItem $item) {
+                $total = (float) $item->qty + (float) ($item->batches_sum_qty ?? 0);
+                return $total < (float) $item->min_qty;
+            })
+            ->values();
     }
 
     /**

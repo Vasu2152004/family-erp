@@ -88,18 +88,19 @@
                                         {{ $item->category?->name ?? 'Uncategorized' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
-                                        {{ number_format($item->qty, 2) }} {{ $item->unit }}
+                                        {{ number_format($item->getTotalQty(), 2) }} {{ $item->unit }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                                         {{ number_format($item->min_qty, 2) }} {{ $item->unit }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                                        @if($item->expiry_date)
-                                            @php
-                                                $daysUntilExpiry = $item->daysUntilExpiry();
-                                            @endphp
+                                        @php
+                                            $earliestExpiry = $item->getEarliestExpiryDate();
+                                            $daysUntilExpiry = $item->daysUntilExpiry();
+                                        @endphp
+                                        @if($earliestExpiry)
                                             <span class="{{ $daysUntilExpiry !== null && $daysUntilExpiry <= 7 ? 'text-red-600 font-semibold' : '' }}">
-                                                {{ $item->expiry_date->format('M d, Y') }}
+                                                {{ $earliestExpiry->format('M d, Y') }}
                                                 @if($daysUntilExpiry !== null && $daysUntilExpiry <= 7)
                                                     <span class="text-xs">({{ $daysUntilExpiry }} days)</span>
                                                 @endif

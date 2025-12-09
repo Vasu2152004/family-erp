@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class InventoryItem extends Model
 {
@@ -64,6 +65,11 @@ class InventoryItem extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function batches(): HasMany
+    {
+        return $this->hasMany(InventoryItemBatch::class, 'inventory_item_id');
+    }
+
     public function shoppingListItems(): HasMany
     {
         return $this->hasMany(ShoppingListItem::class, 'inventory_item_id');
@@ -90,7 +96,7 @@ class InventoryItem extends Model
      */
     public function scopeLowStock(Builder $query): Builder
     {
-        return $query->whereColumn('qty', '<', 'min_qty');
+        return $query->whereRaw('(qty + COALESCE((SELECT SUM(qty) FROM inventory_item_batches WHERE inventory_item_batches.inventory_item_id = inventory_items.id), 0)) < min_qty');
     }
 
     /**
@@ -99,9 +105,11 @@ class InventoryItem extends Model
     public function scopeExpiringSoon(Builder $query, int $days = 7): Builder
     {
         $date = Carbon::now()->addDays($days);
-        return $query->whereNotNull('expiry_date')
-            ->where('expiry_date', '<=', $date)
-            ->where('expiry_date', '>=', Carbon::now());
+        return $query->whereHas('batches', function ($q) use ($date) {
+            $q->whereNotNull('expiry_date')
+              ->where('expiry_date', '<=', $date)
+              ->where('expiry_date', '>=', Carbon::now());
+        });
     }
 
     /**
@@ -109,7 +117,28 @@ class InventoryItem extends Model
      */
     public function isLowStock(): bool
     {
-        return $this->qty < $this->min_qty;
+        return $this->getTotalQty() < $this->min_qty;
+    }
+
+    /**
+     * Get total quantity including batches.
+     */
+    public function getTotalQty(): float
+    {
+        // If batches_total_qty was pre-calculated using withSum, use it
+        if (isset($this->attributes['batches_total_qty'])) {
+            return (float) $this->qty + (float) ($this->attributes['batches_total_qty'] ?? 0);
+        }
+        
+        // If batches are loaded, use them; otherwise use a single efficient query
+        if ($this->relationLoaded('batches')) {
+            $batchesQty = (float) $this->batches->sum('qty');
+        } else {
+            // Use a single aggregate query instead of loading all batches
+            $batchesQty = (float) $this->batches()->sum('qty');
+        }
+
+        return (float) $this->qty + $batchesQty;
     }
 
     /**
@@ -117,11 +146,31 @@ class InventoryItem extends Model
      */
     public function daysUntilExpiry(): ?int
     {
-        if (!$this->expiry_date) {
+        $earliestExpiry = $this->getEarliestExpiryDate();
+        if (!$earliestExpiry) {
             return null;
         }
 
-        return Carbon::now()->diffInDays($this->expiry_date, false);
+        return (int) Carbon::now()->diffInDays($earliestExpiry, false);
+    }
+
+    /**
+     * Get earliest expiry date from batches.
+     */
+    public function getEarliestExpiryDate(): ?Carbon
+    {
+        // If earliest_expiry_date was pre-calculated using withMin, use it
+        if (isset($this->attributes['earliest_expiry_date'])) {
+            return $this->attributes['earliest_expiry_date'] ? Carbon::parse($this->attributes['earliest_expiry_date']) : null;
+        }
+        
+        if ($this->relationLoaded('batches')) {
+            $earliest = $this->batches->whereNotNull('expiry_date')->min('expiry_date');
+            return $earliest ? Carbon::parse($earliest) : null;
+        }
+        
+        $earliest = $this->batches()->whereNotNull('expiry_date')->min('expiry_date');
+        return $earliest ? Carbon::parse($earliest) : null;
     }
 
     /**

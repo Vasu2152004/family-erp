@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
             $table->foreignId('inventory_item_id')->constrained('inventory_items')->onDelete('cascade');
             $table->decimal('qty', 10, 2)->default(0);
-            $table->date('expiry_date')->nullable();
             $table->enum('unit', ['piece', 'kg', 'liter', 'gram', 'ml', 'pack', 'box', 'bottle', 'other'])->default('piece');
+            $table->date('expiry_date')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('added_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();

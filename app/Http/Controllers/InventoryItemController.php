@@ -38,7 +38,17 @@ class InventoryItemController extends Controller
         $this->authorize('viewAny', [InventoryItem::class, $family]);
 
         $query = InventoryItem::where('family_id', $family->id)
-            ->with(['category', 'createdBy']);
+            ->with([
+                'category:id,name,color,icon',
+                'createdBy:id,name',
+                'batches' => function ($q) {
+                    $q->select('id', 'inventory_item_id', 'qty', 'unit', 'expiry_date', 'notes')
+                      ->orderBy('expiry_date')
+                      ->orderBy('created_at');
+                }
+            ])
+            ->withSum('batches as batches_total_qty', 'qty')
+            ->withMin('batches as earliest_expiry_date', 'expiry_date');
 
         // Apply filters
         if ($request->filled('category_id')) {
@@ -140,6 +150,10 @@ class InventoryItemController extends Controller
             ->orderBy('name')
             ->get();
 
+        $item->load(['batches' => function ($query) {
+            $query->orderBy('expiry_date')->orderBy('created_at');
+        }, 'batches.addedBy']);
+
         return view('inventory.items.edit', compact('family', 'item', 'categories'));
     }
 
@@ -175,6 +189,43 @@ class InventoryItemController extends Controller
 
         return redirect()->route('inventory.items.index', ['family_id' => $family->id])
             ->with('success', 'Inventory item updated successfully.');
+    }
+
+    /**
+     * Add a new batch/lot to an inventory item.
+     */
+    public function storeBatch(Request $request, InventoryItem $item): RedirectResponse
+    {
+        $family = $this->getActiveFamily($request->input('family_id'));
+        if (!$family) {
+            $family = Family::find($item->family_id);
+        }
+
+        if (!$family) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Family not found.');
+        }
+
+        $this->authorize('update', $item);
+
+        $validated = $request->validate([
+            'qty' => ['required', 'numeric', 'min:0.01'],
+            'unit' => ['required', 'in:piece,kg,liter,gram,ml,pack,box,bottle,other'],
+            'expiry_date' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        $this->inventoryService->addBatch(
+            array_merge($validated, [
+                'inventory_item_id' => $item->id,
+                'added_by' => Auth::id(),
+            ]),
+            $family->tenant_id,
+            $family->id
+        );
+
+        return redirect()->route('inventory.items.edit', ['item' => $item->id, 'family_id' => $family->id])
+            ->with('success', 'Batch added successfully.');
     }
 
     /**
