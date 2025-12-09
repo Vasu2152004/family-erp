@@ -106,6 +106,7 @@
                         (str_starts_with($currentRoute, 'families.') && 
                          !str_starts_with($currentRoute, 'families.inventory.') &&
                          !str_starts_with($currentRoute, 'families.shopping-list.') &&
+                         !str_starts_with($currentRoute, 'families.calendar.') &&
                          !str_starts_with($currentRoute, 'families.transactions.') &&
                          !str_starts_with($currentRoute, 'families.budgets.') &&
                          !str_starts_with($currentRoute, 'families.finance-accounts.') &&
@@ -174,6 +175,27 @@
                         <span class="font-medium">Inventory</span>
                     </a>
                 </li>
+
+            <li>
+                @php
+                    $isActive = $match(
+                        [
+                            'calendar.*',
+                            'families.calendar.*',
+                        ],
+                        [
+                            'calendar*',
+                            'families/*/calendar*',
+                        ]
+                    );
+                @endphp
+                <a href="{{ route('families.calendar.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span class="font-medium">Calendar</span>
+                </a>
+            </li>
 
                 <li>
                     @php

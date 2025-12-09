@@ -36,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\FinanceAccount::class, \App\Policies\FinanceAccountPolicy::class);
         Gate::policy(\App\Models\Transaction::class, \App\Policies\TransactionPolicy::class);
         Gate::policy(\App\Models\Budget::class, \App\Policies\BudgetPolicy::class);
+        Gate::policy(\App\Models\CalendarEvent::class, \App\Policies\CalendarEventPolicy::class);
     }
 }

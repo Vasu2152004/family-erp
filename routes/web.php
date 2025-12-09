@@ -163,6 +163,16 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::post('auto-add-low-stock', [\App\Http\Controllers\ShoppingListController::class, 'autoAddLowStock'])->name('auto-add-low-stock');
             Route::delete('purchased/clear', [\App\Http\Controllers\ShoppingListController::class, 'clearPurchased'])->name('clear-purchased');
         });
+
+        // Calendar
+        Route::prefix('calendar')->name('calendar.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\CalendarController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\CalendarController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\CalendarController::class, 'store'])->name('store');
+            Route::get('{event}/edit', [\App\Http\Controllers\CalendarController::class, 'edit'])->name('edit');
+            Route::patch('{event}', [\App\Http\Controllers\CalendarController::class, 'update'])->name('update');
+            Route::delete('{event}', [\App\Http\Controllers\CalendarController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Standalone Inventory Routes (for easier access)
