@@ -13,11 +13,13 @@
                         Manage your family groups and members
                     </p>
                 </div>
-                <a href="{{ route('families.create') }}">
-                    <x-button variant="primary" size="md">
-                        Create Family
-                    </x-button>
-                </a>
+                @unless($hasFamily)
+                    <a href="{{ route('families.create') }}">
+                        <x-button variant="primary" size="md">
+                            Create Family
+                        </x-button>
+                    </a>
+                @endunless
             </div>
 
         @if($families->count() > 0)
@@ -68,11 +70,13 @@
         @else
             <div class="text-center py-12">
                 <p class="text-[var(--color-text-secondary)] mb-4">No families found.</p>
-                <a href="{{ route('families.create') }}">
-                    <x-button variant="primary" size="md">
-                        Create Your First Family
-                    </x-button>
-                </a>
+                @unless($hasFamily)
+                    <a href="{{ route('families.create') }}">
+                        <x-button variant="primary" size="md">
+                            Create Your First Family
+                        </x-button>
+                    </a>
+                @endunless
             </div>
         @endif
     </div>

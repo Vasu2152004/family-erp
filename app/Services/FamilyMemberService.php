@@ -46,6 +46,14 @@ class FamilyMemberService
             // Verify user exists (allow cross-tenant users)
             $user = \App\Models\User::findOrFail($userId);
 
+            // Ensure user is not part of any other family
+            $existingMembership = FamilyMember::where('user_id', $userId)->first();
+            if ($existingMembership) {
+                throw ValidationException::withMessages([
+                    'user_id' => ['This user already belongs to a family. A user can be part of only one family.'],
+                ]);
+            }
+
             // Check if user is already a member of this family
             $existingMember = FamilyMember::where('user_id', $userId)
                 ->where('family_id', $familyId)
@@ -93,6 +101,18 @@ class FamilyMemberService
 
                 if ($user) {
                     $data['user_id'] = $user->id;
+                }
+            }
+
+            // If linking a user, ensure not in another family
+            if (isset($data['user_id']) && $data['user_id'] && $member->user_id !== $data['user_id']) {
+                $existingMembership = FamilyMember::where('user_id', $data['user_id'])
+                    ->where('id', '<>', $memberId)
+                    ->first();
+                if ($existingMembership) {
+                    throw ValidationException::withMessages([
+                        'user_id' => ['This user already belongs to a family. A user can be part of only one family.'],
+                    ]);
                 }
             }
 

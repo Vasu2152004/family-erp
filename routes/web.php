@@ -174,6 +174,49 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::delete('{event}', [\App\Http\Controllers\CalendarController::class, 'destroy'])->name('destroy');
         });
 
+        // Health & Medical
+        Route::prefix('health')->name('health.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\HealthController::class, 'index'])->name('index');
+
+            Route::resource('records', \App\Http\Controllers\MedicalRecordController::class)
+                ->names([
+                    'index' => 'records.index',
+                    'create' => 'records.create',
+                    'store' => 'records.store',
+                    'show' => 'records.show',
+                    'edit' => 'records.edit',
+                    'update' => 'records.update',
+                    'destroy' => 'records.destroy',
+                ]);
+
+            Route::resource('visits', \App\Http\Controllers\DoctorVisitController::class)
+                ->names([
+                    'index' => 'visits.index',
+                    'create' => 'visits.create',
+                    'store' => 'visits.store',
+                    'show' => 'visits.show',
+                    'edit' => 'visits.edit',
+                    'update' => 'visits.update',
+                    'destroy' => 'visits.destroy',
+                ]);
+
+            Route::post('visits/{visit}/prescriptions', [\App\Http\Controllers\PrescriptionController::class, 'store'])
+                ->name('visits.prescriptions.store');
+            Route::patch('visits/{visit}/prescriptions/{prescription}', [\App\Http\Controllers\PrescriptionController::class, 'update'])
+                ->name('visits.prescriptions.update');
+            Route::delete('visits/{visit}/prescriptions/{prescription}', [\App\Http\Controllers\PrescriptionController::class, 'destroy'])
+                ->name('visits.prescriptions.destroy');
+            Route::get('visits/{visit}/prescriptions/{prescription}/download', [\App\Http\Controllers\PrescriptionController::class, 'download'])
+                ->name('visits.prescriptions.download');
+
+            Route::post('visits/{visit}/prescriptions/{prescription}/reminders', [\App\Http\Controllers\MedicineReminderController::class, 'store'])
+                ->name('visits.prescriptions.reminders.store');
+            Route::patch('visits/{visit}/prescriptions/{prescription}/reminders/{reminder}', [\App\Http\Controllers\MedicineReminderController::class, 'update'])
+                ->name('visits.prescriptions.reminders.update');
+            Route::delete('visits/{visit}/prescriptions/{prescription}/reminders/{reminder}', [\App\Http\Controllers\MedicineReminderController::class, 'destroy'])
+                ->name('visits.prescriptions.reminders.destroy');
+        });
+
         // Documents
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');

@@ -112,7 +112,8 @@
                          !str_starts_with($currentRoute, 'families.finance-accounts.') &&
                          !str_starts_with($currentRoute, 'families.finance-analytics.') &&
                          !str_starts_with($currentRoute, 'families.documents.') &&
-                         !str_starts_with($currentRoute, 'families.document-types.')) ||
+                         !str_starts_with($currentRoute, 'families.document-types.') &&
+                         !str_starts_with($currentRoute, 'families.health.')) ||
                         str_starts_with($currentRoute, 'family-member-requests.')
                     );
                 @endphp
@@ -198,6 +199,25 @@
                     <span class="font-medium">Calendar</span>
                 </a>
             </li>
+
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
+                                'families.health.*',
+                            ],
+                            [
+                                'families/*/health*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.health.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6m14 0a10 10 0 11-20 0 10 10 0 0120 0z"></path>
+                        </svg>
+                        <span class="font-medium">Health</span>
+                    </a>
+                </li>
 
                 <li>
                     @php

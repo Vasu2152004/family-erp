@@ -19,3 +19,6 @@ Schedule::command('calendar:send-reminders')->everyFiveMinutes();
 
 // Document expiry reminders daily at 8 AM
 Schedule::command('documents:send-expiry-reminders')->dailyAt('08:00');
+
+// Medicine reminders every 5 minutes
+Schedule::command('health:send-medicine-reminders')->everyFiveMinutes();

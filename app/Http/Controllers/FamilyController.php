@@ -33,13 +33,15 @@ class FamilyController extends Controller
         // Merge and get unique family IDs
         $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
         
+        $hasFamily = $familyIds->isNotEmpty();
+
         // Get families by IDs
         $families = Family::whereIn('id', $familyIds)
             ->withCount(['members', 'roles'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('families.index', compact('families'));
+        return view('families.index', compact('families', 'hasFamily'));
     }
 
     /**
