@@ -16,3 +16,6 @@ Schedule::command('inventory:check-low-stock')->dailyAt('09:00');
 
 // Send calendar event reminders every 5 minutes
 Schedule::command('calendar:send-reminders')->everyFiveMinutes();
+
+// Document expiry reminders daily at 8 AM
+Schedule::command('documents:send-expiry-reminders')->dailyAt('08:00');

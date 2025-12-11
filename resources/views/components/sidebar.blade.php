@@ -201,6 +201,25 @@
                     @php
                         $isActive = $match(
                             [
+                                'families.documents.*',
+                            ],
+                            [
+                                'families/*/documents*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.documents.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 11h10M7 15h6m5-8V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14l4-4h8a2 2 0 002-2z"></path>
+                        </svg>
+                        <span class="font-medium">Documents</span>
+                    </a>
+                </li>
+
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
                                 'shopping-list.*',
                                 'families.shopping-list.*',
                             ],

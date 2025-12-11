@@ -173,6 +173,24 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::patch('{event}', [\App\Http\Controllers\CalendarController::class, 'update'])->name('update');
             Route::delete('{event}', [\App\Http\Controllers\CalendarController::class, 'destroy'])->name('destroy');
         });
+
+        // Documents
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\DocumentController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
+            Route::post('{document}/verify-password', [\App\Http\Controllers\DocumentController::class, 'verifyPassword'])->name('verify-password');
+            Route::get('{document}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
+            Route::post('{document}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download.post');
+            Route::patch('{document}', [\App\Http\Controllers\DocumentController::class, 'update'])->name('update');
+            Route::delete('{document}', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
+        });
+
+        // Document Types
+        Route::prefix('document-types')->name('document-types.')->group(function () {
+            Route::post('/', [\App\Http\Controllers\DocumentTypeController::class, 'store'])->name('store');
+            Route::delete('{documentType}', [\App\Http\Controllers\DocumentTypeController::class, 'destroy'])->name('destroy');
+        });
     });
 
     // Standalone Inventory Routes (for easier access)

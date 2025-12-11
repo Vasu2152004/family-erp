@@ -20,8 +20,22 @@ return new class extends Migration
             });
         }
 
-        // Drop the old unique constraint if it exists
+        // SQLite does not expose information_schema; handle unique swap directly
         $connection = Schema::getConnection();
+        if ($connection->getDriverName() === 'sqlite') {
+            Schema::table('budgets', function (Blueprint $table) {
+                try {
+                    $table->dropUnique('budgets_family_id_category_id_month_year_unique');
+                } catch (\Throwable $e) {
+                    // ignore if unique index name differs
+                }
+                $table->unique(['family_id', 'family_member_id', 'category_id', 'month', 'year'], 'budgets_unique');
+            });
+
+            return;
+        }
+
+        // Drop the old unique constraint if it exists
         $database = $connection->getDatabaseName();
         
         // Find and drop the old unique constraint

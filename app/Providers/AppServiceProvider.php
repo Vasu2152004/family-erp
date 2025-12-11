@@ -6,6 +6,8 @@ use App\Models\Family;
 use App\Policies\FamilyRolePolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Document;
+use App\Policies\DocumentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,5 +39,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\Transaction::class, \App\Policies\TransactionPolicy::class);
         Gate::policy(\App\Models\Budget::class, \App\Policies\BudgetPolicy::class);
         Gate::policy(\App\Models\CalendarEvent::class, \App\Policies\CalendarEventPolicy::class);
+        Gate::policy(Document::class, DocumentPolicy::class);
     }
 }

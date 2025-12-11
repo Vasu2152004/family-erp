@@ -5,7 +5,7 @@ FAMILY ERP SYSTEM – DETAILED PRODUCT REQUIREMENTS DOCUMENT (PRD)
 0. INTRODUCTION
 This PRD describes the complete functional requirements for a multi-tenant Family ERP System. It
 includes modules for family management, finance, inventory, health, documents, tasks, assets, and
-special rules such as hidden investments with password unlock and admin override.
+special rules such as hidden investments with password unlock for all users.
 
 ------------------------------
 
@@ -64,8 +64,10 @@ date_of_death.
 5. DOCUMENT STORAGE MODULE
 - Upload PDFs/images for:
 - Aadhaar, PAN, Passport, Property papers, Insurance, Certificates
-- Sensitive documents:
-- Only OWNER, ADMIN, and that member can access.
+- Sensitive documents (always password-protected):
+- Any member with the document password can view/edit/download.
+- Everyone (including OWNER/ADMIN) must enter password to access sensitive documents.
+- Sensitive docs remain accessible only to OWNER, ADMIN, and the linked member (with password requirement).
 - Auto-expiry reminders for:
 - Passport
 - Driving license
@@ -99,7 +101,7 @@ date_of_death.
 - Visible only to creator + OWNER/ADMIN.
 - Locked notes (optional):
 - Require PIN to unlock.
-- OWNER/ADMIN can bypass lock.
+- Everyone (including OWNER/ADMIN) must enter PIN to unlock locked notes.
 
 ------------------------------
 
@@ -122,8 +124,7 @@ date_of_death.
 - Hidden Investments:
 - User can mark investment as hidden.
 - Hidden investments store details encrypted.
-- Normal users must enter PIN to unlock.
-- ADMIN/OWNER can bypass the password and view directly.
+- Everyone (including ADMIN/OWNER) must enter PIN to unlock hidden investments.
 - Investment Access Logs:
 - Tracks view, unlock attempts, and edits.
 

@@ -32,7 +32,9 @@ $viteAssetsAvailable = file_exists(public_path('build/manifest.json')) || file_e
         })();
     </script>
     
-    {{-- Load Fallback JavaScript from external file --}}
+    {{-- Load Fallback JavaScript from external files --}}
     <script src="{{ asset('js/fallback.js') }}" defer></script>
+    {{-- Documents interactions (downloads/password modal) --}}
+    <script src="{{ asset('js/documents.js') }}" defer></script>
 @endif
 
