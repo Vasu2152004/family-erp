@@ -110,7 +110,9 @@
                          !str_starts_with($currentRoute, 'families.transactions.') &&
                          !str_starts_with($currentRoute, 'families.budgets.') &&
                          !str_starts_with($currentRoute, 'families.finance-accounts.') &&
-                         !str_starts_with($currentRoute, 'families.finance-analytics.')) ||
+                         !str_starts_with($currentRoute, 'families.finance-analytics.') &&
+                         !str_starts_with($currentRoute, 'families.documents.') &&
+                         !str_starts_with($currentRoute, 'families.document-types.')) ||
                         str_starts_with($currentRoute, 'family-member-requests.')
                     );
                 @endphp

@@ -29,15 +29,77 @@ class DocumentController extends Controller
     {
         $family = $this->resolveFamilyForUser($family, $request->user());
 
-        $documents = Document::where('tenant_id', $request->user()->tenant_id)
+        $query = Document::where('tenant_id', $request->user()->tenant_id)
             ->where('family_id', $family->id)
             ->with(['familyMember', 'uploader'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->string('search')->trim();
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('original_name', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('document_type')) {
+            $type = $request->string('document_type')->trim();
+            $query->where('document_type', (string) $type);
+        }
+
+        if ($request->filled('family_member_id')) {
+            $memberId = $request->integer('family_member_id');
+            $query->where('family_member_id', $memberId);
+        }
+
+        if ($request->filled('sensitive')) {
+            $sensitive = $request->string('sensitive')->trim();
+            $query->where('is_sensitive', $sensitive === '1');
+        }
+
+        if ($request->filled('expiry')) {
+            $expiry = $request->string('expiry')->trim();
+            if ($expiry == 'with_expiry') {
+                $query->whereNotNull('expires_at');
+            } elseif ($expiry == 'no_expiry') {
+                $query->whereNull('expires_at');
+            } elseif ($expiry == 'expired') {
+                $query->whereNotNull('expires_at')->whereDate('expires_at', '<', now()->toDateString());
+            }
+        }
+
+        $documents = $query->paginate(12)->appends($request->query());
+
+        $members = FamilyMember::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
+            ->alive()
+            ->orderBy('first_name')
+            ->get();
+
+        $builtInTypes = collect(Document::TYPES)->map(fn($type) => [
+            'value' => $type,
+            'label' => str_replace('_', ' ', $type),
+            'is_system' => true,
+        ]);
+
+        $customTypes = DocumentType::where('tenant_id', $request->user()->tenant_id)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($type) => [
+                'value' => $type->slug,
+                'label' => $type->name,
+                'is_system' => false,
+            ]);
+
+        $allTypes = $builtInTypes->merge($customTypes);
 
         return view('documents.index', [
             'family' => $family,
             'documents' => $documents,
+            'filters' => $request->only(['search', 'document_type', 'family_member_id', 'sensitive', 'expiry']),
+            'documentTypes' => $allTypes->toArray(),
+            'members' => $members,
         ]);
     }
 

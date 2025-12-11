@@ -7,18 +7,76 @@
         ]" />
 
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Family Documents</h2>
-                    <p class="text-sm text-[var(--color-text-secondary)]">
-                        Securely store IDs, passports, insurance papers, and certificates with password protection.
-                    </p>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Family Documents</h2>
+                        <p class="text-sm text-[var(--color-text-secondary)]">
+                            Securely store IDs, passports, insurance papers, and certificates with password protection.
+                        </p>
+                    </div>
+                    @can('create', [\App\Models\Document::class, $family->id])
+                        <a href="{{ route('families.documents.create', ['family' => $family->id]) }}">
+                            <x-button variant="primary" size="md">Upload Document</x-button>
+                        </a>
+                    @endcan
                 </div>
-                @can('create', [\App\Models\Document::class, $family->id])
-                    <a href="{{ route('families.documents.create', ['family' => $family->id]) }}">
-                        <x-button variant="primary" size="md">Upload Document</x-button>
-                    </a>
-                @endcan
+
+                <form method="GET" action="{{ route('families.documents.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Search</label>
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Title or filename" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Type</label>
+                        <select name="document_type" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option value="">All types</option>
+                            @foreach($documentTypes as $type)
+                                <option value="{{ $type['value'] }}" @selected(($filters['document_type'] ?? '') === $type['value'])>
+                                    {{ $type['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Linked Member</label>
+                        <select name="family_member_id" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option value="">All members</option>
+                            @foreach($members as $member)
+                                <option value="{{ $member->id }}" @selected(($filters['family_member_id'] ?? '') == $member->id)>
+                                    {{ $member->first_name }} {{ $member->last_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm text-[var(--color-text-secondary)]">Sensitivity</label>
+                            <select name="sensitive" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <option value="">All</option>
+                                <option value="1" @selected(($filters['sensitive'] ?? '') === '1')>Sensitive</option>
+                                <option value="0" @selected(($filters['sensitive'] ?? '') === '0')>Not sensitive</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm text-[var(--color-text-secondary)]">Expiry</label>
+                            <select name="expiry" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <option value="">All</option>
+                                <option value="with_expiry" @selected(($filters['expiry'] ?? '') === 'with_expiry')>Has expiry</option>
+                                <option value="expired" @selected(($filters['expiry'] ?? '') === 'expired')>Expired</option>
+                                <option value="no_expiry" @selected(($filters['expiry'] ?? '') === 'no_expiry')>No expiry</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-4 flex flex-wrap gap-2 justify-end">
+                        <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
+                        <a href="{{ route('families.documents.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
+                    </div>
+                </form>
             </div>
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
