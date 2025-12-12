@@ -230,6 +230,37 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('{task}/logs', [\App\Http\Controllers\TaskLogController::class, 'index'])->name('logs.index');
         });
 
+        // Vehicles
+        Route::prefix('vehicles')->name('vehicles.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\VehicleController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\VehicleController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\VehicleController::class, 'store'])->name('store');
+            Route::get('{vehicle}', [\App\Http\Controllers\VehicleController::class, 'show'])->name('show');
+            Route::get('{vehicle}/edit', [\App\Http\Controllers\VehicleController::class, 'edit'])->name('edit');
+            Route::patch('{vehicle}', [\App\Http\Controllers\VehicleController::class, 'update'])->name('update');
+            Route::delete('{vehicle}', [\App\Http\Controllers\VehicleController::class, 'destroy'])->name('destroy');
+            
+            // Service Logs
+            Route::prefix('{vehicle}/service-logs')->name('service-logs.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\ServiceLogController::class, 'index'])->name('index');
+                Route::get('create', [\App\Http\Controllers\ServiceLogController::class, 'create'])->name('create');
+                Route::post('/', [\App\Http\Controllers\ServiceLogController::class, 'store'])->name('store');
+                Route::get('{serviceLog}/edit', [\App\Http\Controllers\ServiceLogController::class, 'edit'])->name('edit');
+                Route::patch('{serviceLog}', [\App\Http\Controllers\ServiceLogController::class, 'update'])->name('update');
+                Route::delete('{serviceLog}', [\App\Http\Controllers\ServiceLogController::class, 'destroy'])->name('destroy');
+            });
+            
+            // Fuel Entries
+            Route::prefix('{vehicle}/fuel-entries')->name('fuel-entries.')->group(function () {
+                Route::get('/', [\App\Http\Controllers\FuelEntryController::class, 'index'])->name('index');
+                Route::get('create', [\App\Http\Controllers\FuelEntryController::class, 'create'])->name('create');
+                Route::post('/', [\App\Http\Controllers\FuelEntryController::class, 'store'])->name('store');
+                Route::get('{fuelEntry}/edit', [\App\Http\Controllers\FuelEntryController::class, 'edit'])->name('edit');
+                Route::patch('{fuelEntry}', [\App\Http\Controllers\FuelEntryController::class, 'update'])->name('update');
+                Route::delete('{fuelEntry}', [\App\Http\Controllers\FuelEntryController::class, 'destroy'])->name('destroy');
+            });
+        });
+
         // Notes
         Route::prefix('notes')->name('notes.')->group(function () {
             Route::get('/', [\App\Http\Controllers\NoteController::class, 'index'])->name('index');

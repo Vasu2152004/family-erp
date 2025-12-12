@@ -22,6 +22,26 @@
         $otherNotifications = $unreadNotifications->filter(function($notification) {
             return !in_array($notification->type, ['budget_alert', 'budget_exceeded']);
         });
+        
+        // Get vehicle expiry alerts
+        $familyIds = \App\Models\FamilyUserRole::where('user_id', $user->id)
+            ->pluck('family_id')
+            ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
+            ->unique();
+        $expiringVehicles = \App\Models\Vehicle::whereIn('family_id', $familyIds)
+            ->where('tenant_id', $user->tenant_id)
+            ->where(function($query) {
+                $query->where('rc_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30))
+                    ->orWhere('insurance_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30))
+                    ->orWhere('puc_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30));
+            })
+            ->where(function($query) {
+                $query->where('rc_expiry_date', '>=', \Carbon\Carbon::today())
+                    ->orWhere('insurance_expiry_date', '>=', \Carbon\Carbon::today())
+                    ->orWhere('puc_expiry_date', '>=', \Carbon\Carbon::today());
+            })
+            ->with('family')
+            ->get();
     @endphp
 
     <!-- Welcome Section -->
@@ -90,6 +110,59 @@
                     <div class="mt-4 text-center">
                         <a href="{{ route('notifications.index') }}" class="text-red-600 font-semibold hover:text-red-800">
                             View {{ $budgetAlerts->count() - 3 }} more alert(s) →
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- Vehicle Expiry Alerts -->
+    @if($expiringVehicles->count() > 0)
+        <div class="mb-8 bg-amber-50 rounded-2xl shadow-lg p-6 border border-amber-200">
+            <div class="bg-white rounded-xl p-6 border border-amber-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center shadow-sm">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-amber-600">Vehicle Expiry Alerts</h2>
+                            <p class="text-sm text-gray-600">Vehicles with expiring documents in next 30 days</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3 max-h-64 overflow-y-auto">
+                    @foreach($expiringVehicles->take(5) as $vehicle)
+                        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-amber-800 mb-1">{{ $vehicle->make }} {{ $vehicle->model }} ({{ $vehicle->registration_number }})</h3>
+                                    <div class="text-sm text-gray-700 space-y-1">
+                                        @if($vehicle->rc_expiry_date && $vehicle->rc_expiry_date <= \Carbon\Carbon::today()->addDays(30) && $vehicle->rc_expiry_date >= \Carbon\Carbon::today())
+                                            <p>RC expires: {{ $vehicle->rc_expiry_date->format('M d, Y') }} ({{ \Carbon\Carbon::today()->diffInDays(\Carbon\Carbon::parse($vehicle->rc_expiry_date)) }} days)</p>
+                                        @endif
+                                        @if($vehicle->insurance_expiry_date && $vehicle->insurance_expiry_date <= \Carbon\Carbon::today()->addDays(30) && $vehicle->insurance_expiry_date >= \Carbon\Carbon::today())
+                                            <p>Insurance expires: {{ $vehicle->insurance_expiry_date->format('M d, Y') }} ({{ \Carbon\Carbon::today()->diffInDays(\Carbon\Carbon::parse($vehicle->insurance_expiry_date)) }} days)</p>
+                                        @endif
+                                        @if($vehicle->puc_expiry_date && $vehicle->puc_expiry_date <= \Carbon\Carbon::today()->addDays(30) && $vehicle->puc_expiry_date >= \Carbon\Carbon::today())
+                                            <p>PUC expires: {{ $vehicle->puc_expiry_date->format('M d, Y') }} ({{ \Carbon\Carbon::today()->diffInDays(\Carbon\Carbon::parse($vehicle->puc_expiry_date)) }} days)</p>
+                                        @endif
+                                    </div>
+                                    <a href="{{ route('families.vehicles.show', ['family' => $vehicle->family_id, 'vehicle' => $vehicle->id]) }}" class="text-xs text-amber-600 hover:text-amber-800 font-semibold mt-2 inline-block">
+                                        View Vehicle →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @if($expiringVehicles->count() > 5)
+                    <div class="mt-4 text-center">
+                        <a href="{{ route('families.vehicles.index', ['family' => $expiringVehicles->first()->family_id, 'expiring_soon' => 1]) }}" class="text-amber-600 hover:text-amber-800 font-semibold text-sm">
+                            View All Expiring Vehicles ({{ $expiringVehicles->count() }}) →
                         </a>
                     </div>
                 @endif

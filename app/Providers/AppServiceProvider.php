@@ -46,5 +46,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\MedicineReminder::class, \App\Policies\MedicineReminderPolicy::class);
         Gate::policy(\App\Models\Task::class, \App\Policies\TaskPolicy::class);
         Gate::policy(\App\Models\Note::class, \App\Policies\NotePolicy::class);
+        Gate::policy(\App\Models\Vehicle::class, \App\Policies\VehiclePolicy::class);
     }
 }

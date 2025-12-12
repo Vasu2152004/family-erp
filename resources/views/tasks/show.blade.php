@@ -153,7 +153,7 @@
 
             @if($task->logs->count() > 0)
                 <div class="space-y-4">
-                    @foreach($task->logs->take(5) as $log)
+                    @foreach($task->logs->take(3) as $log)
                         <div class="border-l-4 
                             @if($log->status_to === 'pending') border-yellow-400
                             @elseif($log->status_to === 'in_progress') border-blue-400

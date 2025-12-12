@@ -109,6 +109,7 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Active Prescriptions</h2>
+                <a href="{{ route('families.health.visits.index', ['family' => $family->id]) }}" class="text-sm text-[var(--color-primary)] hover:underline">View All</a>
             </div>
             @forelse($activePrescriptionsList as $prescription)
                 <div class="border-b border-[var(--color-border-primary)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">

@@ -69,7 +69,7 @@ class HealthController extends Controller
             $recentVisitsQuery->orderBy('visit_time', 'desc');
         }
         
-        $recentVisits = $recentVisitsQuery->limit(5)->get();
+        $recentVisits = $recentVisitsQuery->limit(3)->get();
 
         // Upcoming visits (future visits - including today's future visits)
         $upcomingVisitsQuery = DoctorVisit::where('family_id', $family->id)
@@ -92,7 +92,7 @@ class HealthController extends Controller
             $upcomingVisitsQuery->orderBy('visit_time', 'asc');
         }
         
-        $upcomingVisits = $upcomingVisitsQuery->limit(5)->get();
+        $upcomingVisits = $upcomingVisitsQuery->limit(3)->get();
 
         // Active prescriptions
         $activePrescriptionsList = Prescription::where('family_id', $family->id)
@@ -100,7 +100,7 @@ class HealthController extends Controller
             ->where('status', 'active')
             ->with(['familyMember', 'doctorVisit'])
             ->orderBy('start_date', 'desc')
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         return view('health.dashboard', [
