@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class Prescription extends Model
 {
@@ -62,14 +61,18 @@ class Prescription extends Model
         return $this->belongsTo(DoctorVisit::class);
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     public function reminders(): HasMany
     {
         return $this->hasMany(MedicineReminder::class);
     }
-
-    public function scopeForTenant(Builder $query, int $tenantId): Builder
-    {
-        return $query->where('tenant_id', $tenantId);
-    }
 }
-

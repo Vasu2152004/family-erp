@@ -7,7 +7,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class MedicineReminder extends Model
 {
@@ -33,6 +32,7 @@ class MedicineReminder extends Model
     protected function casts(): array
     {
         return [
+            'reminder_time' => 'datetime:H:i',
             'start_date' => 'date',
             'end_date' => 'date',
             'days_of_week' => 'array',
@@ -61,14 +61,13 @@ class MedicineReminder extends Model
         return $this->belongsTo(Prescription::class);
     }
 
-    public function scopeActive(Builder $query): Builder
+    public function createdBy(): BelongsTo
     {
-        return $query->where('status', 'active');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function scopeForTenant(Builder $query, int $tenantId): Builder
+    public function updatedBy(): BelongsTo
     {
-        return $query->where('tenant_id', $tenantId);
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
-

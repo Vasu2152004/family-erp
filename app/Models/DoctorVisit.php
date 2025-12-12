@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class DoctorVisit extends Model
 {
@@ -20,14 +19,19 @@ class DoctorVisit extends Model
         'family_member_id',
         'medical_record_id',
         'visit_date',
+        'visit_time',
         'status',
         'doctor_name',
+        'clinic_name',
         'specialization',
-        'clinic',
-        'reason',
+        'visit_type',
+        'chief_complaint',
+        'examination_findings',
         'diagnosis',
-        'follow_up_at',
+        'treatment_given',
         'notes',
+        'follow_up_at',
+        'next_visit_date',
         'created_by',
         'updated_by',
     ];
@@ -36,7 +40,9 @@ class DoctorVisit extends Model
     {
         return [
             'visit_date' => 'date',
+            'visit_time' => 'datetime:H:i',
             'follow_up_at' => 'date',
+            'next_visit_date' => 'date',
         ];
     }
 
@@ -60,14 +66,18 @@ class DoctorVisit extends Model
         return $this->belongsTo(MedicalRecord::class);
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     public function prescriptions(): HasMany
     {
         return $this->hasMany(Prescription::class);
     }
-
-    public function scopeForTenant(Builder $query, int $tenantId): Builder
-    {
-        return $query->where('tenant_id', $tenantId);
-    }
 }
-

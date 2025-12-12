@@ -4,65 +4,63 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Models\FamilyMember;
-use App\Models\FamilyUserRole;
 use App\Models\MedicineReminder;
-use App\Models\Prescription;
 use App\Models\User;
+use App\Models\FamilyMember;
 
 class MedicineReminderPolicy
 {
-    public function view(User $user, MedicineReminder $reminder): bool
+    public function viewAny(User $user): bool
     {
-        return $this->userHasFamilyAccess($user, $reminder->family_id);
+        return true;
     }
 
-    public function create(User $user, Prescription $prescription): bool
+    public function view(User $user, MedicineReminder $medicineReminder): bool
     {
-        if ($this->isOwnerOrAdmin($user, $prescription->family_id)) {
-            return true;
+        if ($user->tenant_id !== $medicineReminder->tenant_id) {
+            return false;
         }
 
-        return $this->isLinkedMember($user, $prescription->family_member_id);
+        return $this->belongsToFamily($user, $medicineReminder);
     }
 
-    public function update(User $user, MedicineReminder $reminder): bool
+    public function create(User $user): bool
     {
-        if ($this->isOwnerOrAdmin($user, $reminder->family_id)) {
-            return true;
+        return true;
+    }
+
+    public function update(User $user, MedicineReminder $medicineReminder): bool
+    {
+        if ($user->tenant_id !== $medicineReminder->tenant_id) {
+            return false;
         }
 
-        return $this->isLinkedMember($user, $reminder->family_member_id);
+        return $user->isFamilyAdmin($medicineReminder->family_id) || $this->isLinkedMember($user, $medicineReminder);
     }
 
-    public function delete(User $user, MedicineReminder $reminder): bool
+    public function delete(User $user, MedicineReminder $medicineReminder): bool
     {
-        return $this->update($user, $reminder);
+        return $this->update($user, $medicineReminder);
     }
 
-    private function userHasFamilyAccess(User $user, int $familyId): bool
+    private function belongsToFamily(User $user, MedicineReminder $medicineReminder): bool
     {
-        return FamilyUserRole::where('family_id', $familyId)
+        $role = $user->getFamilyRole($medicineReminder->family_id);
+        $isMember = FamilyMember::where('family_id', $medicineReminder->family_id)
             ->where('user_id', $user->id)
-            ->exists()
-            || FamilyMember::where('family_id', $familyId)
-                ->where('user_id', $user->id)
-                ->exists();
+            ->exists();
+
+        return $role !== null || $isMember;
     }
 
-    private function isOwnerOrAdmin(User $user, int $familyId): bool
+    private function isLinkedMember(User $user, MedicineReminder $medicineReminder): bool
     {
-        $role = FamilyUserRole::where('family_id', $familyId)
+        if (!$medicineReminder->family_member_id) {
+            return false;
+        }
+
+        return FamilyMember::where('id', $medicineReminder->family_member_id)
             ->where('user_id', $user->id)
-            ->first();
-
-        return $role !== null && in_array($role->role, ['OWNER', 'ADMIN'], true);
-    }
-
-    private function isLinkedMember(User $user, int $memberId): bool
-    {
-        $member = FamilyMember::find($memberId);
-        return $member !== null && $member->user_id === $user->id;
+            ->exists();
     }
 }
-

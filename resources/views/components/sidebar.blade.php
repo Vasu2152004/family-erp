@@ -113,7 +113,8 @@
                          !str_starts_with($currentRoute, 'families.finance-analytics.') &&
                          !str_starts_with($currentRoute, 'families.documents.') &&
                          !str_starts_with($currentRoute, 'families.document-types.') &&
-                         !str_starts_with($currentRoute, 'families.health.')) ||
+                         !str_starts_with($currentRoute, 'families.health.') &&
+                         !str_starts_with($currentRoute, 'families.tasks.')) ||
                         str_starts_with($currentRoute, 'family-member-requests.')
                     );
                 @endphp
@@ -216,6 +217,25 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6m14 0a10 10 0 11-20 0 10 10 0 0120 0z"></path>
                         </svg>
                         <span class="font-medium">Health</span>
+                    </a>
+                </li>
+
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
+                                'families.tasks.*',
+                            ],
+                            [
+                                'families/*/tasks*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.tasks.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        <span class="font-medium">Tasks</span>
                     </a>
                 </li>
 

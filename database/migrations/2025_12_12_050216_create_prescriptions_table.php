@@ -15,26 +15,29 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
-            $table->foreignId('family_member_id')->constrained()->onDelete('cascade');
+            $table->foreignId('family_member_id')->nullable()->constrained('family_members')->onDelete('set null');
             $table->foreignId('doctor_visit_id')->constrained('doctor_visits')->onDelete('cascade');
             $table->string('medication_name');
-            $table->string('dosage')->nullable();
-            $table->string('frequency')->nullable();
-            $table->date('start_date')->nullable();
+            $table->string('dosage');
+            $table->string('frequency');
+            $table->date('start_date');
             $table->date('end_date')->nullable();
-            $table->string('status')->default('active');
+            $table->enum('status', ['active', 'completed', 'stopped'])->default('active');
             $table->text('instructions')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('file_path')->nullable();
+            $table->string('original_name')->nullable();
+            $table->string('mime_type', 120)->nullable();
+            $table->unsignedBigInteger('file_size')->nullable();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index('tenant_id');
             $table->index('family_id');
             $table->index('family_member_id');
             $table->index('doctor_visit_id');
-            $table->index('start_date');
-            $table->index('end_date');
             $table->index('status');
+            $table->index('created_by');
         });
     }
 
@@ -46,4 +49,3 @@ return new class extends Migration
         Schema::dropIfExists('prescriptions');
     }
 };
-

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Events\FamilyMemberDeceased;
 use App\Models\FamilyMember;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -12,60 +11,25 @@ use Illuminate\Validation\ValidationException;
 class FamilyMemberService
 {
     /**
-     * Create a new family member.
-     * Requires an existing user (either via user_id or email lookup).
-     * 
-     * @throws \Illuminate\Validation\ValidationException if user not found
+     * Create a family member.
      */
     public function createMember(array $data, int $tenantId, int $familyId): FamilyMember
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId) {
-            $userId = $data['user_id'] ?? null;
-            $email = $data['email'] ?? null;
+            // Check if user is already a member of this family
+            if (isset($data['user_id']) && $data['user_id']) {
+                $existingMember = FamilyMember::where('family_id', $familyId)
+                    ->where('user_id', $data['user_id'])
+                    ->first();
 
-            // If user_id not provided, try to find user by email (across all tenants)
-            if (!$userId && $email) {
-                $user = \App\Models\User::where('email', $email)->first();
-
-                if ($user) {
-                    $userId = $user->id;
-                } else {
+                if ($existingMember) {
                     throw ValidationException::withMessages([
-                        'email' => ['No user account found with this email. The user must exist in the system before adding as a family member.'],
+                        'user_id' => ['This user is already a member of this family.'],
                     ]);
                 }
             }
 
-            // User ID is required - throw error if still not found
-            if (!$userId) {
-                throw ValidationException::withMessages([
-                    'user_id' => ['Please select a user or provide an email of an existing user.'],
-                ]);
-            }
-
-            // Verify user exists (allow cross-tenant users)
-            $user = \App\Models\User::findOrFail($userId);
-
-            // Ensure user is not part of any other family
-            $existingMembership = FamilyMember::where('user_id', $userId)->first();
-            if ($existingMembership) {
-                throw ValidationException::withMessages([
-                    'user_id' => ['This user already belongs to a family. A user can be part of only one family.'],
-                ]);
-            }
-
-            // Check if user is already a member of this family
-            $existingMember = FamilyMember::where('user_id', $userId)
-                ->where('family_id', $familyId)
-                ->first();
-
-            if ($existingMember) {
-                throw ValidationException::withMessages([
-                    'user_id' => ['This user is already a member of this family.'],
-                ]);
-            }
-
-            $member = FamilyMember::create([
+            return FamilyMember::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
                 'first_name' => $data['first_name'],
@@ -74,12 +38,11 @@ class FamilyMemberService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'relation' => $data['relation'],
                 'phone' => $data['phone'] ?? null,
-                'email' => $user->email ?? $email,
-                'is_deceased' => false,
-                'user_id' => $userId,
+                'email' => $data['email'] ?? null,
+                'user_id' => $data['user_id'] ?? null,
+                'is_deceased' => $data['is_deceased'] ?? false,
+                'date_of_death' => $data['date_of_death'] ?? null,
             ]);
-
-            return $member;
         });
     }
 
@@ -90,37 +53,32 @@ class FamilyMemberService
     {
         return DB::transaction(function () use ($memberId, $data) {
             $member = FamilyMember::findOrFail($memberId);
-            $wasDeceased = $member->is_deceased;
-            $wasOwner = $member->user_id && $member->user?->isFamilyOwner($member->family_id);
 
-            // If email is updated and no user_id is set, try to find and link user
-            if (isset($data['email']) && !isset($data['user_id']) && !$member->user_id) {
-                $user = \App\Models\User::where('email', $data['email'])
-                    ->where('tenant_id', $member->tenant_id)
+            // If user_id is being updated, check for duplicates
+            if (isset($data['user_id']) && $data['user_id'] && $data['user_id'] !== $member->user_id) {
+                $existingMember = FamilyMember::where('family_id', $member->family_id)
+                    ->where('user_id', $data['user_id'])
+                    ->where('id', '!=', $memberId)
                     ->first();
 
-                if ($user) {
-                    $data['user_id'] = $user->id;
-                }
-            }
-
-            // If linking a user, ensure not in another family
-            if (isset($data['user_id']) && $data['user_id'] && $member->user_id !== $data['user_id']) {
-                $existingMembership = FamilyMember::where('user_id', $data['user_id'])
-                    ->where('id', '<>', $memberId)
-                    ->first();
-                if ($existingMembership) {
+                if ($existingMember) {
                     throw ValidationException::withMessages([
-                        'user_id' => ['This user already belongs to a family. A user can be part of only one family.'],
+                        'user_id' => ['This user is already linked to another member in this family.'],
                     ]);
                 }
             }
 
-            $member->update($data);
-
-            if (!$wasDeceased && ($data['is_deceased'] ?? false)) {
-                event(new FamilyMemberDeceased($member->fresh(), $wasOwner));
-            }
+            $member->update([
+                'first_name' => $data['first_name'] ?? $member->first_name,
+                'last_name' => $data['last_name'] ?? $member->last_name,
+                'gender' => $data['gender'] ?? $member->gender,
+                'date_of_birth' => $data['date_of_birth'] ?? $member->date_of_birth,
+                'relation' => $data['relation'] ?? $member->relation,
+                'phone' => $data['phone'] ?? $member->phone,
+                'email' => $data['email'] ?? $member->email,
+                'is_deceased' => $data['is_deceased'] ?? $member->is_deceased,
+                'date_of_death' => $data['date_of_death'] ?? $member->date_of_death,
+            ]);
 
             return $member->fresh();
         });
@@ -131,26 +89,24 @@ class FamilyMemberService
      */
     public function linkToUser(int $memberId, int $userId): FamilyMember
     {
-        $member = FamilyMember::findOrFail($memberId);
-        $member->update(['user_id' => $userId]);
-        return $member->fresh();
-    }
-
-    /**
-     * Mark a family member as deceased.
-     */
-    public function markAsDeceased(int $memberId, ?string $dateOfDeath = null): FamilyMember
-    {
-        return DB::transaction(function () use ($memberId, $dateOfDeath) {
+        return DB::transaction(function () use ($memberId, $userId) {
             $member = FamilyMember::findOrFail($memberId);
-            $wasOwner = $member->user_id && $member->user?->isFamilyOwner($member->family_id);
+
+            // Check if user is already linked to another member in this family
+            $existingMember = FamilyMember::where('family_id', $member->family_id)
+                ->where('user_id', $userId)
+                ->where('id', '!=', $memberId)
+                ->first();
+
+            if ($existingMember) {
+                throw ValidationException::withMessages([
+                    'user_id' => ['This user is already linked to another member in this family.'],
+                ]);
+            }
 
             $member->update([
-                'is_deceased' => true,
-                'date_of_death' => $dateOfDeath ?? now()->toDateString(),
+                'user_id' => $userId,
             ]);
-
-            event(new FamilyMemberDeceased($member->fresh(), $wasOwner));
 
             return $member->fresh();
         });

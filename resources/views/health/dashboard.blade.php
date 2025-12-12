@@ -1,145 +1,137 @@
-<x-app-layout title="Health Center">
+<x-app-layout title="Health Dashboard">
     <div class="space-y-6">
         <x-breadcrumb :items="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Families', 'url' => route('families.index')],
             ['label' => $family->name, 'url' => route('families.show', $family)],
-            ['label' => 'Health'],
+            ['label' => 'Health']
         ]" />
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Medical Records</p>
-                        <p class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $recordCounts->sum() }}</p>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <a href="{{ route('families.health.records.index', ['family' => $family->id]) }}" class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
                     </div>
-                    <a href="{{ route('families.health.records.index', $family) }}" class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
-                        Records
-                    </a>
                 </div>
-                <div class="mt-4 space-y-2">
-                    @foreach($recordCounts as $type => $count)
-                        <div class="flex items-center justify-between text-sm text-[var(--color-text-secondary)]">
-                            <span class="capitalize">{{ str_replace('_', ' ', $type) }}</span>
-                            <span class="font-semibold text-[var(--color-text-primary)]">{{ $count }}</span>
-                        </div>
-                        <div class="w-full h-2 bg-[var(--color-bg-secondary)] rounded-full overflow-hidden">
-                            <div class="h-2 bg-gradient-to-r from-blue-500 to-indigo-500" style="width: {{ $recordCounts->sum() > 0 ? ($count / max(1, $recordCounts->sum())) * 100 : 0 }}%"></div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+                <h3 class="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{{ $totalRecords }}</h3>
+                <p class="text-sm text-[var(--color-text-secondary)]">Medical Records</p>
+            </a>
 
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Visits</p>
-                        <p class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $visitStats->sum() }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('families.health.visits.create', $family) }}" class="px-3 py-1 text-xs rounded-full bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">Add Visit</a>
-                        <span class="px-3 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700">Doctor</span>
+            <a href="{{ route('families.health.visits.index', ['family' => $family->id]) }}" class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6 hover:shadow-xl transition-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <canvas id="healthVisitChart"
-                        data-visit-stats='@json($visitStats)'
-                        class="w-full h-40"></canvas>
-                </div>
-            </div>
+                <h3 class="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{{ $totalVisits }}</h3>
+                <p class="text-sm text-[var(--color-text-secondary)]">Doctor Visits</p>
+            </a>
 
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Active Prescriptions</p>
-                        <p class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $activePrescriptions->count() }}</p>
+            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                        </svg>
                     </div>
-                    <a href="{{ route('families.health.visits.index', $family) }}" class="text-sm text-[var(--color-primary)] hover:underline">Manage</a>
                 </div>
-                <div class="mt-4 space-y-3">
-                    @forelse($activePrescriptions as $prescription)
-                        <div class="p-3 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $prescription->medication_name }}</p>
-                                    <p class="text-xs text-[var(--color-text-secondary)]">
-                                        {{ $prescription->familyMember?->first_name }} {{ $prescription->familyMember?->last_name }}
-                                    </p>
-                                </div>
-                                <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">{{ $prescription->frequency ?? 'As advised' }}</span>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-sm text-[var(--color-text-secondary)]">No active prescriptions.</p>
-                    @endforelse
-                </div>
+                <h3 class="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{{ $activePrescriptions }}</h3>
+                <p class="text-sm text-[var(--color-text-secondary)]">Active Prescriptions</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
+            <!-- Recent Visits -->
+            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Recent Visits</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Latest completed doctor visits</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <a href="{{ route('families.health.visits.create', $family) }}" class="text-sm text-[var(--color-primary)] hover:underline">Add visit</a>
-                        <a href="{{ route('families.health.visits.index', $family) }}" class="text-sm text-[var(--color-primary)] hover:underline">Edit visits</a>
-                    </div>
+                    <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Recent Visits</h2>
+                    <a href="{{ route('families.health.visits.index', ['family' => $family->id]) }}" class="text-sm text-[var(--color-primary)] hover:underline">View All</a>
                 </div>
-                <div class="space-y-3">
-                    @forelse($recentVisits as $visit)
-                        <a href="{{ route('families.health.visits.show', [$family, $visit]) }}" class="block p-3 rounded-lg border border-[var(--color-border-primary)] hover:border-[var(--color-primary)] bg-[var(--color-bg-secondary)] transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $visit->doctor_name ?? 'Doctor visit' }}</p>
-                                    <p class="text-xs text-[var(--color-text-secondary)]">
-                                        {{ $visit->familyMember?->first_name }} {{ $visit->familyMember?->last_name }} • {{ $visit->visit_date?->format('M d, Y') }}
-                                    </p>
-                                </div>
-                                <span class="text-xs px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                                    Completed
-                                </span>
+                @forelse($recentVisits as $visit)
+                    <div class="border-b border-[var(--color-border-primary)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $visit->doctor_name }}</h3>
+                                <p class="text-sm text-[var(--color-text-secondary)]">{{ $visit->clinic_name }}</p>
+                                <p class="text-xs text-[var(--color-text-secondary)] mt-1">
+                                    {{ $visit->visit_date->format('M d, Y') }}
+                                    @if($visit->familyMember)
+                                        • {{ $visit->familyMember->first_name }} {{ $visit->familyMember->last_name }}
+                                    @endif
+                                </p>
                             </div>
-                        </a>
-                    @empty
-                        <p class="text-sm text-[var(--color-text-secondary)]">No completed visits yet.</p>
-                    @endforelse
-                </div>
+                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-[var(--color-text-secondary)] text-center py-4">No recent visits</p>
+                @endforelse
             </div>
 
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
+            <!-- Upcoming Visits -->
+            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Upcoming Visits</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Scheduled visits ahead</p>
+                    <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Upcoming Visits</h2>
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('families.health.visits.index', ['family' => $family->id, 'upcoming' => 1]) }}" class="text-sm text-[var(--color-primary)] hover:underline">View All</a>
+                        <a href="{{ route('families.health.visits.create', ['family' => $family->id]) }}" class="text-sm text-[var(--color-primary)] hover:underline">Add Visit</a>
                     </div>
-                    <a href="{{ route('families.health.visits.create', $family) }}" class="text-sm text-[var(--color-primary)] hover:underline">Add visit</a>
                 </div>
-                <div class="space-y-3">
-                    @forelse($upcomingVisits as $visit)
-                        <a href="{{ route('families.health.visits.show', [$family, $visit]) }}" class="block p-3 rounded-lg border border-[var(--color-border-primary)] hover:border-[var(--color-primary)] bg-[var(--color-bg-secondary)] transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $visit->doctor_name ?? 'Doctor visit' }}</p>
-                                    <p class="text-xs text-[var(--color-text-secondary)]">
-                                        {{ $visit->familyMember?->first_name }} {{ $visit->familyMember?->last_name }} • {{ $visit->visit_date?->format('M d, Y') }}
-                                    </p>
-                                </div>
-                                <span class="text-xs px-2 py-1 rounded-full bg-amber-100 text-amber-700">
-                                    Scheduled
-                                </span>
+                @forelse($upcomingVisits as $visit)
+                    <div class="border-b border-[var(--color-border-primary)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $visit->doctor_name }}</h3>
+                                <p class="text-sm text-[var(--color-text-secondary)]">{{ $visit->clinic_name }}</p>
+                                <p class="text-xs text-[var(--color-text-secondary)] mt-1">
+                                    {{ $visit->visit_date->format('M d, Y') }}
+                                    @if($visit->familyMember)
+                                        • {{ $visit->familyMember->first_name }} {{ $visit->familyMember->last_name }}
+                                    @endif
+                                </p>
                             </div>
-                        </a>
-                    @empty
-                        <p class="text-sm text-[var(--color-text-secondary)]">No upcoming visits.</p>
-                    @endforelse
-                </div>
+                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-[var(--color-text-secondary)] text-center py-4">No upcoming visits</p>
+                @endforelse
             </div>
         </div>
 
+        <!-- Active Prescriptions -->
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Active Prescriptions</h2>
+            </div>
+            @forelse($activePrescriptionsList as $prescription)
+                <div class="border-b border-[var(--color-border-primary)] pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $prescription->medication_name }}</h3>
+                            <p class="text-sm text-[var(--color-text-secondary)]">{{ $prescription->dosage }} • {{ $prescription->frequency }}</p>
+                            <p class="text-xs text-[var(--color-text-secondary)] mt-1">
+                                @if($prescription->familyMember)
+                                    {{ $prescription->familyMember->first_name }} {{ $prescription->familyMember->last_name }} •
+                                @endif
+                                {{ $prescription->start_date->format('M d, Y') }}
+                                @if($prescription->end_date)
+                                    - {{ $prescription->end_date->format('M d, Y') }}
+                                @endif
+                            </p>
+                        </div>
+                        <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $prescription->doctorVisit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                    </div>
+                </div>
+            @empty
+                <p class="text-[var(--color-text-secondary)] text-center py-4">No active prescriptions</p>
+            @endforelse
+        </div>
     </div>
-
 </x-app-layout>
-

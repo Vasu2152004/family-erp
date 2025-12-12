@@ -1,0 +1,127 @@
+<x-app-layout title="Tasks">
+    <div class="space-y-6">
+        <x-breadcrumb :items="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => $family->name, 'url' => route('families.show', $family)],
+            ['label' => 'Tasks'],
+        ]" />
+
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Tasks</h2>
+                        <p class="text-sm text-[var(--color-text-secondary)]">Manage household tasks and chores.</p>
+                    </div>
+                    @can('create', \App\Models\Task::class)
+                        <a href="{{ route('families.tasks.create', ['family' => $family->id]) }}">
+                            <x-button variant="primary" size="md">Create Task</x-button>
+                        </a>
+                    @endcan
+                </div>
+
+                <form method="GET" action="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Search</label>
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Task title..." class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Status</label>
+                        <select name="status" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option value="">All statuses</option>
+                            <option value="pending" @selected(($filters['status'] ?? '') === 'pending')>Pending</option>
+                            <option value="in_progress" @selected(($filters['status'] ?? '') === 'in_progress')>In Progress</option>
+                            <option value="done" @selected(($filters['status'] ?? '') === 'done')>Done</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Frequency</label>
+                        <select name="frequency" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option value="">All frequencies</option>
+                            <option value="daily" @selected(($filters['frequency'] ?? '') === 'daily')>Daily</option>
+                            <option value="weekly" @selected(($filters['frequency'] ?? '') === 'weekly')>Weekly</option>
+                            <option value="monthly" @selected(($filters['frequency'] ?? '') === 'monthly')>Monthly</option>
+                            <option value="once" @selected(($filters['frequency'] ?? '') === 'once')>Once</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label class="text-sm text-[var(--color-text-secondary)]">Assigned To</label>
+                        <select name="family_member_id" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                            <option value="">All members</option>
+                            @foreach($members as $member)
+                                <option value="{{ $member->id }}" @selected(($filters['family_member_id'] ?? '') == $member->id)>
+                                    {{ $member->first_name }} {{ $member->last_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-4 flex flex-wrap gap-2 justify-end">
+                        <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
+                        <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
+                    </div>
+                </form>
+            </div>
+
+            @if($tasks->count() > 0)
+                <div class="mt-6 grid grid-cols-1 gap-4">
+                    @foreach($tasks as $task)
+                        <a href="{{ route('families.tasks.show', ['family' => $family->id, 'task' => $task->id]) }}" class="block bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4 hover:shadow-md transition-shadow">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $task->title }}</h3>
+                                        <span class="text-xs px-2 py-1 rounded-full 
+                                            @if($task->status === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($task->status === 'in_progress') bg-blue-100 text-blue-800
+                                            @else bg-green-100 text-green-800
+                                            @endif">
+                                            {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                        </span>
+                                        <span class="text-xs px-2 py-1 rounded-full bg-[var(--color-bg-primary)] text-[var(--color-text-secondary)]">
+                                            {{ ucfirst($task->frequency) }}
+                                        </span>
+                                    </div>
+                                    @if($task->description)
+                                        <p class="text-sm text-[var(--color-text-secondary)] mb-2 line-clamp-2">{{ $task->description }}</p>
+                                    @endif
+                                    <div class="flex items-center gap-4 text-xs text-[var(--color-text-secondary)]">
+                                        @if($task->familyMember)
+                                            <span>{{ $task->familyMember->first_name }} {{ $task->familyMember->last_name }}</span>
+                                        @else
+                                            <span class="text-gray-400">Unassigned</span>
+                                        @endif
+                                        @if($task->due_date)
+                                            <span>Due: {{ $task->due_date->format('M d, Y') }}</span>
+                                        @endif
+                                        <span>Created: {{ $task->created_at->format('M d, Y') }}</span>
+                                    </div>
+                                </div>
+                                <svg class="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+
+                <div class="mt-6">
+                    {{ $tasks->links() }}
+                </div>
+            @else
+                <div class="mt-6 text-center py-12">
+                    <p class="text-[var(--color-text-secondary)] mb-4">No tasks found.</p>
+                    @can('create', \App\Models\Task::class)
+                        <a href="{{ route('families.tasks.create', ['family' => $family->id]) }}">
+                            <x-button variant="primary" size="md">Create Your First Task</x-button>
+                        </a>
+                    @endcan
+                </div>
+            @endif
+        </div>
+    </div>
+</x-app-layout>
+

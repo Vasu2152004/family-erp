@@ -11,26 +11,29 @@ class UpdateDoctorVisitRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $visit = $this->route('visit');
+        return $visit ? $this->user()?->can('update', $visit) ?? false : false;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
         return [
-            'medical_record_id' => ['nullable', 'exists:medical_records,id'],
-            'visit_date' => ['required', 'date'],
-            'status' => ['required', Rule::in(['scheduled', 'completed', 'cancelled'])],
-            'doctor_name' => ['nullable', 'string', 'max:255'],
-            'specialization' => ['nullable', 'string', 'max:255'],
-            'clinic' => ['nullable', 'string', 'max:255'],
-            'reason' => ['nullable', 'string', 'max:255'],
-            'diagnosis' => ['nullable', 'string', 'max:255'],
-            'follow_up_at' => ['nullable', 'date', 'after_or_equal:visit_date'],
-            'notes' => ['nullable', 'string'],
+            'family_member_id' => ['sometimes', 'required', 'integer', 'exists:family_members,id'],
+            'medical_record_id' => ['sometimes', 'nullable', 'integer', 'exists:medical_records,id'],
+            'visit_date' => ['sometimes', 'date'],
+            'visit_time' => ['sometimes', 'nullable', 'date_format:H:i'],
+            'status' => ['sometimes', 'string', Rule::in(['scheduled', 'completed', 'cancelled'])],
+            'doctor_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'clinic_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'specialization' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'visit_type' => ['sometimes', 'string', Rule::in(['consultation', 'follow_up', 'emergency', 'routine_checkup', 'surgery', 'other'])],
+            'chief_complaint' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'examination_findings' => ['sometimes', 'nullable', 'string'],
+            'diagnosis' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'treatment_given' => ['sometimes', 'nullable', 'string'],
+            'notes' => ['sometimes', 'nullable', 'string'],
+            'follow_up_at' => ['sometimes', 'nullable', 'date'],
+            'next_visit_date' => ['sometimes', 'nullable', 'date'],
         ];
     }
 }
-

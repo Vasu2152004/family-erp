@@ -15,28 +15,24 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
-            $table->foreignId('family_member_id')->constrained()->onDelete('cascade');
+            $table->foreignId('family_member_id')->nullable()->constrained('family_members')->onDelete('set null');
             $table->foreignId('prescription_id')->constrained('prescriptions')->onDelete('cascade');
-            $table->enum('frequency', ['once', 'daily', 'weekly'])->default('daily');
-            $table->time('reminder_time')->nullable();
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
-            $table->json('days_of_week')->nullable();
-            $table->timestamp('next_run_at')->nullable()->index();
+            $table->time('reminder_time');
+            $table->json('days_of_week')->nullable(); // ['monday', 'tuesday', ...] or null for daily
+            $table->boolean('is_active')->default(true);
+            $table->timestamp('next_run_at')->nullable();
             $table->timestamp('last_sent_at')->nullable();
-            $table->enum('status', ['active', 'paused', 'completed'])->default('active');
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index('tenant_id');
             $table->index('family_id');
             $table->index('family_member_id');
             $table->index('prescription_id');
-            $table->index('frequency');
-            $table->index('start_date');
-            $table->index('end_date');
-            $table->index('status');
+            $table->index('is_active');
+            $table->index('next_run_at');
+            $table->index('created_by');
         });
     }
 
@@ -48,4 +44,3 @@ return new class extends Migration
         Schema::dropIfExists('medicine_reminders');
     }
 };
-

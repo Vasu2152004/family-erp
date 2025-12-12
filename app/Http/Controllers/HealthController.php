@@ -4,108 +4,113 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\DoctorVisit;
 use App\Models\Family;
-use App\Models\MedicineReminder;
 use App\Models\MedicalRecord;
+use App\Models\DoctorVisit;
 use App\Models\Prescription;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
-use App\Services\HealthService;
+use Illuminate\Support\Facades\Schema;
+use Carbon\Carbon;
 
 class HealthController extends Controller
 {
-    public function __construct(private readonly HealthService $healthService)
+    /**
+     * Display the health dashboard.
+     */
+    public function index(Request $request, Family $family): View
     {
-    }
+        $user = $request->user();
+        
+        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
+            || $family->members()->where('user_id', $user->id)->exists();
+        
+        if (!$hasAccess) {
+            abort(403, 'You do not have access to this family.');
+        }
 
-    public function index(Family $family): View
-    {
-        $this->authorize('viewAny', [MedicalRecord::class, $family]);
+        // Get stats
+        $totalRecords = MedicalRecord::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->count();
 
-        $tenantId = auth()->user()->tenant_id;
+        $totalVisits = DoctorVisit::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->count();
 
-        $recentVisits = DoctorVisit::with(['familyMember', 'medicalRecord'])
-            ->where('family_id', $family->id)
-            ->forTenant($tenantId)
-            ->where('status', 'completed')
-            ->whereDate('visit_date', '<=', now())
-            ->orderByDesc('visit_date')
-            ->limit(5)
-            ->get();
-
-        $upcomingVisits = DoctorVisit::with(['familyMember', 'medicalRecord'])
-            ->where('family_id', $family->id)
-            ->forTenant($tenantId)
-            ->where('status', 'scheduled')
-            ->whereDate('visit_date', '>', now())
-            ->orderBy('visit_date')
-            ->limit(5)
-            ->get();
-
-        $rawReminders = MedicineReminder::with(['prescription', 'familyMember'])
-            ->where('family_id', $family->id)
-            ->forTenant($tenantId)
-            ->active()
-            ->get();
-
-        $upcomingReminders = $rawReminders
-            ->map(function (MedicineReminder $reminder) {
-                $next = $reminder->next_run_at ?: $this->healthService->calculateNextRunAt(
-                    $reminder->frequency,
-                    $reminder->reminder_time ?? '08:00',
-                    $reminder->start_date->toDateString(),
-                    $reminder->end_date?->toDateString(),
-                    $reminder->days_of_week ?? []
-                );
-
-                // persist next_run_at if it was missing so future loads are faster
-                if ($next && !$reminder->next_run_at) {
-                    $reminder->next_run_at = $next;
-                    $reminder->saveQuietly();
-                }
-
-                $reminder->calculated_next_run_at = $next;
-                return $reminder;
-            })
-            ->filter(function (MedicineReminder $reminder) {
-                $next = $reminder->calculated_next_run_at;
-                return $next !== null
-                    && $next->greaterThanOrEqualTo(now())
-                    && $next->lessThanOrEqualTo(now()->addDays(30));
-            })
-            ->sortBy('calculated_next_run_at')
-            ->take(20)
-            ->values();
-
-        $recordCounts = MedicalRecord::where('family_id', $family->id)
-            ->forTenant($tenantId)
-            ->selectRaw('record_type, COUNT(*) as total')
-            ->groupBy('record_type')
-            ->pluck('total', 'record_type');
-
-        $visitStats = DoctorVisit::where('family_id', $family->id)
-            ->forTenant($tenantId)
-            ->selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
-
-        $activePrescriptions = Prescription::with('familyMember')
-            ->where('family_id', $family->id)
-            ->forTenant($tenantId)
+        $activePrescriptions = Prescription::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
             ->where('status', 'active')
-            ->orderByDesc('start_date')
+            ->count();
+
+        // Recent visits (past visits only - exclude future visits)
+        $recentVisitsQuery = DoctorVisit::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->where(function ($query) {
+                $query->where('visit_date', '<', Carbon::today())
+                    ->orWhere(function ($q) {
+                        // If visit_date is today, only include if visit_time is in the past or null
+                        $q->where('visit_date', Carbon::today())
+                            ->where(function ($timeQuery) {
+                                if (Schema::hasColumn('doctor_visits', 'visit_time')) {
+                                    $timeQuery->whereNull('visit_time')
+                                        ->orWhere('visit_time', '<=', Carbon::now()->format('H:i:s'));
+                                } else {
+                                    // If visit_time column doesn't exist, include all today's visits
+                                    $timeQuery->whereRaw('1=1');
+                                }
+                            });
+                    });
+            })
+            ->with(['familyMember', 'medicalRecord'])
+            ->orderBy('visit_date', 'desc');
+        
+        if (Schema::hasColumn('doctor_visits', 'visit_time')) {
+            $recentVisitsQuery->orderBy('visit_time', 'desc');
+        }
+        
+        $recentVisits = $recentVisitsQuery->limit(5)->get();
+
+        // Upcoming visits (future visits - including today's future visits)
+        $upcomingVisitsQuery = DoctorVisit::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->where(function ($query) {
+                $query->where('visit_date', '>', Carbon::today())
+                    ->orWhere(function ($q) {
+                        // Include today's visits if visit_time is in the future
+                        $q->where('visit_date', Carbon::today());
+                        if (Schema::hasColumn('doctor_visits', 'visit_time')) {
+                            $q->whereNotNull('visit_time')
+                                ->where('visit_time', '>', Carbon::now()->format('H:i:s'));
+                        }
+                    });
+            })
+            ->with(['familyMember', 'medicalRecord'])
+            ->orderBy('visit_date', 'asc');
+        
+        if (Schema::hasColumn('doctor_visits', 'visit_time')) {
+            $upcomingVisitsQuery->orderBy('visit_time', 'asc');
+        }
+        
+        $upcomingVisits = $upcomingVisitsQuery->limit(5)->get();
+
+        // Active prescriptions
+        $activePrescriptionsList = Prescription::where('family_id', $family->id)
+            ->where('tenant_id', $user->tenant_id)
+            ->where('status', 'active')
+            ->with(['familyMember', 'doctorVisit'])
+            ->orderBy('start_date', 'desc')
             ->limit(5)
             ->get();
 
-        return view('health.dashboard', compact(
-            'family',
-            'recentVisits',
-            'upcomingVisits',
-            'upcomingReminders',
-            'recordCounts',
-            'visitStats',
-            'activePrescriptions'
-        ));
+        return view('health.dashboard', [
+            'family' => $family,
+            'totalRecords' => $totalRecords,
+            'totalVisits' => $totalVisits,
+            'activePrescriptions' => $activePrescriptions,
+            'recentVisits' => $recentVisits,
+            'upcomingVisits' => $upcomingVisits,
+            'activePrescriptionsList' => $activePrescriptionsList,
+        ]);
     }
 }
-

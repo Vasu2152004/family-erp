@@ -15,19 +15,22 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
-            $table->foreignId('family_member_id')->constrained()->onDelete('cascade');
-            $table->foreignId('medical_record_id')->nullable()->constrained('medical_records')->nullOnDelete();
+            $table->foreignId('family_member_id')->nullable()->constrained('family_members')->onDelete('set null');
+            $table->foreignId('medical_record_id')->nullable()->constrained('medical_records')->onDelete('set null');
             $table->date('visit_date');
-            $table->enum('status', ['scheduled', 'completed', 'cancelled'])->default('scheduled');
-            $table->string('doctor_name')->nullable();
+            $table->time('visit_time')->nullable();
+            $table->string('doctor_name');
+            $table->string('clinic_name')->nullable();
             $table->string('specialization')->nullable();
-            $table->string('clinic')->nullable();
-            $table->string('reason')->nullable();
-            $table->string('diagnosis')->nullable();
-            $table->date('follow_up_at')->nullable();
+            $table->enum('visit_type', ['consultation', 'follow_up', 'emergency', 'routine_checkup', 'surgery', 'other'])->default('consultation');
+            $table->text('chief_complaint')->nullable();
+            $table->text('examination_findings')->nullable();
+            $table->text('diagnosis')->nullable();
+            $table->text('treatment_given')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->date('next_visit_date')->nullable();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index('tenant_id');
@@ -35,8 +38,7 @@ return new class extends Migration
             $table->index('family_member_id');
             $table->index('medical_record_id');
             $table->index('visit_date');
-            $table->index('status');
-            $table->index('follow_up_at');
+            $table->index('created_by');
         });
     }
 
@@ -48,4 +50,3 @@ return new class extends Migration
         Schema::dropIfExists('doctor_visits');
     }
 };
-

@@ -14,26 +14,23 @@ class StoreMedicalRecordRequest extends FormRequest
         return true;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
     public function rules(): array
     {
         return [
-            'family_member_id' => ['required', 'exists:family_members,id'],
+            'family_member_id' => ['required', 'integer', 'exists:family_members,id'],
             'title' => ['required', 'string', 'max:255'],
-            'record_type' => ['required', Rule::in(['general', 'diagnosis', 'lab', 'imaging', 'vaccine', 'allergy', 'other'])],
+            'record_type' => ['required', 'string', Rule::in(['general', 'diagnosis', 'lab', 'imaging', 'vaccine', 'allergy', 'other'])],
+            'category' => ['nullable', 'string', 'max:255'],
             'doctor_name' => ['nullable', 'string', 'max:255'],
-            'recorded_at' => ['nullable', 'date', 'before_or_equal:today'],
             'primary_condition' => ['nullable', 'string', 'max:255'],
-            'severity' => ['nullable', Rule::in(['mild', 'moderate', 'severe', 'critical'])],
+            'severity' => ['nullable', 'string', Rule::in(['mild', 'moderate', 'severe', 'critical'])],
             'symptoms' => ['nullable', 'string'],
             'diagnosis' => ['nullable', 'string'],
             'treatment_plan' => ['nullable', 'string'],
-            'follow_up_at' => ['nullable', 'date', 'after_or_equal:recorded_at'],
+            'follow_up_at' => ['nullable', 'date', 'after_or_equal:today'],
+            'recorded_at' => ['nullable', 'date'],
             'summary' => ['nullable', 'string'],
             'notes' => ['nullable', 'string'],
         ];
     }
 }
-

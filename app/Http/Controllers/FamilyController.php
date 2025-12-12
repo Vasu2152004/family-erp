@@ -33,13 +33,14 @@ class FamilyController extends Controller
         // Merge and get unique family IDs
         $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
         
-        $hasFamily = $familyIds->isNotEmpty();
-
         // Get families by IDs
         $families = Family::whereIn('id', $familyIds)
             ->withCount(['members', 'roles'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
+
+        // Check if user is already part of any family
+        $hasFamily = $familyIds->isNotEmpty();
 
         return view('families.index', compact('families', 'hasFamily'));
     }
@@ -49,7 +50,21 @@ class FamilyController extends Controller
      */
     public function create(): View
     {
-        $this->authorize('create', Family::class);
+        $user = Auth::user();
+        
+        // Check if user is already part of a family
+        $hasFamily = \App\Models\FamilyUserRole::where('user_id', $user->id)
+            ->orWhereHas('family', function ($query) use ($user) {
+                $query->whereHas('members', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            })
+            ->exists() || \App\Models\FamilyMember::where('user_id', $user->id)->exists();
+        
+        if ($hasFamily) {
+            abort(403, 'You can only be part of one family.');
+        }
+        
         return view('families.create');
     }
 
@@ -58,9 +73,21 @@ class FamilyController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize('create', Family::class);
-
         $user = Auth::user();
+
+        // Check if user is already part of a family
+        $hasFamily = \App\Models\FamilyUserRole::where('user_id', $user->id)
+            ->orWhereHas('family', function ($query) use ($user) {
+                $query->whereHas('members', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            })
+            ->exists() || \App\Models\FamilyMember::where('user_id', $user->id)->exists();
+        
+        if ($hasFamily) {
+            return redirect()->route('families.index')
+                ->with('error', 'You can only be part of one family.');
+        }
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -207,9 +234,11 @@ class FamilyController extends Controller
     {
         $this->authorize('update', $family);
 
-        $family->update($request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-        ]));
+        ]);
+
+        $family->update($validated);
 
         return redirect()->route('families.show', $family)
             ->with('success', 'Family updated successfully.');
@@ -221,6 +250,7 @@ class FamilyController extends Controller
     public function destroy(Family $family): RedirectResponse
     {
         $this->authorize('delete', $family);
+
         $family->delete();
 
         return redirect()->route('families.index')

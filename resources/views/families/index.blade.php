@@ -14,11 +14,11 @@
                     </p>
                 </div>
                 @unless($hasFamily)
-                    <a href="{{ route('families.create') }}">
-                        <x-button variant="primary" size="md">
-                            Create Family
-                        </x-button>
-                    </a>
+                <a href="{{ route('families.create') }}">
+                    <x-button variant="primary" size="md">
+                        Create Family
+                    </x-button>
+                </a>
                 @endunless
             </div>
 
@@ -71,11 +71,11 @@
             <div class="text-center py-12">
                 <p class="text-[var(--color-text-secondary)] mb-4">No families found.</p>
                 @unless($hasFamily)
-                    <a href="{{ route('families.create') }}">
-                        <x-button variant="primary" size="md">
-                            Create Your First Family
-                        </x-button>
-                    </a>
+                <a href="{{ route('families.create') }}">
+                    <x-button variant="primary" size="md">
+                        Create Your First Family
+                    </x-button>
+                </a>
                 @endunless
             </div>
         @endif

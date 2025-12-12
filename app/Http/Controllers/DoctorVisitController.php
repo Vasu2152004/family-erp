@@ -6,142 +6,192 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Health\StoreDoctorVisitRequest;
 use App\Http\Requests\Health\UpdateDoctorVisitRequest;
-use App\Models\DoctorVisit;
 use App\Models\Family;
+use App\Models\DoctorVisit;
 use App\Models\FamilyMember;
 use App\Models\MedicalRecord;
 use App\Services\HealthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class DoctorVisitController extends Controller
 {
-    public function __construct(private readonly HealthService $healthService)
-    {
+    public function __construct(
+        private readonly HealthService $healthService
+    ) {
     }
 
     public function index(Request $request, Family $family): View
     {
-        $this->authorize('viewAny', [DoctorVisit::class, $family]);
+        $this->authorize('viewAny', DoctorVisit::class);
 
-        $filters = $request->only(['status', 'family_member_id']);
+        $query = DoctorVisit::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
+            ->with(['familyMember', 'medicalRecord', 'createdBy']);
 
-        $visits = DoctorVisit::with(['familyMember', 'medicalRecord'])
-            ->where('family_id', $family->id)
-            ->forTenant(auth()->user()->tenant_id)
-            ->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status))
-            ->when($filters['family_member_id'] ?? null, fn ($q, $memberId) => $q->where('family_member_id', $memberId))
-            ->orderByDesc('visit_date')
-            ->paginate(12)
-            ->appends($filters);
+        if ($request->filled('search')) {
+            $search = $request->string('search')->trim();
+            $query->where(function ($q) use ($search) {
+                $q->where('doctor_name', 'like', "%{$search}%")
+                    ->orWhere('clinic_name', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('visit_type')) {
+            $query->where('visit_type', $request->string('visit_type'));
+        }
+
+        if ($request->filled('family_member_id')) {
+            $query->where('family_member_id', $request->integer('family_member_id'));
+        }
+
+        // Filter for upcoming visits only
+        if ($request->filled('upcoming') && $request->boolean('upcoming')) {
+            $query->where(function ($q) {
+                $q->where('visit_date', '>', \Carbon\Carbon::today())
+                    ->orWhere(function ($todayQuery) {
+                        $todayQuery->where('visit_date', \Carbon\Carbon::today());
+                        if (\Schema::hasColumn('doctor_visits', 'visit_time')) {
+                            $todayQuery->whereNotNull('visit_time')
+                                ->where('visit_time', '>', \Carbon\Carbon::now()->format('H:i:s'));
+                        }
+                    });
+            });
+            
+            // Ordering for upcoming visits (ascending by date/time)
+            $query->orderBy('visit_date', 'asc');
+            if (\Schema::hasColumn('doctor_visits', 'visit_time')) {
+                $query->orderBy('visit_time', 'asc');
+            }
+        } else {
+            // Default ordering for all visits (descending by date/time)
+            $query->orderBy('visit_date', 'desc');
+            if (\Schema::hasColumn('doctor_visits', 'visit_time')) {
+                $query->orderBy('visit_time', 'desc');
+            }
+        }
+
+        $visits = $query->paginate(15)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->alive()
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+            ->get();
 
-        return view('health.visits.index', compact('family', 'visits', 'members', 'filters'));
+        return view('health.visits.index', [
+            'family' => $family,
+            'visits' => $visits,
+            'members' => $members,
+            'filters' => $request->only(['search', 'visit_type', 'family_member_id', 'upcoming']),
+        ]);
     }
 
-    public function create(Family $family): View
+    public function create(Request $request, Family $family): View
     {
-        $this->authorize('create', [DoctorVisit::class, $family]);
+        $this->authorize('create', DoctorVisit::class);
 
         $members = FamilyMember::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->alive()
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+            ->get();
 
-        $records = MedicalRecord::where('family_id', $family->id)
-            ->orderByDesc('recorded_at')
-            ->get(['id', 'title', 'family_member_id']);
+        $medicalRecords = MedicalRecord::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
+            ->with('familyMember')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('health.visits.create', compact('family', 'members', 'records'));
+        return view('health.visits.create', [
+            'family' => $family,
+            'members' => $members,
+            'medicalRecords' => $medicalRecords,
+        ]);
     }
 
     public function store(StoreDoctorVisitRequest $request, Family $family): RedirectResponse
     {
-        $this->authorize('create', [DoctorVisit::class, $family]);
+        $this->authorize('create', DoctorVisit::class);
 
         $visit = $this->healthService->createDoctorVisit(
             $request->validated(),
-            $family,
-            auth()->user()->tenant_id,
-            auth()->id()
+            $request->user()->tenant_id,
+            $family->id,
+            $request->user()->id
         );
 
-        return redirect()
-            ->route('families.health.visits.show', [$family, $visit])
-            ->with('success', 'Doctor visit logged successfully.');
+        return redirect()->route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id])
+            ->with('success', 'Doctor visit created successfully.');
     }
 
-    public function show(Family $family, DoctorVisit $visit): View
+    public function show(Request $request, Family $family, DoctorVisit $visit): View
     {
-        $this->abortIfFamilyMismatch($visit->family_id, $family->id);
         $this->authorize('view', $visit);
 
-        $visit->load([
-            'familyMember',
-            'medicalRecord',
-            'prescriptions.reminders',
-        ]);
+        $visit->load(['familyMember', 'medicalRecord', 'createdBy', 'updatedBy', 'prescriptions.familyMember', 'prescriptions.reminders']);
 
         $members = FamilyMember::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->alive()
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+            ->get();
 
-        $records = MedicalRecord::where('family_id', $family->id)
-            ->orderByDesc('recorded_at')
-            ->get(['id', 'title', 'family_member_id']);
-
-        return view('health.visits.show', compact('family', 'visit', 'members', 'records'));
+        return view('health.visits.show', [
+            'family' => $family,
+            'visit' => $visit,
+            'members' => $members,
+        ]);
     }
 
-    public function edit(Family $family, DoctorVisit $visit): View
+    public function edit(Request $request, Family $family, DoctorVisit $visit): View
     {
-        $this->abortIfFamilyMismatch($visit->family_id, $family->id);
         $this->authorize('update', $visit);
 
         $members = FamilyMember::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
             ->alive()
             ->orderBy('first_name')
-            ->get(['id', 'first_name', 'last_name']);
+            ->get();
 
-        $records = MedicalRecord::where('family_id', $family->id)
-            ->orderByDesc('recorded_at')
-            ->get(['id', 'title', 'family_member_id']);
+        $medicalRecords = MedicalRecord::where('family_id', $family->id)
+            ->where('tenant_id', $request->user()->tenant_id)
+            ->with('familyMember')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return view('health.visits.edit', compact('family', 'visit', 'members', 'records'));
+        return view('health.visits.edit', [
+            'family' => $family,
+            'visit' => $visit,
+            'members' => $members,
+            'medicalRecords' => $medicalRecords,
+        ]);
     }
 
     public function update(UpdateDoctorVisitRequest $request, Family $family, DoctorVisit $visit): RedirectResponse
     {
-        $this->abortIfFamilyMismatch($visit->family_id, $family->id);
         $this->authorize('update', $visit);
 
-        $this->healthService->updateDoctorVisit($visit, $request->validated(), auth()->id());
+        $this->healthService->updateDoctorVisit(
+            $visit,
+            $request->validated(),
+            $request->user()->id
+        );
 
-        return redirect()
-            ->route('families.health.visits.show', [$family, $visit])
-            ->with('success', 'Visit updated successfully.');
+        return redirect()->route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id])
+            ->with('success', 'Doctor visit updated successfully.');
     }
 
-    public function destroy(Family $family, DoctorVisit $visit): RedirectResponse
+    public function destroy(Request $request, Family $family, DoctorVisit $visit): RedirectResponse
     {
-        $this->abortIfFamilyMismatch($visit->family_id, $family->id);
         $this->authorize('delete', $visit);
+
         $visit->delete();
 
-        return redirect()
-            ->route('families.health.visits.index', $family)
-            ->with('success', 'Visit deleted successfully.');
-    }
-
-    private function abortIfFamilyMismatch(int $modelFamilyId, int $familyId): void
-    {
-        abort_unless($modelFamilyId === $familyId, 404);
+        return redirect()->route('families.health.visits.index', ['family' => $family->id])
+            ->with('success', 'Doctor visit deleted successfully.');
     }
 }
-

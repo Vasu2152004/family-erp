@@ -1,298 +1,438 @@
-<x-app-layout title="Visit Details">
+<x-app-layout title="Doctor Visit Details">
     <div class="space-y-6">
         <x-breadcrumb :items="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => $family->name, 'url' => route('families.show', $family)],
-            ['label' => 'Health', 'url' => route('families.health.index', $family)],
-            ['label' => 'Doctor Visits', 'url' => route('families.health.visits.index', $family)],
-            ['label' => 'Details'],
+            ['label' => 'Health', 'url' => route('families.health.index', ['family' => $family->id])],
+            ['label' => 'Doctor Visits', 'url' => route('families.health.visits.index', ['family' => $family->id])],
+            ['label' => 'Visit Details'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-            <div class="flex items-start justify-between">
+        @if(session('success'))
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+        @endif
+
+        <!-- Visit Details -->
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="flex items-center justify-between mb-6">
                 <div>
-                    <p class="text-xs uppercase tracking-wide text-[var(--color-text-secondary)]">Visit</p>
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">
-                        {{ $visit->doctor_name ?? 'Doctor visit' }}
-                        <span class="text-sm font-medium text-[var(--color-text-secondary)]">• {{ $visit->visit_date?->format('M d, Y') }}</span>
-                    </h2>
-                    <p class="text-sm text-[var(--color-text-secondary)] mt-1">
-                        {{ $visit->familyMember?->first_name }} {{ $visit->familyMember?->last_name }}
-                        @if($visit->clinic) • {{ $visit->clinic }} @endif
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $visit->doctor_name }}</h2>
+                    <p class="text-sm text-[var(--color-text-secondary)]">
+                        {{ $visit->visit_date->format('M d, Y') }}
+                        @if($visit->visit_time)
+                            • {{ \Carbon\Carbon::parse($visit->visit_time)->format('h:i A') }}
+                        @endif
                     </p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <a href="{{ route('families.health.visits.edit', [$family, $visit]) }}" class="px-3 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] text-sm hover:bg-[var(--color-bg-secondary)]">Edit</a>
-                    <form method="POST" action="{{ route('families.health.visits.destroy', [$family, $visit]) }}" onsubmit="return confirm('Delete this visit?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-3 py-2 rounded-lg border border-red-200 text-red-600 text-sm hover:bg-red-50">Delete</button>
-                    </form>
+                <div class="flex gap-2">
+                    @can('update', $visit)
+                        <a href="{{ route('families.health.visits.edit', ['family' => $family->id, 'visit' => $visit->id]) }}">
+                            <x-button variant="outline" size="md">Edit</x-button>
+                        </a>
+                    @endcan
+                    <a href="{{ route('families.health.visits.index', ['family' => $family->id]) }}">
+                        <x-button variant="ghost" size="md">Back</x-button>
+                    </a>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div class="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                    <p class="text-xs text-[var(--color-text-secondary)] mb-1">Status</p>
-                    <p class="font-semibold text-[var(--color-text-primary)] capitalize">{{ $visit->status }}</p>
-                </div>
-                <div class="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                    <p class="text-xs text-[var(--color-text-secondary)] mb-1">Reason</p>
-                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $visit->reason ?? '—' }}</p>
-                </div>
-                <div class="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                    <p class="text-xs text-[var(--color-text-secondary)] mb-1">Diagnosis</p>
-                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $visit->diagnosis ?? 'Pending' }}</p>
-                </div>
-                <div class="p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                    <p class="text-xs text-[var(--color-text-secondary)] mb-1">Follow-up</p>
-                    <p class="font-semibold text-[var(--color-text-primary)]">{{ $visit->follow_up_at?->format('M d, Y') ?? 'None' }}</p>
-                </div>
-                @if($visit->notes)
-                    <div class="md:col-span-2 p-4 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)]">
-                        <p class="text-xs text-[var(--color-text-secondary)] mb-1">Notes</p>
-                        <p class="text-sm text-[var(--color-text-primary)] whitespace-pre-line">{{ $visit->notes }}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                @if($visit->status)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Status</label>
+                        <p class="text-[var(--color-text-primary)] font-medium capitalize">{{ $visit->status }}</p>
+                    </div>
+                @endif
+
+                @if($visit->clinic_name)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Clinic/Hospital</label>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ $visit->clinic_name }}</p>
+                    </div>
+                @endif
+
+                @if($visit->specialization)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Specialization</label>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ $visit->specialization }}</p>
+                    </div>
+                @endif
+
+                @if($visit->visit_type)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Visit Type</label>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ ucfirst(str_replace('_', ' ', $visit->visit_type)) }}</p>
+                    </div>
+                @endif
+
+                @if($visit->familyMember)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Patient</label>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ $visit->familyMember->first_name }} {{ $visit->familyMember->last_name }}</p>
+                    </div>
+                @endif
+
+                @if($visit->next_visit_date)
+                    <div>
+                        <label class="text-sm text-[var(--color-text-secondary)]">Next Visit</label>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ $visit->next_visit_date->format('M d, Y') }}</p>
                     </div>
                 @endif
             </div>
+
+            @if($visit->chief_complaint)
+                <div class="mt-6">
+                    <label class="text-sm text-[var(--color-text-secondary)]">Chief Complaint</label>
+                    <p class="text-[var(--color-text-primary)] mt-1 whitespace-pre-wrap">{{ $visit->chief_complaint }}</p>
+                </div>
+            @endif
+
+            @if($visit->examination_findings)
+                <div class="mt-6">
+                    <label class="text-sm text-[var(--color-text-secondary)]">Examination Findings</label>
+                    <p class="text-[var(--color-text-primary)] mt-1 whitespace-pre-wrap">{{ $visit->examination_findings }}</p>
+                </div>
+            @endif
+
+            @if($visit->diagnosis)
+                <div class="mt-6">
+                    <label class="text-sm text-[var(--color-text-secondary)]">Diagnosis</label>
+                    <p class="text-[var(--color-text-primary)] mt-1 whitespace-pre-wrap">{{ $visit->diagnosis }}</p>
+                </div>
+            @endif
+
+            @if($visit->treatment_given)
+                <div class="mt-6">
+                    <label class="text-sm text-[var(--color-text-secondary)]">Treatment Given</label>
+                    <p class="text-[var(--color-text-primary)] mt-1 whitespace-pre-wrap">{{ $visit->treatment_given }}</p>
+                </div>
+            @endif
+
+            @if($visit->notes)
+                <div class="mt-6">
+                    <label class="text-sm text-[var(--color-text-secondary)]">Notes</label>
+                    <p class="text-[var(--color-text-primary)] mt-1 whitespace-pre-wrap">{{ $visit->notes }}</p>
+                </div>
+            @endif
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Prescriptions</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Medicines prescribed during this visit.</p>
-                    </div>
-                </div>
+        <!-- Prescriptions -->
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)]">Prescriptions</h3>
+                @can('create', \App\Models\Prescription::class)
+                    <button onclick="document.getElementById('add-prescription-form').classList.toggle('hidden')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:opacity-90 transition-opacity">
+                        Add Prescription
+                    </button>
+                @endcan
+            </div>
 
-                <form method="POST" action="{{ route('families.health.visits.prescriptions.store', [$family, $visit]) }}" class="space-y-4 mb-6" enctype="multipart/form-data">
-                    @csrf
-                    <input type="hidden" name="doctor_visit_id" value="{{ $visit->id }}">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <x-form-field label="Medication" labelFor="medication_name" required>
-                            <x-input name="medication_name" id="medication_name" required placeholder="e.g., Amoxicillin" />
-                            <x-error-message field="medication_name" />
-                        </x-form-field>
-                        <x-form-field label="Dosage" labelFor="dosage">
-                            <x-input name="dosage" id="dosage" placeholder="1 tablet" />
-                            <x-error-message field="dosage" />
-                        </x-form-field>
-                        <x-form-field label="Frequency" labelFor="frequency">
-                            <x-input name="frequency" id="frequency" placeholder="Twice daily after meals" />
-                            <x-error-message field="frequency" />
-                        </x-form-field>
-                        <x-form-field label="Status" labelFor="status">
-                            <select name="status" id="status" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)]">
-                                <option value="active">Active</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
-                            </select>
-                            <x-error-message field="status" />
-                        </x-form-field>
-                        <x-form-field label="Start Date" labelFor="start_date">
-                            <input type="date" name="start_date" id="start_date" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)]" />
-                            <x-error-message field="start_date" />
-                        </x-form-field>
-                        <x-form-field label="End Date" labelFor="end_date">
-                            <input type="date" name="end_date" id="end_date" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)]" />
-                            <x-error-message field="end_date" />
-                        </x-form-field>
-                        <x-form-field label="Instructions" labelFor="instructions" class="md:col-span-2">
-                            <textarea name="instructions" id="instructions" rows="2" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)]" placeholder="Take after meals, avoid driving"></textarea>
-                            <x-error-message field="instructions" />
-                        </x-form-field>
-                        <x-form-field label="Attachment (PDF/PNG)" labelFor="attachment" class="md:col-span-2">
-                            <input type="file" name="attachment" id="attachment" accept=".pdf,.png" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)]">
-                            <x-error-message field="attachment" />
-                        </x-form-field>
-                    </div>
-                    <div class="flex justify-end">
-                        <x-button type="submit" variant="primary" size="sm">Add Prescription</x-button>
-                    </div>
-                </form>
-
-                <div class="space-y-4">
-                    @forelse($visit->prescriptions as $prescription)
-                        <div class="p-4 rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <h4 class="font-semibold text-[var(--color-text-primary)]">{{ $prescription->medication_name }}</h4>
-                                    <p class="text-xs text-[var(--color-text-secondary)]">
-                                        {{ $prescription->dosage }} • {{ $prescription->frequency ?? 'As directed' }}
-                                    </p>
-                                    @if($prescription->file_path)
-                                        <div class="flex items-center gap-2 text-xs">
-                                            <a href="{{ Storage::url($prescription->file_path) }}" class="text-[var(--color-primary)] hover:underline" target="_blank" rel="noopener">View</a>
-                                            <a href="{{ route('families.health.visits.prescriptions.download', [$family, $visit, $prescription]) }}" class="text-[var(--color-primary)] hover:underline">Download</a>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 capitalize">{{ $prescription->status }}</span>
-                                    <form method="POST" action="{{ route('families.health.visits.prescriptions.destroy', [$family, $visit, $prescription]) }}" onsubmit="return confirm('Remove this prescription?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Delete</button>
-                                    </form>
-                                </div>
+            <!-- Add Prescription Form -->
+            @can('create', \App\Models\Prescription::class)
+                <div id="add-prescription-form" class="hidden mb-6 p-4 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">
+                    <form method="POST" action="{{ route('families.health.visits.prescriptions.store', ['family' => $family->id, 'visit' => $visit->id]) }}" enctype="multipart/form-data" class="space-y-4">
+                        @csrf
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <x-label for="medication_name" required>Medication Name</x-label>
+                                        <x-input type="text" name="medication_name" id="medication_name" required class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="dosage">Dosage</x-label>
+                                        <x-input type="text" name="dosage" id="dosage" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="frequency">Frequency</x-label>
+                                        <x-input type="text" name="frequency" id="frequency" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="start_date">Start Date</x-label>
+                                        <x-input type="date" name="start_date" id="start_date" class="mt-1" />
+                                    </div>
+                            <div>
+                                <x-label for="end_date">End Date</x-label>
+                                <x-input type="date" name="end_date" id="end_date" class="mt-1" />
                             </div>
+                            <div>
+                                <x-label for="status">Status</x-label>
+                                <select name="status" id="status" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                    <option value="active">Active</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="stopped">Stopped</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <x-label for="instructions">Instructions</x-label>
+                                <textarea name="instructions" id="instructions" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]"></textarea>
+                            </div>
+                            <div class="md:col-span-2">
+                                <x-label for="attachment">Prescription File (PDF/PNG/JPG)</x-label>
+                                <input type="file" name="attachment" id="attachment" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <x-button type="submit" variant="primary" size="md">Add Prescription</x-button>
+                            <button type="button" onclick="document.getElementById('add-prescription-form').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            @endcan
+
+            @forelse($visit->prescriptions as $prescription)
+                <div class="border-b border-[var(--color-border-primary)] pb-6 mb-6 last:border-0 last:pb-0 last:mb-0">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-[var(--color-text-primary)] text-lg">{{ $prescription->medication_name }}</h4>
+                            <p class="text-sm text-[var(--color-text-secondary)] mt-1">
+                                <span class="font-medium">Dosage:</span> {{ $prescription->dosage }} • 
+                                <span class="font-medium">Frequency:</span> {{ $prescription->frequency }}
+                            </p>
+                            <p class="text-xs text-[var(--color-text-secondary)] mt-1">
+                                {{ $prescription->start_date->format('M d, Y') }}
+                                @if($prescription->end_date)
+                                    - {{ $prescription->end_date->format('M d, Y') }}
+                                @endif
+                                • <span class="capitalize">{{ $prescription->status }}</span>
+                            </p>
                             @if($prescription->instructions)
-                                <p class="text-sm text-[var(--color-text-secondary)] mt-2">{{ $prescription->instructions }}</p>
+                                <p class="text-sm text-[var(--color-text-primary)] mt-2">{{ $prescription->instructions }}</p>
                             @endif
-                            <div class="mt-3">
-                                <details class="rounded border border-[var(--color-border-primary)] bg-white/40">
-                                    <summary class="px-3 py-2 cursor-pointer text-sm font-semibold text-[var(--color-text-primary)]">Edit prescription</summary>
-                                    <form method="POST" action="{{ route('families.health.visits.prescriptions.update', [$family, $visit, $prescription]) }}" class="p-3 space-y-2" enctype="multipart/form-data">
-                                        @csrf
-                                        @method('PATCH')
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            <x-input name="medication_name" value="{{ $prescription->medication_name }}" required />
-                                            <x-input name="dosage" value="{{ $prescription->dosage }}" />
-                                            <x-input name="frequency" value="{{ $prescription->frequency }}" />
-                                            <select name="status" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                                <option value="active" @selected($prescription->status === 'active')>Active</option>
-                                                <option value="completed" @selected($prescription->status === 'completed')>Completed</option>
-                                                <option value="cancelled" @selected($prescription->status === 'cancelled')>Cancelled</option>
+                            @if($prescription->file_path)
+                                <a href="{{ route('families.health.visits.prescriptions.download', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" class="inline-flex items-center mt-2 text-[var(--color-primary)] hover:underline text-sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Download Prescription
+                                </a>
+                            @endif
+                        </div>
+                        <div class="flex gap-2">
+                            @can('update', $prescription)
+                                <button onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.toggle('hidden')" class="text-[var(--color-primary)] hover:underline text-sm">Edit</button>
+                            @endcan
+                            @can('delete', $prescription)
+                                <form method="POST" action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
+                                </form>
+                            @endcan
+                        </div>
+                    </div>
+
+                    <!-- Edit Prescription Form -->
+                    @can('update', $prescription)
+                        <div id="edit-prescription-{{ $prescription->id }}" class="hidden mb-4 p-4 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">
+                            <form method="POST" action="{{ route('families.health.visits.prescriptions.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" enctype="multipart/form-data" class="space-y-4">
+                                @csrf
+                                @method('PATCH')
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <x-label for="medication_name_{{ $prescription->id }}" required>Medication Name</x-label>
+                                        <x-input type="text" name="medication_name" id="medication_name_{{ $prescription->id }}" value="{{ $prescription->medication_name }}" required class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="dosage_{{ $prescription->id }}">Dosage</x-label>
+                                        <x-input type="text" name="dosage" id="dosage_{{ $prescription->id }}" value="{{ $prescription->dosage }}" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="frequency_{{ $prescription->id }}">Frequency</x-label>
+                                        <x-input type="text" name="frequency" id="frequency_{{ $prescription->id }}" value="{{ $prescription->frequency }}" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="start_date_{{ $prescription->id }}">Start Date</x-label>
+                                        <x-input type="date" name="start_date" id="start_date_{{ $prescription->id }}" value="{{ $prescription->start_date?->format('Y-m-d') }}" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="end_date_{{ $prescription->id }}">End Date</x-label>
+                                        <x-input type="date" name="end_date" id="end_date_{{ $prescription->id }}" value="{{ $prescription->end_date?->format('Y-m-d') }}" class="mt-1" />
+                                    </div>
+                                    <div>
+                                        <x-label for="status_{{ $prescription->id }}">Status</x-label>
+                                        <select name="status" id="status_{{ $prescription->id }}" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                            <option value="active" {{ $prescription->status == 'active' ? 'selected' : '' }}>Active</option>
+                                            <option value="completed" {{ $prescription->status == 'completed' ? 'selected' : '' }}>Completed</option>
+                                            <option value="stopped" {{ $prescription->status == 'stopped' ? 'selected' : '' }}>Stopped</option>
+                                        </select>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-label for="instructions_{{ $prescription->id }}">Instructions</x-label>
+                                        <textarea name="instructions" id="instructions_{{ $prescription->id }}" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">{{ $prescription->instructions }}</textarea>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <x-label for="attachment_{{ $prescription->id }}">Update Prescription File (PDF/PNG/JPG)</x-label>
+                                        <input type="file" name="attachment" id="attachment_{{ $prescription->id }}" accept=".pdf,.png,.jpg,.jpeg" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                    </div>
+                                </div>
+                                <div class="flex gap-2">
+                                    <x-button type="submit" variant="primary" size="md">Update</x-button>
+                                    <button type="button" onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    @endcan
+
+                    <!-- Medicine Reminders -->
+                    <div class="mt-4 pl-4 border-l-2 border-[var(--color-border-primary)]">
+                        <div class="flex items-center justify-between mb-2">
+                            <h5 class="font-medium text-[var(--color-text-primary)]">Reminders</h5>
+                            @can('create', \App\Models\MedicineReminder::class)
+                                <button onclick="document.getElementById('add-reminder-{{ $prescription->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Add Reminder</button>
+                            @endcan
+                        </div>
+
+                        @can('create', \App\Models\MedicineReminder::class)
+                            <div id="add-reminder-{{ $prescription->id }}" class="hidden mb-3 p-3 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-primary)]">
+                                <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.store', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" class="space-y-3">
+                                    @csrf
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        <div>
+                                            <x-label for="frequency_{{ $prescription->id }}" required>Frequency</x-label>
+                                            <select name="frequency" id="frequency_{{ $prescription->id }}" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                                <option value="once">Once</option>
+                                                <option value="daily">Daily</option>
+                                                <option value="weekly">Weekly</option>
                                             </select>
-                                            <input type="date" name="start_date" value="{{ optional($prescription->start_date)->toDateString() }}" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" />
-                                            <input type="date" name="end_date" value="{{ optional($prescription->end_date)->toDateString() }}" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" />
-                                            <textarea name="instructions" rows="2" class="md:col-span-2 w-full rounded border border-[var(--color-border-primary)] px-2 py-2">{{ $prescription->instructions }}</textarea>
-                                            <div class="md:col-span-2 flex items-center gap-3">
-                                                @if($prescription->file_path)
-                                                    <a href="{{ Storage::url($prescription->file_path) }}" class="text-xs text-[var(--color-primary)] hover:underline" target="_blank" rel="noopener">Current attachment</a>
-                                                @endif
-                                                <input type="file" name="attachment" accept=".pdf,.png" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
+                                        </div>
+                                        <div>
+                                            <x-label for="reminder_time_{{ $prescription->id }}">Reminder Time</x-label>
+                                            <x-input type="time" name="reminder_time" id="reminder_time_{{ $prescription->id }}" class="mt-1" />
+                                        </div>
+                                        <div>
+                                            <x-label for="start_date_{{ $prescription->id }}" required>Start Date</x-label>
+                                            <x-input type="date" name="start_date" id="start_date_{{ $prescription->id }}" required class="mt-1" />
+                                        </div>
+                                        <div>
+                                            <x-label for="end_date_{{ $prescription->id }}">End Date</x-label>
+                                            <x-input type="date" name="end_date" id="end_date_{{ $prescription->id }}" class="mt-1" />
+                                        </div>
+                                        <div>
+                                            <x-label for="days_of_week_{{ $prescription->id }}">Days of Week (for weekly frequency)</x-label>
+                                            <div class="mt-1 flex flex-wrap gap-2">
+                                                @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
+                                                    <label class="flex items-center">
+                                                        <input type="checkbox" name="days_of_week[]" value="{{ $day }}" class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)]">
+                                                        <span class="ml-1 text-sm text-[var(--color-text-primary)] capitalize">{{ $day }}</span>
+                                                    </label>
+                                                @endforeach
                                             </div>
                                         </div>
-                                        <div class="flex justify-end">
-                                            <x-button type="submit" variant="secondary" size="sm">Update</x-button>
+                                        <div>
+                                            <x-label for="status_{{ $prescription->id }}">Status</x-label>
+                                            <select name="status" id="status_{{ $prescription->id }}" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                                <option value="active">Active</option>
+                                                <option value="paused">Paused</option>
+                                                <option value="completed">Completed</option>
+                                            </select>
                                         </div>
-                                    </form>
-                                </details>
-                            </div>
-
-                            <div class="mt-4 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <h5 class="text-sm font-semibold text-[var(--color-text-primary)]">Reminders</h5>
-                                    <button type="button" class="text-xs text-[var(--color-primary)] hover:underline" onclick="document.getElementById('reminder-form-{{ $prescription->id }}').classList.toggle('hidden')">Add reminder</button>
-                                </div>
-                                <form id="reminder-form-{{ $prescription->id }}" class="hidden p-3 rounded border border-[var(--color-border-primary)] bg-white/60" method="POST" action="{{ route('families.health.visits.prescriptions.reminders.store', [$family, $visit, $prescription]) }}">
-                                    @csrf
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                        <select name="frequency" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                            <option value="daily">Daily</option>
-                                            <option value="weekly">Weekly</option>
-                                            <option value="once">Once</option>
-                                        </select>
-                                        <input type="time" name="reminder_time" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" required>
-                                        <input type="date" name="start_date" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" required>
-                                        <input type="date" name="end_date" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" placeholder="End date">
-                                        <select name="days_of_week[]" multiple class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" size="3">
-                                            <option value="mon">Mon</option>
-                                            <option value="tue">Tue</option>
-                                            <option value="wed">Wed</option>
-                                            <option value="thu">Thu</option>
-                                            <option value="fri">Fri</option>
-                                            <option value="sat">Sat</option>
-                                            <option value="sun">Sun</option>
-                                        </select>
-                                        <select name="status" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                            <option value="active">Active</option>
-                                            <option value="paused">Paused</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
                                     </div>
-                                    <div class="flex justify-end mt-2">
-                                        <x-button type="submit" variant="secondary" size="sm">Save Reminder</x-button>
+                                    <div class="flex gap-2">
+                                        <x-button type="submit" variant="primary" size="sm">Add</x-button>
+                                        <button type="button" onclick="document.getElementById('add-reminder-{{ $prescription->id }}').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                                     </div>
                                 </form>
-
-                                @forelse($prescription->reminders as $reminder)
-                                    <div class="p-3 rounded border border-[var(--color-border-primary)] bg-white/70 flex items-start justify-between">
-                                        <div>
-                                            <p class="text-sm font-semibold text-[var(--color-text-primary)]">
-                                                {{ ucfirst($reminder->frequency) }} @ {{ $reminder->reminder_time }}
-                                            </p>
-                                            <p class="text-xs text-[var(--color-text-secondary)]">
-                                                {{ $reminder->start_date?->format('M d, Y') }} - {{ $reminder->end_date?->format('M d, Y') ?? 'Open' }}
-                                                @if($reminder->days_of_week)
-                                                    • {{ implode(', ', $reminder->days_of_week) }}
-                                                @endif
-                                            </p>
-                                            @if($reminder->next_run_at)
-                                                <p class="text-xs text-[var(--color-text-secondary)]">Next: {{ $reminder->next_run_at?->format('M d, Y H:i') }}</p>
-                                            @endif
-                                        </div>
-                                        <div class="flex items-center gap-2">
-                                            <details class="border border-[var(--color-border-primary)] rounded">
-                                                <summary class="px-2 py-1 text-xs cursor-pointer">Edit</summary>
-                                                <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.update', [$family, $visit, $prescription, $reminder]) }}" class="p-3 space-y-2 w-64">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <select name="frequency" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                                        <option value="daily" @selected($reminder->frequency === 'daily')>Daily</option>
-                                                        <option value="weekly" @selected($reminder->frequency === 'weekly')>Weekly</option>
-                                                        <option value="once" @selected($reminder->frequency === 'once')>Once</option>
-                                                    </select>
-                                                    <input type="time" name="reminder_time" value="{{ $reminder->reminder_time }}" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" required>
-                                                    <input type="date" name="start_date" value="{{ optional($reminder->start_date)->toDateString() }}" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" required>
-                                                    <input type="date" name="end_date" value="{{ optional($reminder->end_date)->toDateString() }}" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                                    <select name="days_of_week[]" multiple class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2" size="3">
-                                                        @foreach(['mon','tue','wed','thu','fri','sat','sun'] as $day)
-                                                            <option value="{{ $day }}" @selected(in_array($day, $reminder->days_of_week ?? []))>{{ strtoupper($day) }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                    <select name="status" class="w-full rounded border border-[var(--color-border-primary)] px-2 py-2">
-                                                        <option value="active" @selected($reminder->status === 'active')>Active</option>
-                                                        <option value="paused" @selected($reminder->status === 'paused')>Paused</option>
-                                                        <option value="completed" @selected($reminder->status === 'completed')>Completed</option>
-                                                    </select>
-                                                    <div class="flex justify-end">
-                                                        <x-button type="submit" variant="secondary" size="sm">Update</x-button>
-                                                    </div>
-                                                </form>
-                                            </details>
-                                            <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.destroy', [$family, $visit, $prescription, $reminder]) }}" onsubmit="return confirm('Delete reminder?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @empty
-                                    <p class="text-xs text-[var(--color-text-secondary)]">No reminders yet.</p>
-                                @endforelse
                             </div>
-                        </div>
-                    @empty
-                        <p class="text-sm text-[var(--color-text-secondary)]">No prescriptions added yet.</p>
-                    @endforelse
-                </div>
-            </div>
+                        @endcan
 
-            <div class="bg-[var(--color-bg-primary)] border border-[var(--color-border-primary)] rounded-xl shadow p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)]">Linked Medical Record</h3>
-                        <p class="text-sm text-[var(--color-text-secondary)]">Keep medical notes connected to this visit.</p>
+                        @forelse($prescription->reminders as $reminder)
+                            <div class="flex items-center justify-between p-2 bg-[var(--color-bg-secondary)] rounded mb-2">
+                                <div>
+                                    <span class="text-sm text-[var(--color-text-primary)]">
+                                        <span class="font-medium capitalize">{{ $reminder->frequency }}</span>
+                                        @if($reminder->reminder_time)
+                                            • {{ \Carbon\Carbon::parse($reminder->reminder_time)->format('h:i A') }}
+                                        @endif
+                                        @if($reminder->days_of_week && count($reminder->days_of_week) > 0)
+                                            • {{ implode(', ', array_map('ucfirst', $reminder->days_of_week)) }}
+                                        @endif
+                                        @if($reminder->start_date)
+                                            • From {{ $reminder->start_date->format('M d, Y') }}
+                                        @endif
+                                        @if($reminder->end_date)
+                                            • Until {{ $reminder->end_date->format('M d, Y') }}
+                                        @endif
+                                        @if($reminder->status !== 'active')
+                                            <span class="text-red-600">({{ ucfirst($reminder->status) }})</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    @can('update', $reminder)
+                                        <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
+                                    @endcan
+                                    @can('delete', $reminder)
+                                        <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+                                        </form>
+                                    @endcan
+                                </div>
+                            </div>
+
+                            @can('update', $reminder)
+                                <div id="edit-reminder-{{ $reminder->id }}" class="hidden mb-2 p-3 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-primary)]">
+                                    <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" class="space-y-3">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div>
+                                                <x-label for="frequency_edit_{{ $reminder->id }}" required>Frequency</x-label>
+                                                <select name="frequency" id="frequency_edit_{{ $reminder->id }}" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                                    <option value="once" {{ $reminder->frequency == 'once' ? 'selected' : '' }}>Once</option>
+                                                    <option value="daily" {{ $reminder->frequency == 'daily' ? 'selected' : '' }}>Daily</option>
+                                                    <option value="weekly" {{ $reminder->frequency == 'weekly' ? 'selected' : '' }}>Weekly</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <x-label for="reminder_time_edit_{{ $reminder->id }}">Reminder Time</x-label>
+                                                <x-input type="time" name="reminder_time" id="reminder_time_edit_{{ $reminder->id }}" value="{{ $reminder->reminder_time ? \Carbon\Carbon::parse($reminder->reminder_time)->format('H:i') : '' }}" class="mt-1" />
+                                            </div>
+                                            <div>
+                                                <x-label for="start_date_edit_{{ $reminder->id }}" required>Start Date</x-label>
+                                                <x-input type="date" name="start_date" id="start_date_edit_{{ $reminder->id }}" value="{{ $reminder->start_date ? $reminder->start_date->format('Y-m-d') : '' }}" required class="mt-1" />
+                                            </div>
+                                            <div>
+                                                <x-label for="end_date_edit_{{ $reminder->id }}">End Date</x-label>
+                                                <x-input type="date" name="end_date" id="end_date_edit_{{ $reminder->id }}" value="{{ $reminder->end_date ? $reminder->end_date->format('Y-m-d') : '' }}" class="mt-1" />
+                                            </div>
+                                            <div>
+                                                <x-label for="days_of_week_edit_{{ $reminder->id }}">Days of Week</x-label>
+                                                <div class="mt-1 flex flex-wrap gap-2">
+                                                    @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
+                                                        <label class="flex items-center">
+                                                            <input type="checkbox" name="days_of_week[]" value="{{ $day }}" {{ in_array($day, $reminder->days_of_week ?? []) ? 'checked' : '' }} class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)]">
+                                                            <span class="ml-1 text-sm text-[var(--color-text-primary)] capitalize">{{ $day }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <x-label for="status_edit_{{ $reminder->id }}">Status</x-label>
+                                                <select name="status" id="status_edit_{{ $reminder->id }}" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)]">
+                                                    <option value="active" {{ $reminder->status == 'active' ? 'selected' : '' }}>Active</option>
+                                                    <option value="paused" {{ $reminder->status == 'paused' ? 'selected' : '' }}>Paused</option>
+                                                    <option value="completed" {{ $reminder->status == 'completed' ? 'selected' : '' }}>Completed</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <x-button type="submit" variant="primary" size="sm">Update</x-button>
+                                            <button type="button" onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            @endcan
+                        @empty
+                            <p class="text-sm text-[var(--color-text-secondary)] italic">No reminders set</p>
+                        @endforelse
                     </div>
                 </div>
-                <div class="space-y-3">
-                    @if($visit->medicalRecord)
-                        <div class="p-4 rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
-                            <h4 class="font-semibold text-[var(--color-text-primary)]">{{ $visit->medicalRecord->title }}</h4>
-                            <p class="text-xs text-[var(--color-text-secondary)]">Type: {{ ucfirst($visit->medicalRecord->record_type) }}</p>
-                            @if($visit->medicalRecord->summary)
-                                <p class="text-sm text-[var(--color-text-secondary)] mt-2">{{ $visit->medicalRecord->summary }}</p>
-                            @endif
-                            <a href="{{ route('families.health.records.edit', [$family, $visit->medicalRecord]) }}" class="text-xs text-[var(--color-primary)] hover:underline mt-2 inline-block">Edit record</a>
-                        </div>
-                    @else
-                        <p class="text-sm text-[var(--color-text-secondary)]">No record linked. Edit the visit to attach one.</p>
-                    @endif
-                </div>
-            </div>
+            @empty
+                <p class="text-[var(--color-text-secondary)] text-center py-8">No prescriptions added yet.</p>
+            @endforelse
         </div>
     </div>
 </x-app-layout>

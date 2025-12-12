@@ -4,72 +4,63 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Models\Family;
-use App\Models\FamilyMember;
-use App\Models\FamilyUserRole;
 use App\Models\MedicalRecord;
 use App\Models\User;
+use App\Models\FamilyMember;
 
 class MedicalRecordPolicy
 {
-    public function viewAny(User $user, Family $family): bool
+    public function viewAny(User $user): bool
     {
-        return $this->userHasFamilyAccess($user, $family->id);
+        return true;
     }
 
-    public function view(User $user, MedicalRecord $record): bool
+    public function view(User $user, MedicalRecord $medicalRecord): bool
     {
-        return $this->userHasFamilyAccess($user, $record->family_id);
-    }
-
-    public function create(User $user, Family $family): bool
-    {
-        if ($this->isOwnerOrAdmin($user, $family->id)) {
-            return true;
+        if ($user->tenant_id !== $medicalRecord->tenant_id) {
+            return false;
         }
 
-        return FamilyMember::where('family_id', $family->id)
+        return $this->belongsToFamily($user, $medicalRecord);
+    }
+
+    public function create(User $user): bool
+    {
+        return true;
+    }
+
+    public function update(User $user, MedicalRecord $medicalRecord): bool
+    {
+        if ($user->tenant_id !== $medicalRecord->tenant_id) {
+            return false;
+        }
+
+        return $user->isFamilyAdmin($medicalRecord->family_id) || $this->isLinkedMember($user, $medicalRecord);
+    }
+
+    public function delete(User $user, MedicalRecord $medicalRecord): bool
+    {
+        return $this->update($user, $medicalRecord);
+    }
+
+    private function belongsToFamily(User $user, MedicalRecord $medicalRecord): bool
+    {
+        $role = $user->getFamilyRole($medicalRecord->family_id);
+        $isMember = FamilyMember::where('family_id', $medicalRecord->family_id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        return $role !== null || $isMember;
+    }
+
+    private function isLinkedMember(User $user, MedicalRecord $medicalRecord): bool
+    {
+        if (!$medicalRecord->family_member_id) {
+            return false;
+        }
+
+        return FamilyMember::where('id', $medicalRecord->family_member_id)
             ->where('user_id', $user->id)
             ->exists();
     }
-
-    public function update(User $user, MedicalRecord $record): bool
-    {
-        if ($this->isOwnerOrAdmin($user, $record->family_id)) {
-            return true;
-        }
-
-        return $this->isLinkedMember($user, $record->family_member_id);
-    }
-
-    public function delete(User $user, MedicalRecord $record): bool
-    {
-        return $this->update($user, $record);
-    }
-
-    private function userHasFamilyAccess(User $user, int $familyId): bool
-    {
-        return FamilyUserRole::where('family_id', $familyId)
-            ->where('user_id', $user->id)
-            ->exists()
-            || FamilyMember::where('family_id', $familyId)
-                ->where('user_id', $user->id)
-                ->exists();
-    }
-
-    private function isOwnerOrAdmin(User $user, int $familyId): bool
-    {
-        $role = FamilyUserRole::where('family_id', $familyId)
-            ->where('user_id', $user->id)
-            ->first();
-
-        return $role !== null && in_array($role->role, ['OWNER', 'ADMIN'], true);
-    }
-
-    private function isLinkedMember(User $user, int $memberId): bool
-    {
-        $member = FamilyMember::find($memberId);
-        return $member !== null && $member->user_id === $user->id;
-    }
 }
-

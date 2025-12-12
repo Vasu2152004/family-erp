@@ -15,22 +15,25 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
             $table->foreignId('family_id')->constrained()->onDelete('cascade');
-            $table->foreignId('family_member_id')->constrained()->onDelete('cascade');
-            $table->string('title');
-            $table->enum('record_type', ['general', 'diagnosis', 'lab', 'imaging', 'vaccine', 'allergy', 'other'])->default('general');
-            $table->string('doctor_name')->nullable();
-            $table->date('recorded_at')->nullable();
-            $table->text('summary')->nullable();
+            $table->foreignId('family_member_id')->nullable()->constrained('family_members')->onDelete('set null');
+            $table->enum('record_type', ['general', 'chronic', 'allergy', 'surgery', 'vaccination', 'other'])->default('general');
+            $table->string('category')->nullable();
+            $table->string('primary_condition')->nullable();
+            $table->enum('severity', ['mild', 'moderate', 'severe', 'critical'])->nullable();
+            $table->text('symptoms')->nullable();
+            $table->text('diagnosis')->nullable();
+            $table->text('treatment_plan')->nullable();
+            $table->date('follow_up_at')->nullable();
             $table->text('notes')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
+            $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
 
             $table->index('tenant_id');
             $table->index('family_id');
             $table->index('family_member_id');
             $table->index('record_type');
-            $table->index('recorded_at');
+            $table->index('created_by');
         });
     }
 
@@ -42,4 +45,3 @@ return new class extends Migration
         Schema::dropIfExists('medical_records');
     }
 };
-

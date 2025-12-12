@@ -217,6 +217,19 @@ Route::middleware(['auth', 'tenant'])->group(function () {
                 ->name('visits.prescriptions.reminders.destroy');
         });
 
+        // Tasks
+        Route::prefix('tasks')->name('tasks.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\TaskController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\TaskController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\TaskController::class, 'store'])->name('store');
+            Route::get('{task}', [\App\Http\Controllers\TaskController::class, 'show'])->name('show');
+            Route::get('{task}/edit', [\App\Http\Controllers\TaskController::class, 'edit'])->name('edit');
+            Route::patch('{task}', [\App\Http\Controllers\TaskController::class, 'update'])->name('update');
+            Route::delete('{task}', [\App\Http\Controllers\TaskController::class, 'destroy'])->name('destroy');
+            Route::patch('{task}/status', [\App\Http\Controllers\TaskController::class, 'updateStatus'])->name('update-status');
+            Route::get('{task}/logs', [\App\Http\Controllers\TaskLogController::class, 'index'])->name('logs.index');
+        });
+
         // Documents
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');

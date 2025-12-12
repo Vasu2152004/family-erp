@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class MedicalRecord extends Model
 {
@@ -20,6 +19,7 @@ class MedicalRecord extends Model
         'family_member_id',
         'title',
         'record_type',
+        'category',
         'doctor_name',
         'primary_condition',
         'severity',
@@ -37,8 +37,8 @@ class MedicalRecord extends Model
     protected function casts(): array
     {
         return [
-            'recorded_at' => 'date',
             'follow_up_at' => 'date',
+            'recorded_at' => 'date',
         ];
     }
 
@@ -57,14 +57,18 @@ class MedicalRecord extends Model
         return $this->belongsTo(FamilyMember::class);
     }
 
-    public function visits(): HasMany
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function doctorVisits(): HasMany
     {
         return $this->hasMany(DoctorVisit::class);
     }
-
-    public function scopeForTenant(Builder $query, int $tenantId): Builder
-    {
-        return $query->where('tenant_id', $tenantId);
-    }
 }
-
