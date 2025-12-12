@@ -1,6 +1,6 @@
 @props(['active' => ''])
 
-<aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 -translate-x-full shadow-2xl">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 -translate-x-full shadow-2xl flex flex-col">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-gray-700/50 bg-gray-800/50 backdrop-blur-sm">
         <div class="flex items-center space-x-3">
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="flex-1 overflow-y-auto py-4 px-3">
+    <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 sidebar-scroll">
         @php
             $routeName = request()->route()?->getName();
             $user = Auth::user();
@@ -114,7 +114,8 @@
                          !str_starts_with($currentRoute, 'families.documents.') &&
                          !str_starts_with($currentRoute, 'families.document-types.') &&
                          !str_starts_with($currentRoute, 'families.health.') &&
-                         !str_starts_with($currentRoute, 'families.tasks.')) ||
+                         !str_starts_with($currentRoute, 'families.tasks.') &&
+                         !str_starts_with($currentRoute, 'families.notes.')) ||
                         str_starts_with($currentRoute, 'family-member-requests.')
                     );
                 @endphp
@@ -236,6 +237,26 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                         </svg>
                         <span class="font-medium">Tasks</span>
+                    </a>
+                </li>
+
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
+                                'families.notes.*',
+                            ],
+                            [
+                                'families/*/notes*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('families.notes.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20l9-5-9-5-9 5 9 5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12l9-5-9-5-9 5 9 5z"></path>
+                        </svg>
+                        <span class="font-medium">Notes</span>
                     </a>
                 </li>
 

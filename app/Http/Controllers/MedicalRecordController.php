@@ -26,7 +26,7 @@ class MedicalRecordController extends Controller
         $this->authorize('viewAny', MedicalRecord::class);
 
         $query = MedicalRecord::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->with(['familyMember', 'createdBy'])
             ->orderBy('created_at', 'desc');
 
@@ -50,7 +50,7 @@ class MedicalRecordController extends Controller
         $records = $query->paginate(15)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
@@ -68,7 +68,7 @@ class MedicalRecordController extends Controller
         $this->authorize('create', MedicalRecord::class);
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
@@ -85,7 +85,7 @@ class MedicalRecordController extends Controller
 
         $record = $this->healthService->createMedicalRecord(
             $request->validated(),
-            $request->user()->tenant_id,
+            $family->tenant_id,
             $family->id,
             $request->user()->id
         );
@@ -111,7 +111,7 @@ class MedicalRecordController extends Controller
         $this->authorize('update', $record);
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();

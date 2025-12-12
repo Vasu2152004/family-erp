@@ -31,21 +31,21 @@ class HealthController extends Controller
 
         // Get stats
         $totalRecords = MedicalRecord::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->count();
 
         $totalVisits = DoctorVisit::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->count();
 
         $activePrescriptions = Prescription::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->where('status', 'active')
             ->count();
 
         // Recent visits (past visits only - exclude future visits)
         $recentVisitsQuery = DoctorVisit::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->where(function ($query) {
                 $query->where('visit_date', '<', Carbon::today())
                     ->orWhere(function ($q) {
@@ -73,7 +73,7 @@ class HealthController extends Controller
 
         // Upcoming visits (future visits - including today's future visits)
         $upcomingVisitsQuery = DoctorVisit::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->where(function ($query) {
                 $query->where('visit_date', '>', Carbon::today())
                     ->orWhere(function ($q) {
@@ -96,7 +96,7 @@ class HealthController extends Controller
 
         // Active prescriptions
         $activePrescriptionsList = Prescription::where('family_id', $family->id)
-            ->where('tenant_id', $user->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->where('status', 'active')
             ->with(['familyMember', 'doctorVisit'])
             ->orderBy('start_date', 'desc')

@@ -29,7 +29,7 @@ class PrescriptionController extends Controller
 
         $prescription = $this->healthService->createPrescription(
             $request->validated(),
-            $request->user()->tenant_id,
+            $family->tenant_id,
             $family->id,
             $visit,
             $request->user()->id,

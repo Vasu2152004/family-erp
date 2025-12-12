@@ -28,7 +28,7 @@ class DoctorVisitController extends Controller
         $this->authorize('viewAny', DoctorVisit::class);
 
         $query = DoctorVisit::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->with(['familyMember', 'medicalRecord', 'createdBy']);
 
         if ($request->filled('search')) {
@@ -77,7 +77,7 @@ class DoctorVisitController extends Controller
         $visits = $query->paginate(15)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
@@ -95,13 +95,13 @@ class DoctorVisitController extends Controller
         $this->authorize('create', DoctorVisit::class);
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
 
         $medicalRecords = MedicalRecord::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->with('familyMember')
             ->orderBy('created_at', 'desc')
             ->get();
@@ -119,7 +119,7 @@ class DoctorVisitController extends Controller
 
         $visit = $this->healthService->createDoctorVisit(
             $request->validated(),
-            $request->user()->tenant_id,
+            $family->tenant_id,
             $family->id,
             $request->user()->id
         );
@@ -135,7 +135,7 @@ class DoctorVisitController extends Controller
         $visit->load(['familyMember', 'medicalRecord', 'createdBy', 'updatedBy', 'prescriptions.familyMember', 'prescriptions.reminders']);
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
@@ -152,13 +152,13 @@ class DoctorVisitController extends Controller
         $this->authorize('update', $visit);
 
         $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->alive()
             ->orderBy('first_name')
             ->get();
 
         $medicalRecords = MedicalRecord::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
+            ->where('tenant_id', $family->tenant_id)
             ->with('familyMember')
             ->orderBy('created_at', 'desc')
             ->get();

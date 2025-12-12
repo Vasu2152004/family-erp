@@ -230,6 +230,18 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::get('{task}/logs', [\App\Http\Controllers\TaskLogController::class, 'index'])->name('logs.index');
         });
 
+        // Notes
+        Route::prefix('notes')->name('notes.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\NoteController::class, 'index'])->name('index');
+            Route::get('create', [\App\Http\Controllers\NoteController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\NoteController::class, 'store'])->name('store');
+            Route::get('{note}', [\App\Http\Controllers\NoteController::class, 'show'])->name('show');
+            Route::get('{note}/edit', [\App\Http\Controllers\NoteController::class, 'edit'])->name('edit');
+            Route::patch('{note}', [\App\Http\Controllers\NoteController::class, 'update'])->name('update');
+            Route::delete('{note}', [\App\Http\Controllers\NoteController::class, 'destroy'])->name('destroy');
+            Route::post('{note}/unlock', [\App\Http\Controllers\NoteController::class, 'unlock'])->name('unlock');
+        });
+
         // Documents
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');

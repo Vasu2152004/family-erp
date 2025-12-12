@@ -12,6 +12,7 @@
         'secondary' => 'bg-[var(--color-secondary)] text-white hover:bg-[var(--color-secondary-dark)] focus:ring-[var(--color-secondary)]',
         'outline' => 'border-2 border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] focus:ring-[var(--color-primary)]',
         'ghost' => 'text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] focus:ring-[var(--color-primary)]',
+        'danger' => 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
     ];
     
     $sizeClasses = [
