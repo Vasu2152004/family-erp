@@ -10,6 +10,7 @@ use App\Models\Family;
 use App\Models\Vehicle;
 use App\Models\FamilyMember;
 use App\Services\VehicleService;
+use App\Services\VehicleAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +19,8 @@ use Carbon\Carbon;
 class VehicleController extends Controller
 {
     public function __construct(
-        private readonly VehicleService $vehicleService
+        private readonly VehicleService $vehicleService,
+        private readonly VehicleAnalyticsService $analyticsService
     ) {
     }
 
@@ -70,11 +72,15 @@ class VehicleController extends Controller
             ->orderBy('first_name')
             ->get();
 
+        // Get analytics data for charts
+        $fuelConsumptionData = $this->analyticsService->getFuelConsumptionTrends($family->id, 12);
+
         return view('vehicles.index', [
             'family' => $family,
             'vehicles' => $vehicles,
             'members' => $members,
             'filters' => $request->only(['search', 'family_member_id', 'expiring_soon']),
+            'fuelConsumptionData' => $fuelConsumptionData,
         ]);
     }
 

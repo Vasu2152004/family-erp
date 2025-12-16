@@ -9,6 +9,7 @@ use App\Models\Family;
 use App\Models\Budget;
 use App\Models\TransactionCategory;
 use App\Services\BudgetService;
+use App\Services\BudgetAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,7 +19,8 @@ class BudgetController extends Controller
     use HasFamilyContext;
 
     public function __construct(
-        private BudgetService $budgetService
+        private BudgetService $budgetService,
+        private BudgetAnalyticsService $analyticsService
     ) {
     }
 
@@ -59,7 +61,10 @@ class BudgetController extends Controller
             ->where('type', 'EXPENSE')
             ->get();
 
-        return view('budgets.index', compact('family', 'budgetsWithStatus', 'categories', 'currentMonth', 'currentYear'));
+        // Get analytics data for charts
+        $budgetVsActualData = $this->analyticsService->getBudgetVsActual($family->id, $currentMonth, $currentYear);
+
+        return view('budgets.index', compact('family', 'budgetsWithStatus', 'categories', 'currentMonth', 'currentYear', 'budgetVsActualData'));
     }
 
     /**

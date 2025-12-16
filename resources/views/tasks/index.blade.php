@@ -122,8 +122,41 @@
                     @endcan
                 </div>
             @endif
+
+            <!-- Task Status Distribution Chart -->
+            @if(count($taskStatusData ?? []) > 0 && array_sum(array_column($taskStatusData, 'count')) > 0)
+                <div class="mt-6 card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Task Status Distribution</h2>
+                    <div id="taskStatusChart" style="min-height: 400px;"></div>
+                </div>
+            @endif
         </div>
     </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+        <script src="{{ asset('js/task-charts.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Task Status Data
+                const taskStatusData = @json($taskStatusData ?? []);
+                
+                // Initialize charts once ApexCharts is loaded
+                if (typeof ApexCharts !== 'undefined' && typeof initTaskCharts === 'function') {
+                    initTaskCharts(taskStatusData);
+                } else {
+                    // Wait for ApexCharts to load
+                    window.addEventListener('load', function() {
+                        if (typeof ApexCharts !== 'undefined' && typeof initTaskCharts === 'function') {
+                            initTaskCharts(taskStatusData);
+                        } else {
+                            console.error('ApexCharts or initTaskCharts function not available');
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 
 

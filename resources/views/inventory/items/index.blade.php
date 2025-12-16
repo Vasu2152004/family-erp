@@ -26,6 +26,25 @@
                 </div>
             </div>
 
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Category-wise Distribution Chart -->
+                @if(count($categoryDistribution) > 0)
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Category-wise Distribution</h2>
+                        <div id="categoryDistributionChart" style="min-height: 400px;"></div>
+                    </div>
+                @endif
+
+                <!-- Stock Status Overview Chart -->
+                @if(count($stockStatusOverview) > 0)
+                    <div class="card">
+                        <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Stock Status Overview</h2>
+                        <div id="stockStatusChart" style="min-height: 400px;"></div>
+                    </div>
+                @endif
+            </div>
+
             <!-- Filters -->
             <form method="GET" action="{{ route('inventory.items.index', ['family_id' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
@@ -149,5 +168,32 @@
             @endif
         </div>
     </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+        <script src="{{ asset('js/inventory-charts.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Category Distribution Data
+                const categoryData = @json($categoryDistribution ?? []);
+                // Stock Status Data
+                const stockStatusData = @json($stockStatusOverview ?? []);
+                
+                // Initialize charts once ApexCharts is loaded
+                if (typeof ApexCharts !== 'undefined' && typeof initInventoryCharts === 'function') {
+                    initInventoryCharts(categoryData, stockStatusData);
+                } else {
+                    // Wait for ApexCharts to load
+                    window.addEventListener('load', function() {
+                        if (typeof ApexCharts !== 'undefined' && typeof initInventoryCharts === 'function') {
+                            initInventoryCharts(categoryData, stockStatusData);
+                        } else {
+                            console.error('ApexCharts or initInventoryCharts function not available');
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 

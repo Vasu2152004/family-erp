@@ -10,6 +10,7 @@ use App\Models\Family;
 use App\Models\Task;
 use App\Models\FamilyMember;
 use App\Services\TaskService;
+use App\Services\TaskAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +18,8 @@ use Illuminate\View\View;
 class TaskController extends Controller
 {
     public function __construct(
-        private readonly TaskService $taskService
+        private readonly TaskService $taskService,
+        private readonly TaskAnalyticsService $analyticsService
     ) {
     }
 
@@ -69,11 +71,15 @@ class TaskController extends Controller
             ->orderBy('first_name')
             ->get();
 
+        // Get analytics data for charts
+        $taskStatusData = $this->analyticsService->getTaskStatusDistribution($family->id);
+
         return view('tasks.index', [
             'family' => $family,
             'tasks' => $tasks,
             'members' => $members,
             'filters' => $request->only(['search', 'status', 'frequency', 'family_member_id']),
+            'taskStatusData' => $taskStatusData,
         ]);
     }
 

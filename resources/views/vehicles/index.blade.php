@@ -119,7 +119,40 @@
                     @endcan
                 </div>
             @endif
+
+            <!-- Fuel Consumption Trends Chart -->
+            @if(count($fuelConsumptionData ?? []) > 0)
+                <div class="mt-6 card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Fuel Consumption Trends (Last 12 Months)</h2>
+                    <div id="fuelConsumptionChart" style="min-height: 400px;"></div>
+                </div>
+            @endif
         </div>
     </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+        <script src="{{ asset('js/vehicle-charts.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Fuel Consumption Data
+                const fuelConsumptionData = @json($fuelConsumptionData ?? []);
+                
+                // Initialize charts once ApexCharts is loaded
+                if (typeof ApexCharts !== 'undefined' && typeof initVehicleCharts === 'function') {
+                    initVehicleCharts(fuelConsumptionData);
+                } else {
+                    // Wait for ApexCharts to load
+                    window.addEventListener('load', function() {
+                        if (typeof ApexCharts !== 'undefined' && typeof initVehicleCharts === 'function') {
+                            initVehicleCharts(fuelConsumptionData);
+                        } else {
+                            console.error('ApexCharts or initVehicleCharts function not available');
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 

@@ -102,7 +102,40 @@
                 @endcan
             </div>
         @endif
+
+        <!-- Budget vs Actual Spending Chart -->
+        @if(count($budgetVsActualData ?? []) > 0)
+            <div class="card">
+                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Budget vs Actual Spending ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
+                <div id="budgetVsActualChart" style="min-height: 400px;"></div>
+            </div>
+        @endif
     </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+        <script src="{{ asset('js/budget-charts.js') }}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Budget vs Actual Data
+                const budgetVsActualData = @json($budgetVsActualData ?? []);
+                
+                // Initialize charts once ApexCharts is loaded
+                if (typeof ApexCharts !== 'undefined' && typeof initBudgetCharts === 'function') {
+                    initBudgetCharts(budgetVsActualData);
+                } else {
+                    // Wait for ApexCharts to load
+                    window.addEventListener('load', function() {
+                        if (typeof ApexCharts !== 'undefined' && typeof initBudgetCharts === 'function') {
+                            initBudgetCharts(budgetVsActualData);
+                        } else {
+                            console.error('ApexCharts or initBudgetCharts function not available');
+                        }
+                    });
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 
 

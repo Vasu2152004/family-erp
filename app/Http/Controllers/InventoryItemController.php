@@ -9,6 +9,7 @@ use App\Models\Family;
 use App\Models\InventoryItem;
 use App\Models\InventoryCategory;
 use App\Services\InventoryService;
+use App\Services\InventoryAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +20,8 @@ class InventoryItemController extends Controller
     use HasFamilyContext;
 
     public function __construct(
-        private InventoryService $inventoryService
+        private InventoryService $inventoryService,
+        private InventoryAnalyticsService $analyticsService
     ) {
     }
 
@@ -70,7 +72,17 @@ class InventoryItemController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('inventory.items.index', compact('family', 'items', 'categories'));
+        // Get analytics data for charts
+        $categoryDistribution = $this->analyticsService->getCategoryWiseDistribution($family->id);
+        $stockStatusOverview = $this->analyticsService->getStockStatusOverview($family->id);
+
+        return view('inventory.items.index', compact(
+            'family',
+            'items',
+            'categories',
+            'categoryDistribution',
+            'stockStatusOverview'
+        ));
     }
 
     /**
