@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
 
 class FamilyMember extends Model
 {
@@ -24,8 +25,13 @@ class FamilyMember extends Model
         'relation',
         'phone',
         'email',
+        'avatar_path',
         'is_deceased',
         'date_of_death',
+    ];
+
+    protected $appends = [
+        'avatar_url',
     ];
 
     protected function casts(): array
@@ -74,5 +80,14 @@ class FamilyMember extends Model
     public function scopeDeceased(Builder $query): Builder
     {
         return $query->where('is_deceased', true);
+    }
+
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk(config('filesystems.default'))->url($this->avatar_path);
     }
 }

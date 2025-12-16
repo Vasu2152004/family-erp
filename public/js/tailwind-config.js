@@ -12,40 +12,55 @@ if (typeof tailwind !== 'undefined') {
                 },
                 colors: {
                     primary: {
-                        DEFAULT: '#2563eb',
-                        dark: '#1e40af',
-                        light: '#3b82f6',
+                        DEFAULT: '#4f46e5',
+                        dark: '#3730a3',
+                        light: '#a5b4fc',
                     },
                     secondary: {
-                        DEFAULT: '#64748b',
-                        dark: '#475569',
-                        light: '#94a3b8',
+                        DEFAULT: '#0ea5e9',
+                        dark: '#0284c7',
+                        light: '#7dd3fc',
                     },
                     success: {
                         DEFAULT: '#10b981',
-                        dark: '#059669',
+                        dark: '#047857',
                         light: '#34d399',
                     },
                     error: {
-                        DEFAULT: '#ef4444',
+                        DEFAULT: '#f87171',
                         dark: '#dc2626',
-                        light: '#f87171',
+                        light: '#fecdd3',
                     },
                     warning: {
                         DEFAULT: '#f59e0b',
                         dark: '#d97706',
-                        light: '#fbbf24',
+                        light: '#fcd34d',
                     },
                     info: {
                         DEFAULT: '#06b6d4',
-                        dark: '#0891b2',
-                        light: '#22d3ee',
+                        dark: '#0ea5e9',
+                        light: '#67e8f9',
                     },
+                    surface: '#111827',
+                    'surface-alt': '#0b1224',
+                    border: '#1f2937',
+                },
+                boxShadow: {
+                    soft: '0 10px 40px rgba(15, 23, 42, 0.4)',
+                    card: '0 8px 24px rgba(15, 23, 42, 0.32)',
+                },
+                borderRadius: {
+                    lg: '18px',
+                    md: '14px',
+                    sm: '10px',
                 },
             },
         },
     };
 }
+
+
+
 
 
 

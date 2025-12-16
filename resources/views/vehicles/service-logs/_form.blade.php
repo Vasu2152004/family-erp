@@ -28,7 +28,7 @@
 
     <div>
         <x-label for="service_type" required>Service Type</x-label>
-        <select name="service_type" id="service_type" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+        <select name="service_type" id="service_type" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
             <option value="regular_service" {{ old('service_type', $serviceLog?->service_type ?? 'regular_service') == 'regular_service' ? 'selected' : '' }}>Regular Service</option>
             <option value="major_service" {{ old('service_type', $serviceLog?->service_type ?? '') == 'major_service' ? 'selected' : '' }}>Major Service</option>
             <option value="repair" {{ old('service_type', $serviceLog?->service_type ?? '') == 'repair' ? 'selected' : '' }}>Repair</option>
@@ -73,7 +73,7 @@
 
     <div class="md:col-span-2">
         <x-label for="description">Description</x-label>
-        <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('description', $serviceLog?->description ?? '') }}</textarea>
+        <textarea name="description" id="description" rows="3" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('description', $serviceLog?->description ?? '') }}</textarea>
         @error('description')
             <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
         @enderror

@@ -8,13 +8,22 @@
         ]" />
 
         <!-- Header -->
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="card card-contrast">
             <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $member->first_name }} {{ $member->last_name }}</h1>
-                    <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
-                        Family Member Details
-                    </p>
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-full overflow-hidden border border-[var(--color-border-primary)] shadow-md bg-[var(--color-surface-alt)] flex items-center justify-center text-lg font-semibold text-[var(--color-text-primary)]">
+                        @if($member->avatar_url)
+                            <img src="{{ $member->avatar_url }}" alt="{{ $member->first_name }} avatar" class="w-full h-full object-cover">
+                        @else
+                            {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name, 0, 1)) }}
+                        @endif
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $member->first_name }} {{ $member->last_name }}</h1>
+                        <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
+                            Family Member Details
+                        </p>
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     @can('manageFamily', $family)
@@ -87,12 +96,12 @@
         </div>
 
         <!-- Status Information -->
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+        <div class="card">
             <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Status</h2>
             <div class="flex items-center space-x-4">
                 @if($member->is_deceased)
                     <div class="flex items-center space-x-2">
-                        <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">Deceased</span>
+                        <span class="badge badge-danger">Deceased</span>
                         @if($member->date_of_death)
                             <span class="text-sm text-[var(--color-text-secondary)]">
                                 Date of Death: {{ $member->date_of_death->format('F d, Y') }}
@@ -100,14 +109,14 @@
                         @endif
                     </div>
                 @else
-                    <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">Alive</span>
+                    <span class="badge badge-success">Alive</span>
                 @endif
             </div>
         </div>
 
         <!-- Actions -->
         @can('manageFamily', $family)
-            <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+            <div class="card">
                 <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Actions</h2>
                 <div class="flex flex-wrap gap-3">
                     <a href="{{ route('families.members.edit', [$family, $member]) }}">
@@ -135,7 +144,7 @@
                             @csrf
                             <div>
                                 <x-label for="user_id" required>Select User</x-label>
-                                <select name="user_id" id="user_id" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                <select name="user_id" id="user_id" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                                     <option value="">Select a user...</option>
                                     @php
                                         $allUsers = \App\Models\User::orderBy('name')->get();

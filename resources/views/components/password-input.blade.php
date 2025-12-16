@@ -23,7 +23,7 @@
     />
     <button
         type="button"
-        class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
         id="{{ $toggleId }}"
         aria-label="Toggle password visibility"
     >
@@ -36,6 +36,9 @@
         </svg>
     </button>
 </div>
+
+
+
 
 
 

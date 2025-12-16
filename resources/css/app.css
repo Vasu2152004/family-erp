@@ -11,47 +11,47 @@
     
     /* Theme Colors for Home ERP */
     --color-primary: #2563eb;
-    --color-primary-dark: #1e40af;
-    --color-primary-light: #3b82f6;
-    --color-secondary: #64748b;
-    --color-secondary-dark: #475569;
-    --color-secondary-light: #94a3b8;
+    --color-primary-dark: #1d4ed8;
+    --color-primary-light: #e0e7ff;
+    --color-secondary: #0ea5e9;
+    --color-secondary-dark: #0284c7;
+    --color-secondary-light: #e0f2fe;
     --color-success: #10b981;
-    --color-success-dark: #059669;
-    --color-success-light: #34d399;
+    --color-success-dark: #0f9a6c;
+    --color-success-light: #ecfdf3;
     --color-error: #ef4444;
     --color-error-dark: #dc2626;
-    --color-error-light: #f87171;
+    --color-error-light: #fee2e2;
     --color-warning: #f59e0b;
     --color-warning-dark: #d97706;
-    --color-warning-light: #fbbf24;
-    --color-info: #06b6d4;
-    --color-info-dark: #0891b2;
-    --color-info-light: #22d3ee;
+    --color-warning-light: #fef3c7;
+    --color-info: #0284c7;
+    --color-info-dark: #0369a1;
+    --color-info-light: #e0f2fe;
     
     /* Background Colors */
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f8fafc;
-    --color-bg-tertiary: #f1f5f9;
+    --color-bg-primary: #f6f8fb;
+    --color-bg-secondary: #ffffff;
+    --color-bg-tertiary: #eef2f7;
     
     /* Text Colors */
-    --color-text-primary: #1e293b;
-    --color-text-secondary: #64748b;
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #475569;
     --color-text-tertiary: #94a3b8;
     
     /* Border Colors */
     --color-border-primary: #e2e8f0;
-    --color-border-secondary: #cbd5e1;
+    --color-border-secondary: #e5e7eb;
     --color-border-focus: var(--color-primary);
 }
 
 /* Sidebar navigation active/inactive helpers to avoid purge issues */
 .nav-active {
-    @apply bg-gradient-to-r from-gray-900 to-pink-500 text-white shadow-lg shadow-gray-500/30 font-semibold;
+    @apply bg-[var(--color-primary-light)] text-[var(--color-primary)] font-semibold border border-[var(--color-border-primary)];
 }
 
 .nav-inactive {
-    @apply text-gray-300 hover:bg-gray-700/50 hover:text-white;
+    @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
 }
 
 /* Custom Animations */
@@ -77,7 +77,7 @@
 }
 
 ::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: #eef2f7;
 }
 
 ::-webkit-scrollbar-thumb {

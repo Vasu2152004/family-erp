@@ -8,7 +8,7 @@
             ['label' => 'Edit']
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="card card-contrast">
             <div class="mb-6">
                 <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Edit Family Member</h1>
                 <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
@@ -16,11 +16,31 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6">
+        <form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <x-label for="avatar">Profile Photo</x-label>
+                    <input
+                        type="file"
+                        name="avatar"
+                        id="avatar"
+                        accept="image/*"
+                        class="mt-1 block w-full text-sm text-[var(--color-text-primary)] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-[var(--color-surface)] file:text-[var(--color-text-primary)] hover:file:bg-[var(--color-surface-alt)]"
+                    />
+                    @error('avatar')
+                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
+                    @enderror
+                    @if($member->avatar_url)
+                        <div class="mt-3 flex items-center gap-3">
+                            <img src="{{ $member->avatar_url }}" alt="Avatar preview" class="w-14 h-14 rounded-full object-cover border border-[var(--color-border-primary)]">
+                            <p class="text-sm text-[var(--color-text-secondary)]">Current photo</p>
+                        </div>
+                    @endif
+                </div>
+
                 <div>
                     <x-label for="first_name" required>First Name</x-label>
                     <x-input
@@ -56,7 +76,7 @@
 
                 <div>
                     <x-label for="gender" required>Gender</x-label>
-                    <select name="gender" id="gender" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    <select name="gender" id="gender" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="">Select Gender</option>
                         <option value="male" {{ old('gender', $member->gender) == 'male' ? 'selected' : '' }}>Male</option>
                         <option value="female" {{ old('gender', $member->gender) == 'female' ? 'selected' : '' }}>Female</option>

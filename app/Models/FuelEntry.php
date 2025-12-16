@@ -81,3 +81,6 @@ class FuelEntry extends Model
     }
 }
 
+
+
+

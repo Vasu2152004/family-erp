@@ -1,22 +1,22 @@
 @props(['active' => ''])
 
-<aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 -translate-x-full shadow-2xl flex flex-col">
+<aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 -translate-x-full shadow-2xl flex flex-col border-r border-[var(--color-border-primary)]">
     <!-- Sidebar Header -->
-    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-700/50 bg-gray-800/50 backdrop-blur-sm">
+    <div class="flex items-center justify-between h-16 px-6 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-10 h-10 bg-[var(--color-primary)]/10 rounded-xl flex items-center justify-center shadow-sm">
+                <svg class="w-6 h-6 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                 </svg>
             </div>
             <div>
-                <h1 class="text-lg font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                <h1 class="text-lg font-bold text-[var(--color-text-primary)]">
                     {{ config('app.name', 'Family ERP') }}
                 </h1>
-                <p class="text-xs text-gray-400">Home Management</p>
+                <p class="text-xs text-[var(--color-text-secondary)]">Home Management</p>
             </div>
         </div>
-        <button id="sidebar-close" class="lg:hidden text-gray-400 hover:text-white transition-colors">
+        <button id="sidebar-close" class="lg:hidden text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -24,14 +24,14 @@
     </div>
 
     <!-- User Profile Section -->
-    <div class="px-6 py-4 border-b border-gray-700/50 bg-gray-800/30">
+    <div class="px-6 py-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold shadow-lg">
+            <div class="w-10 h-10 bg-[var(--color-primary)]/10 rounded-full flex items-center justify-center text-[var(--color-primary)] font-semibold shadow-sm">
                 {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-white truncate">{{ Auth::user()->name }}</p>
-                <p class="text-xs text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">{{ Auth::user()->name }}</p>
+                <p class="text-xs text-[var(--color-text-secondary)] truncate">{{ Auth::user()->email }}</p>
             </div>
         </div>
     </div>
@@ -346,10 +346,10 @@
     </nav>
 
     <!-- Sidebar Footer -->
-    <div class="px-6 py-4 border-t border-gray-700/50 bg-gray-800/30">
+    <div class="px-6 py-4 border-t border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-red-600/20 hover:text-red-400 transition-all duration-200 group">
+            <button type="submit" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-[var(--color-text-secondary)] hover:bg-red-50 hover:text-red-600 transition-all duration-200 group">
                 <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                 </svg>

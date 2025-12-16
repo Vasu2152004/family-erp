@@ -8,9 +8,10 @@
             ['label' => 'Fuel Entries'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+        <div class="card card-contrast">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
+                    <p class="pill mb-2 w-fit">Fuel log</p>
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Fuel Entries</h2>
                     <p class="text-sm text-[var(--color-text-secondary)]">{{ $vehicle->make }} {{ $vehicle->model }}</p>
                     @if($averageMileage)
@@ -25,13 +26,13 @@
             @if($fuelEntries->count() > 0)
                 <div class="space-y-3">
                     @foreach($fuelEntries as $entry)
-                        <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                        <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border-primary)] p-4 shadow-sm">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
                                         <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $entry->fill_date->format('M d, Y') }}</h3>
                                         @if($entry->calculated_mileage)
-                                            <span class="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800">
+                                            <span class="badge badge-success">
                                                 {{ number_format($entry->calculated_mileage, 2) }} km/l
                                             </span>
                                         @endif
@@ -67,4 +68,7 @@
         </div>
     </div>
 </x-app-layout>
+
+
+
 

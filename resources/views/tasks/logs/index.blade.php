@@ -8,7 +8,7 @@
             ['label' => 'History'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="card card-contrast">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Task History</h2>
@@ -24,9 +24,9 @@
                     @foreach($logs as $log)
                         <div class="border-l-4 
                             @if($log->status_to === 'pending') border-yellow-400
-                            @elseif($log->status_to === 'in_progress') border-blue-400
-                            @else border-green-400
-                            @endif pl-4 py-3 bg-[var(--color-bg-secondary)] rounded-r-lg">
+                            @elseif($log->status_to === 'in_progress') border-sky-400
+                            @else border-emerald-400
+                            @endif pl-4 py-3 bg-[var(--color-surface)] rounded-r-xl border border-[var(--color-border-primary)]/70 shadow-sm">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <p class="text-sm text-[var(--color-text-primary)]">
@@ -63,4 +63,7 @@
         </div>
     </div>
 </x-app-layout>
+
+
+
 

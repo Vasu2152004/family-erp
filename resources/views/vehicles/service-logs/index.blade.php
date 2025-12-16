@@ -8,9 +8,10 @@
             ['label' => 'Service Logs'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+        <div class="card card-contrast">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
                 <div>
+                    <p class="pill mb-2 w-fit">Service</p>
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Service Logs</h2>
                     <p class="text-sm text-[var(--color-text-secondary)]">{{ $vehicle->make }} {{ $vehicle->model }}</p>
                 </div>
@@ -22,12 +23,12 @@
             @if($serviceLogs->count() > 0)
                 <div class="space-y-3">
                     @foreach($serviceLogs as $log)
-                        <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                        <div class="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border-primary)] p-4 shadow-sm">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
                                         <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $log->service_center_name ?? 'Service' }}</h3>
-                                        <span class="text-xs px-2 py-1 rounded-full bg-[var(--color-bg-primary)] text-[var(--color-text-secondary)]">
+                                        <span class="badge bg-[var(--color-surface-alt)] text-[var(--color-text-secondary)] border-[var(--color-border-primary)]">
                                             {{ ucfirst(str_replace('_', ' ', $log->service_type)) }}
                                         </span>
                                     </div>
@@ -57,4 +58,7 @@
         </div>
     </div>
 </x-app-layout>
+
+
+
 

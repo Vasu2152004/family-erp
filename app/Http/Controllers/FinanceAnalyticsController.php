@@ -50,12 +50,28 @@ class FinanceAnalyticsController extends Controller
         // Get category-wise expenses for current month
         $categoryWiseData = $this->analyticsService->getCategoryWiseExpenses($family->id, $currentMonth, $currentYear);
 
+        // Get savings trend data
+        $savingsTrendData = $this->analyticsService->getSavingsTrend($family->id, $currentYear);
+
+        // Get account balance trends
+        $accountBalanceTrends = $this->analyticsService->getAccountBalanceTrends($family->id, $currentYear);
+
+        // Get income sources breakdown
+        $incomeSourcesData = $this->analyticsService->getIncomeSources($family->id, $currentMonth, $currentYear);
+
+        // Get expense patterns by day of week
+        $expensePatternsData = $this->analyticsService->getExpensePatternsByDay($family->id, $currentMonth, $currentYear);
+
         return view('finance-analytics.dashboard', compact(
             'family',
             'accountBalances',
             'monthlyData',
             'memberWiseData',
             'categoryWiseData',
+            'savingsTrendData',
+            'accountBalanceTrends',
+            'incomeSourcesData',
+            'expensePatternsData',
             'currentYear',
             'currentMonth'
         ));

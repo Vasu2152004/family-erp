@@ -7,7 +7,8 @@
             ['label' => 'Create'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="card card-contrast">
+            <p class="pill mb-3 w-fit">New Task</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Create Task</h2>
 
             <form method="POST" action="{{ route('families.tasks.store', ['family' => $family->id]) }}" class="space-y-6">
@@ -25,4 +26,7 @@
         </div>
     </div>
 </x-app-layout>
+
+
+
 

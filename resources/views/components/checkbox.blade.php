@@ -17,9 +17,12 @@
     value="{{ $value }}"
     {{ $checked ? 'checked' : '' }}
     {{ $required ? 'required' : '' }}
-    class="w-4 h-4 text-[var(--color-primary)] bg-[var(--color-bg-primary)] border-[var(--color-border-primary)] rounded focus:ring-[var(--color-primary)] focus:ring-2"
+    class="w-5 h-5 text-[var(--color-primary)] bg-[var(--color-surface)] border-[var(--color-border-primary)] rounded-md focus:ring-[var(--color-primary)] focus:ring-2"
     {{ $attributes }}
 />
+
+
+
 
 
 

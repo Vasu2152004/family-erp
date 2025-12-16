@@ -6,10 +6,11 @@
             ['label' => 'Tasks'],
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-6">
+        <div class="card card-contrast">
             <div class="flex flex-col gap-4">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
+                        <p class="pill mb-2 w-fit">Tasks overview</p>
                         <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">Tasks</h2>
                         <p class="text-sm text-[var(--color-text-secondary)]">Manage household tasks and chores.</p>
                     </div>
@@ -20,15 +21,15 @@
                     @endcan
                 </div>
 
-                <form method="GET" action="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+                <form method="GET" action="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-surface)] border border-[var(--color-border-primary)] rounded-xl p-4 shadow-sm">
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Search</label>
-                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Task title..." class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Task title..." class="rounded-xl border border-[var(--color-border-primary)] bg-[var(--color-surface-alt)] px-3 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Status</label>
-                        <select name="status" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <select name="status" class="rounded-xl border border-[var(--color-border-primary)] bg-[var(--color-surface-alt)] px-3 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                             <option value="">All statuses</option>
                             <option value="pending" @selected(($filters['status'] ?? '') === 'pending')>Pending</option>
                             <option value="in_progress" @selected(($filters['status'] ?? '') === 'in_progress')>In Progress</option>
@@ -38,7 +39,7 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Frequency</label>
-                        <select name="frequency" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <select name="frequency" class="rounded-xl border border-[var(--color-border-primary)] bg-[var(--color-surface-alt)] px-3 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                             <option value="">All frequencies</option>
                             <option value="daily" @selected(($filters['frequency'] ?? '') === 'daily')>Daily</option>
                             <option value="weekly" @selected(($filters['frequency'] ?? '') === 'weekly')>Weekly</option>
@@ -49,7 +50,7 @@
 
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Assigned To</label>
-                        <select name="family_member_id" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <select name="family_member_id" class="rounded-xl border border-[var(--color-border-primary)] bg-[var(--color-surface-alt)] px-3 py-2.5 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                             <option value="">All members</option>
                             @foreach($members as $member)
                                 <option value="{{ $member->id }}" @selected(($filters['family_member_id'] ?? '') == $member->id)>
@@ -61,7 +62,7 @@
 
                     <div class="md:col-span-4 flex flex-wrap gap-2 justify-end">
                         <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
-                        <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
+                        <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-alt)] transition-colors">Reset</a>
                     </div>
                 </form>
             </div>
@@ -69,19 +70,19 @@
             @if($tasks->count() > 0)
                 <div class="mt-6 grid grid-cols-1 gap-4">
                     @foreach($tasks as $task)
-                        <a href="{{ route('families.tasks.show', ['family' => $family->id, 'task' => $task->id]) }}" class="block bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4 hover:shadow-md transition-shadow">
+                        <a href="{{ route('families.tasks.show', ['family' => $family->id, 'task' => $task->id]) }}" class="block bg-[var(--color-surface)] rounded-xl border border-[var(--color-border-primary)] p-5 hover:shadow-lift transition-all">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
                                         <h3 class="font-semibold text-[var(--color-text-primary)]">{{ $task->title }}</h3>
-                                        <span class="text-xs px-2 py-1 rounded-full 
-                                            @if($task->status === 'pending') bg-yellow-100 text-yellow-800
-                                            @elseif($task->status === 'in_progress') bg-blue-100 text-blue-800
-                                            @else bg-green-100 text-green-800
+                                        <span class="badge
+                                            @if($task->status === 'pending') badge-warning
+                                            @elseif($task->status === 'in_progress') badge-info
+                                            @else badge-success
                                             @endif">
                                             {{ ucfirst(str_replace('_', ' ', $task->status)) }}
                                         </span>
-                                        <span class="text-xs px-2 py-1 rounded-full bg-[var(--color-bg-primary)] text-[var(--color-text-secondary)]">
+                                        <span class="badge bg-[var(--color-surface-alt)] text-[var(--color-text-secondary)] border-[var(--color-border-primary)]">
                                             {{ ucfirst($task->frequency) }}
                                         </span>
                                     </div>
@@ -124,4 +125,7 @@
         </div>
     </div>
 </x-app-layout>
+
+
+
 

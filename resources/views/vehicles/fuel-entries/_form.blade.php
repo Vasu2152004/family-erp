@@ -36,7 +36,7 @@
 
     <div>
         <x-label for="fuel_type" required>Fuel Type</x-label>
-        <select name="fuel_type" id="fuel_type" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+        <select name="fuel_type" id="fuel_type" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
             <option value="petrol" {{ old('fuel_type', $fuelEntry?->fuel_type ?? 'petrol') == 'petrol' ? 'selected' : '' }}>Petrol</option>
             <option value="diesel" {{ old('fuel_type', $fuelEntry?->fuel_type ?? '') == 'diesel' ? 'selected' : '' }}>Diesel</option>
         </select>
@@ -55,7 +55,7 @@
 
     <div class="md:col-span-2">
         <x-label for="notes">Notes</x-label>
-        <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes', $fuelEntry?->notes ?? '') }}</textarea>
+        <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes', $fuelEntry?->notes ?? '') }}</textarea>
         @error('notes')
             <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
         @enderror

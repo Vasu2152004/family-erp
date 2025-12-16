@@ -7,7 +7,7 @@
             ['label' => 'Add Member']
         ]" />
 
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="card card-contrast">
             <div class="mb-6">
                 <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Add Family Member</h1>
                 <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
@@ -54,7 +54,7 @@
 
                 <div>
                     <x-label for="gender" required>Gender</x-label>
-                    <select name="gender" id="gender" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    <select name="gender" id="gender" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                         <option value="">Select Gender</option>
                         <option value="male" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
                         <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
