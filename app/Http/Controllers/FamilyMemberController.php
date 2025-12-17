@@ -6,8 +6,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Family;
 use App\Models\FamilyMember;
+use App\Models\FamilyMemberDeceasedVote;
 use App\Services\FamilyMemberRequestService;
 use App\Services\FamilyMemberService;
+use App\Services\FamilyMemberDeceasedService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +20,8 @@ class FamilyMemberController extends Controller
 {
     public function __construct(
         private FamilyMemberService $familyMemberService,
-        private FamilyMemberRequestService $requestService
+        private FamilyMemberRequestService $requestService,
+        private FamilyMemberDeceasedService $deceasedService
     ) {
     }
 
@@ -108,7 +111,17 @@ class FamilyMemberController extends Controller
         $this->authorize('view', $family);
         $member->load('user:id,name,email');
 
-        return view('family-members.show', compact('family', 'member'));
+        $votes = FamilyMemberDeceasedVote::where('family_member_id', $member->id)->get();
+        $voteCounts = $this->deceasedService->counts($member);
+        $myVote = $votes->firstWhere('user_id', Auth::id());
+
+        return view('family-members.show', [
+            'family' => $family,
+            'member' => $member,
+            'votes' => $votes,
+            'voteCounts' => $voteCounts,
+            'myVote' => $myVote,
+        ]);
     }
 
     /**
@@ -142,6 +155,42 @@ class FamilyMemberController extends Controller
 
         return redirect()->route('families.members.show', [$family, $member])
             ->with('success', 'Family member updated successfully.');
+    }
+
+    public function requestDeceasedVerification(Request $request, Family $family, FamilyMember $member): RedirectResponse
+    {
+        $this->authorize('manageFamily', $family);
+
+        $data = $request->validate([
+            'date_of_death' => ['nullable', 'date'],
+        ]);
+
+        try {
+            $this->deceasedService->startVerification($member, $request->user(), $data['date_of_death'] ?? null);
+            return redirect()->route('families.members.show', [$family, $member])
+                ->with('success', 'Deceased verification started. All family users must vote.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->route('families.members.show', [$family, $member])
+                ->withErrors($e->errors());
+        }
+    }
+
+    public function voteDeceased(Request $request, Family $family, FamilyMember $member): RedirectResponse
+    {
+        $this->authorize('view', $family);
+
+        $data = $request->validate([
+            'decision' => ['required', 'in:approved,denied'],
+        ]);
+
+        try {
+            $this->deceasedService->castVote($member, $request->user(), $data['decision']);
+            return redirect()->route('families.members.show', [$family, $member])
+                ->with('success', 'Your vote has been recorded.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->route('families.members.show', [$family, $member])
+                ->withErrors($e->errors());
+        }
     }
 
     /**

@@ -17,7 +17,12 @@ class NotePolicy
 
     public function view(User $user, Note $note): bool
     {
-        if (!$this->belongsToFamily($user, $note)) {
+        $role = $user->getFamilyRole($note->family_id);
+        $isLinkedMember = FamilyMember::where('family_id', $note->family_id)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        if (!$role && !$isLinkedMember) {
             return false;
         }
 
@@ -26,7 +31,16 @@ class NotePolicy
         }
 
         if ($note->visibility === 'private') {
-            return $user->isFamilyAdmin($note->family_id) || $note->created_by === $user->id;
+            // Allow admins/owners/members, linked family members, or the creator
+            if ($role && in_array($role->role, ['OWNER', 'ADMIN', 'MEMBER'])) {
+                return true;
+            }
+
+            if ($isLinkedMember) {
+                return true;
+            }
+
+            return $note->created_by === $user->id;
         }
 
         // Locked: allow family members; controller will gate content via PIN check
@@ -66,6 +80,7 @@ class NotePolicy
         return $role !== null || $isMember;
     }
 }
+
 
 
 

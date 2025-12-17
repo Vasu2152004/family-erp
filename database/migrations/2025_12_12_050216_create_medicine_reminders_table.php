@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('medicine_reminders')) {
+            return;
+        }
+
         Schema::create('medicine_reminders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tenant_id')->constrained()->onDelete('cascade');
@@ -41,6 +45,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('medicine_reminders')) {
+            return;
+        }
+
         Schema::dropIfExists('medicine_reminders');
     }
 };

@@ -119,7 +119,7 @@
                     </div>
                 @else
                     <!-- Admin/Owner View - Full Management -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @can('viewAny', [\App\Models\FinanceAccount::class, $activeFamily])
                             <a href="{{ route('finance.accounts.index', ['family_id' => $activeFamily->id]) }}" class="bg-[var(--color-bg-secondary)] rounded-lg p-6 border border-[var(--color-border-primary)] hover:shadow-md transition-shadow">
                                 <p class="text-sm text-[var(--color-text-secondary)] mb-1">Accounts</p>

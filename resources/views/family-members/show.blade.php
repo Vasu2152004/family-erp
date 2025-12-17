@@ -96,8 +96,8 @@
         </div>
 
         <!-- Status Information -->
-        <div class="card">
-            <h2 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Status</h2>
+        <div class="card space-y-4">
+            <h2 class="text-xl font-bold text-[var(--color-text-primary)]">Status</h2>
             <div class="flex items-center space-x-4">
                 @if($member->is_deceased)
                     <div class="flex items-center space-x-2">
@@ -108,10 +108,37 @@
                             </span>
                         @endif
                     </div>
+                @elseif($member->is_deceased_pending)
+                    <div class="flex items-center space-x-2">
+                        <span class="badge badge-warning">Verification Pending</span>
+                        <span class="text-sm text-[var(--color-text-secondary)]">
+                            Awaiting votes ({{ $voteCounts['approved'] }} approved / {{ $voteCounts['denied'] }} denied / {{ $voteCounts['pending'] }} pending)
+                        </span>
+                    </div>
                 @else
                     <span class="badge badge-success">Alive</span>
                 @endif
             </div>
+
+            @if($member->is_deceased_pending)
+                <div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg p-4 space-y-3">
+                    <p class="text-sm text-[var(--color-text-secondary)]">A deceased verification is in progress. All family users must vote. If anyone denies, the request fails.</p>
+                    @if($myVote && $myVote->status === 'pending')
+                        <form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
+                            @csrf
+                            <input type="hidden" name="decision" value="approved">
+                            <x-button type="submit" variant="primary" size="sm">Approve</x-button>
+                        </form>
+                        <form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
+                            @csrf
+                            <input type="hidden" name="decision" value="denied">
+                            <x-button type="submit" variant="outline" size="sm" class="text-red-600 border-red-300 hover:bg-red-50">Deny</x-button>
+                        </form>
+                    @elseif($myVote)
+                        <p class="text-sm text-[var(--color-text-secondary)]">You voted: <span class="font-semibold text-[var(--color-text-primary)]">{{ ucfirst($myVote->status) }}</span></p>
+                    @endif
+                </div>
+            @endif
         </div>
 
         <!-- Actions -->
@@ -122,6 +149,16 @@
                     <a href="{{ route('families.members.edit', [$family, $member]) }}">
                         <x-button variant="primary" size="md">Edit Member</x-button>
                     </a>
+                    @if(!$member->is_deceased && !$member->is_deceased_pending)
+                        <form action="{{ route('families.members.deceased.request', [$family, $member]) }}" method="POST" class="flex items-center gap-3">
+                            @csrf
+                            <div>
+                                <x-label for="date_of_death">Date of Death (optional)</x-label>
+                                <x-input type="date" name="date_of_death" id="date_of_death" value="{{ old('date_of_death', $member->date_of_death?->format('Y-m-d')) }}" class="mt-1" />
+                            </div>
+                            <x-button type="submit" variant="outline" size="md">Start Deceased Verification</x-button>
+                        </form>
+                    @endif
                     @if(!$member->user)
                         <button onclick="document.getElementById('linkUserForm').classList.toggle('hidden')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                             Link to User Account

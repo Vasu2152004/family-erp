@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Root route - redirect to dashboard (will redirect to login if not authenticated)
@@ -30,6 +31,10 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated Routes
 Route::middleware(['auth', 'tenant'])->group(function () {
+        // Profile
+        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
     // Logout Route
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
@@ -62,6 +67,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('roles/request-admin', [\App\Http\Controllers\FamilyRoleController::class, 'requestAdminRole'])->name('roles.request-admin');
         Route::post('roles/approve-admin-request', [\App\Http\Controllers\FamilyRoleController::class, 'approveAdminRoleRequest'])->name('roles.approve-admin-request');
         Route::post('roles/reject-admin-request', [\App\Http\Controllers\FamilyRoleController::class, 'rejectAdminRoleRequest'])->name('roles.reject-admin-request');
+
+        // Deceased verification votes
+        Route::post('members/{member}/deceased/request', [\App\Http\Controllers\FamilyMemberController::class, 'requestDeceasedVerification'])->name('members.deceased.request');
+        Route::post('members/{member}/deceased/vote', [\App\Http\Controllers\FamilyMemberController::class, 'voteDeceased'])->name('members.deceased.vote');
     });
 
     // Finance Routes (Standalone - not nested under families)
@@ -84,11 +93,44 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         
         // Budgets
         Route::resource('budgets', \App\Http\Controllers\BudgetController::class);
-        
         // Analytics
         Route::get('analytics', [\App\Http\Controllers\FinanceAnalyticsController::class, 'dashboard'])->name('analytics.dashboard');
         Route::get('analytics/monthly-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMonthlyData'])->name('analytics.monthly-data');
         Route::get('analytics/member-wise-data', [\App\Http\Controllers\FinanceAnalyticsController::class, 'getMemberWiseData'])->name('analytics.member-wise-data');
+    });
+
+    // Assets (Standalone module)
+    Route::prefix('assets')->name('assets.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AssetController::class, 'index'])->name('index');
+        Route::get('create', [\App\Http\Controllers\AssetController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\AssetController::class, 'store'])->name('store');
+        Route::get('{asset}', [\App\Http\Controllers\AssetController::class, 'show'])->name('show');
+        Route::get('{asset}/edit', [\App\Http\Controllers\AssetController::class, 'edit'])->name('edit');
+        Route::patch('{asset}', [\App\Http\Controllers\AssetController::class, 'update'])->name('update');
+        Route::delete('{asset}', [\App\Http\Controllers\AssetController::class, 'destroy'])->name('destroy');
+        Route::post('{asset}/toggle-lock', [\App\Http\Controllers\AssetController::class, 'toggleLock'])->name('toggle-lock');
+        Route::post('{asset}/unlock', [\App\Http\Controllers\AssetController::class, 'unlock'])->name('unlock');
+        Route::post('{asset}/request-unlock', [\App\Http\Controllers\AssetController::class, 'requestUnlock'])->name('request-unlock');
+    });
+
+    // Investments (Standalone module)
+    Route::prefix('investments')->name('investments.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\InvestmentController::class, 'index'])->name('index');
+        Route::get('create', [\App\Http\Controllers\InvestmentController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\InvestmentController::class, 'store'])->name('store');
+        Route::get('{investment}', [\App\Http\Controllers\InvestmentController::class, 'show'])->name('show');
+        Route::get('{investment}/edit', [\App\Http\Controllers\InvestmentController::class, 'edit'])->name('edit');
+        Route::patch('{investment}', [\App\Http\Controllers\InvestmentController::class, 'update'])->name('update');
+        Route::delete('{investment}', [\App\Http\Controllers\InvestmentController::class, 'destroy'])->name('destroy');
+        Route::post('{investment}/toggle-hidden', [\App\Http\Controllers\InvestmentController::class, 'toggleHidden'])->name('toggle-hidden');
+        Route::post('{investment}/unlock', [\App\Http\Controllers\InvestmentController::class, 'unlock'])->name('unlock');
+        Route::post('{investment}/request-unlock', [\App\Http\Controllers\InvestmentController::class, 'requestUnlock'])->name('request-unlock');
+    });
+
+    // Investment Unlock Requests
+    Route::prefix('investment-unlock-requests')->name('investment-unlock-requests.')->group(function () {
+        Route::post('{unlockRequest}/approve', [\App\Http\Controllers\InvestmentUnlockRequestController::class, 'approve'])->name('approve');
+        Route::post('{unlockRequest}/reject', [\App\Http\Controllers\InvestmentUnlockRequestController::class, 'reject'])->name('reject');
     });
 
     // Legacy Finance Routes (nested under families) - Keep for backward compatibility

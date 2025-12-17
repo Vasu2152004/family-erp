@@ -31,6 +31,9 @@
                         @php
                             $isBudgetAlert = in_array($notification->type, ['budget_alert', 'budget_exceeded']);
                             $isExceeded = $notification->type === 'budget_exceeded';
+                            $isInvestmentUnlockRequest = $notification->type === 'investment_unlock_request';
+                            $isAssetUnlockRequest = $notification->type === 'asset_unlock_request';
+                            $isAdminRoleRequest = $notification->type === 'admin_role_request';
                         @endphp
                         <div class="rounded-lg border p-6 {{ $isBudgetAlert ? ($isExceeded ? 'bg-red-50 border-red-300 border-l-4 border-l-red-600' : 'bg-orange-50 border-orange-300 border-l-4 border-l-orange-500') : (!$notification->read_at ? 'bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)] border-l-4 border-l-[var(--color-primary)]' : 'bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)]') }}">
                             <div class="flex items-start justify-between">
@@ -70,9 +73,36 @@
                                                         View Budgets →
                                                     </a>
                                                 @endif
+                                                @if($isInvestmentUnlockRequest && isset($notification->data['investment_id']))
+                                                    <a href="{{ route('investments.show', ['investment' => $notification->data['investment_id'], 'family_id' => $family->id]) }}" class="underline hover:no-underline font-bold">
+                                                        View Investment →
+                                                    </a>
+                                                @endif
+                                                @if($isAssetUnlockRequest && isset($notification->data['asset_id']))
+                                                    <a href="{{ route('assets.show', ['asset' => $notification->data['asset_id'], 'family_id' => $family->id]) }}" class="underline hover:no-underline font-bold">
+                                                        View Asset →
+                                                    </a>
+                                                @endif
                                             @endif
                                         @endif
                                     </div>
+                                    @if($isInvestmentUnlockRequest && isset($notification->data['request_id']) && !$notification->read_at)
+                                        @php
+                                            $unlockRequest = \App\Models\InvestmentUnlockRequest::find($notification->data['request_id']);
+                                        @endphp
+                                        @if($unlockRequest && $unlockRequest->status === 'pending')
+                                            <div class="flex gap-2 mt-3">
+                                                <form action="{{ route('investment-unlock-requests.approve', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
+                                                    @csrf
+                                                    <x-button type="submit" variant="primary" size="sm">Approve</x-button>
+                                                </form>
+                                                <form action="{{ route('investment-unlock-requests.reject', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
+                                                    @csrf
+                                                    <x-button type="submit" variant="outline" size="sm">Reject</x-button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    @endif
                                 </div>
                                 @if(!$notification->read_at)
                                     <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-4">

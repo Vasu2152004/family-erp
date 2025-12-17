@@ -27,6 +27,7 @@ class FamilyMember extends Model
         'email',
         'avatar_path',
         'is_deceased',
+        'is_deceased_pending',
         'date_of_death',
     ];
 
@@ -40,6 +41,7 @@ class FamilyMember extends Model
             'date_of_birth' => 'date',
             'date_of_death' => 'date',
             'is_deceased' => 'boolean',
+            'is_deceased_pending' => 'boolean',
         ];
     }
 
