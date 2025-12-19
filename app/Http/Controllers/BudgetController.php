@@ -46,16 +46,19 @@ class BudgetController extends Controller
             ->where('month', $currentMonth)
             ->with(['category', 'familyMember.user'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
-        // Get budget status for each
-        $budgetsWithStatus = $budgets->map(function ($budget) {
+        // Get budget status for each (map through paginated collection)
+        $budgetsWithStatus = $budgets->getCollection()->map(function ($budget) {
             $status = $this->budgetService->getBudgetStatus($budget->id);
             return [
                 'budget' => $budget,
                 'status' => $status,
             ];
         });
+
+        // Set the mapped collection back to the paginator
+        $budgets->setCollection($budgetsWithStatus);
 
         $categories = TransactionCategory::where('family_id', $family->id)
             ->where('type', 'EXPENSE')
@@ -64,7 +67,7 @@ class BudgetController extends Controller
         // Get analytics data for charts
         $budgetVsActualData = $this->analyticsService->getBudgetVsActual($family->id, $currentMonth, $currentYear);
 
-        return view('budgets.index', compact('family', 'budgetsWithStatus', 'categories', 'currentMonth', 'currentYear', 'budgetVsActualData'));
+        return view('budgets.index', compact('family', 'budgets', 'budgetsWithStatus', 'categories', 'currentMonth', 'currentYear', 'budgetVsActualData'));
     }
 
     /**

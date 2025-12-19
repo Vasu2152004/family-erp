@@ -37,7 +37,7 @@ class FamilyController extends Controller
         $families = Family::whereIn('id', $familyIds)
             ->withCount(['members', 'roles'])
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         // Check if user is already part of any family
         $hasFamily = $familyIds->isNotEmpty();

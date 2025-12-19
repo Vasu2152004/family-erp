@@ -149,6 +149,9 @@
                             </div>
                         @endforeach
                     </div>
+                    <div class="mt-6">
+                        {{ $pendingItems->links() }}
+                    </div>
                 @else
                     <div class="text-center py-8 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">
                         <p class="text-[var(--color-text-secondary)]">No pending items. Add items to get started!</p>
@@ -188,6 +191,9 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+                    <div class="mt-6">
+                        {{ $purchasedItems->links() }}
                     </div>
                 </div>
             @endif

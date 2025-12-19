@@ -34,7 +34,7 @@ class CalendarController extends Controller
             $query->whereDate('start_at', '<=', $request->date('to'));
         }
 
-        $events = $query->paginate(15);
+        $events = $query->paginate(10);
 
         return view('calendar.index', compact('family', 'events'));
     }

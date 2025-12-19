@@ -27,7 +27,7 @@
         </div>
 
         <!-- Budgets List -->
-        @if($budgetsWithStatus->count() > 0)
+        @if($budgets->count() > 0)
             <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
                 <div class="mb-4">
                     <p class="text-sm text-[var(--color-text-secondary)]">
@@ -90,6 +90,10 @@
                             </div>
                         </div>
                     @endforeach
+                </div>
+
+                <div class="mt-6">
+                    {{ $budgets->links() }}
                 </div>
             </div>
         @else

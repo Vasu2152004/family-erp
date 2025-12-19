@@ -39,7 +39,7 @@ class InventoryCategoryController extends Controller
         $categories = InventoryCategory::where('family_id', $family->id)
             ->with('createdBy')
             ->orderBy('name')
-            ->get();
+            ->paginate(10);
 
         return view('inventory.categories.index', compact('family', 'categories'));
     }

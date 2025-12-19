@@ -68,7 +68,7 @@ class DocumentController extends Controller
             }
         }
 
-        $documents = $query->paginate(12)->appends($request->query());
+        $documents = $query->paginate(10)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $request->user()->tenant_id)

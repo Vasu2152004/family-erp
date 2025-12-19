@@ -44,7 +44,7 @@ class ServiceLogController extends Controller
 
         $query->latestFirst();
 
-        $serviceLogs = $query->paginate(15)->appends($request->query());
+        $serviceLogs = $query->paginate(10)->appends($request->query());
 
         return view('vehicles.service-logs.index', [
             'family' => $family,
@@ -115,6 +115,8 @@ class ServiceLogController extends Controller
             ->with('success', 'Service log deleted successfully.');
     }
 }
+
+
 
 
 

@@ -30,3 +30,5 @@ return new class extends Migration
         Schema::dropIfExists('family_member_deceased_votes');
     }
 };
+
+

@@ -32,15 +32,19 @@
                             Cancel
                         </x-button>
                     </a>
-                    <form method="POST" action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" onsubmit="return confirm('Delete this investment?');">
-                        @csrf
-                        @method('DELETE')
-                        <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
-                            Delete
-                        </x-button>
-                    </form>
                 </div>
             </form>
+
+            <div class="mt-4 pt-4 border-t border-[var(--color-border-primary)]">
+                <form method="POST" action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" onsubmit="return confirm('Are you sure you want to delete this investment? This action cannot be undone.');">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="family_id" value="{{ $family->id }}">
+                    <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
+                        Delete Investment
+                    </x-button>
+                </form>
+            </div>
         </div>
     </div>
 </x-app-layout>

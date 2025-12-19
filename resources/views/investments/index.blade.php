@@ -152,6 +152,91 @@
                 </div>
             </div>
         @endif
+
+        <!-- Charts Section - Moved to bottom after the list -->
+        @if($investments->count() > 0)
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Investment Type Distribution Chart (Donut) -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Type Distribution</h2>
+                    @if(count($typeDistributionData) > 0)
+                        <div id="investmentTypeDistributionChart" style="min-height: 400px;"></div>
+                    @else
+                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+                            <p>No visible investments available for chart visualization.</p>
+                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Owner-wise Distribution Chart (Donut) -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
+                    @if(count($ownerDistributionData) > 0)
+                        <div id="investmentOwnerDistributionChart" style="min-height: 400px;"></div>
+                    @else
+                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+                            <p>No visible investments available for chart visualization.</p>
+                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Investment Count by Type Chart (Bar) -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Count by Type</h2>
+                    @if(count($countByTypeData) > 0)
+                        <div id="investmentCountByTypeChart" style="min-height: 400px;"></div>
+                    @else
+                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+                            <p>No visible investments available for chart visualization.</p>
+                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Profit/Loss Trend Chart (Column) -->
+                @if(count($profitLossTrendData) > 0)
+                    <div class="card lg:col-span-2">
+                        <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Profit/Loss Trend</h2>
+                        <div id="investmentProfitLossTrendChart" style="min-height: 400px;"></div>
+                    </div>
+                @endif
+            </div>
+        @endif
     </div>
+
+    @if($investments->count() > 0 && (count($typeDistributionData ?? []) > 0 || count($profitLossTrendData ?? []) > 0 || count($ownerDistributionData ?? []) > 0 || count($countByTypeData ?? []) > 0))
+        @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+            <script src="{{ asset('js/investment-charts.js') }}"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Investment Type Distribution Data
+                    const typeDistributionData = @json($typeDistributionData ?? []);
+                    // Profit/Loss Trend Data
+                    const profitLossTrendData = @json($profitLossTrendData ?? []);
+                    // Owner-wise Distribution Data
+                    const ownerDistributionData = @json($ownerDistributionData ?? []);
+                    // Count by Type Data
+                    const countByTypeData = @json($countByTypeData ?? []);
+                    
+                    // Initialize charts once ApexCharts is loaded
+                    if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
+                        initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData);
+                    } else {
+                        // Wait for ApexCharts to load
+                        window.addEventListener('load', function() {
+                            if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
+                                initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData);
+                            } else {
+                                console.error('ApexCharts or initInvestmentCharts function not available');
+                            }
+                        });
+                    }
+                });
+            </script>
+        @endpush
+    @endif
 </x-app-layout>
 

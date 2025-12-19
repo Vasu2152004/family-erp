@@ -47,7 +47,7 @@ class MedicalRecordController extends Controller
             $query->where('family_member_id', $request->integer('family_member_id'));
         }
 
-        $records = $query->paginate(15)->appends($request->query());
+        $records = $query->paginate(10)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)

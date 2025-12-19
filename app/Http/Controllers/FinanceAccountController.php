@@ -37,7 +37,7 @@ class FinanceAccountController extends Controller
 
         $accounts = FinanceAccount::where('family_id', $family->id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         return view('finance-accounts.index', compact('family', 'accounts'));
     }

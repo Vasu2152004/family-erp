@@ -10,6 +10,7 @@ use App\Models\Investment;
 use App\Models\FamilyMember;
 use App\Services\InvestmentService;
 use App\Services\InvestmentUnlockRequestService;
+use App\Services\InvestmentAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,7 +23,8 @@ class InvestmentController extends Controller
 
     public function __construct(
         private InvestmentService $investmentService,
-        private InvestmentUnlockRequestService $unlockRequestService
+        private InvestmentUnlockRequestService $unlockRequestService,
+        private InvestmentAnalyticsService $analyticsService
     ) {
     }
 
@@ -91,13 +93,27 @@ class InvestmentController extends Controller
         }
 
         $investments = $query->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(10);
 
         $members = FamilyMember::where('family_id', $family->id)
             ->orderBy('first_name')
             ->get();
 
-        return view('investments.index', compact('family', 'investments', 'members'));
+        // Get analytics data for charts (excluding hidden investments)
+        $typeDistributionData = $this->analyticsService->getInvestmentTypeDistribution($family->id);
+        $profitLossTrendData = $this->analyticsService->getProfitLossTrend($family->id);
+        $ownerDistributionData = $this->analyticsService->getOwnerWiseDistribution($family->id);
+        $countByTypeData = $this->analyticsService->getInvestmentCountByType($family->id);
+
+        return view('investments.index', compact(
+            'family',
+            'investments',
+            'members',
+            'typeDistributionData',
+            'profitLossTrendData',
+            'ownerDistributionData',
+            'countByTypeData'
+        ));
     }
 
     /**
@@ -141,11 +157,20 @@ class InvestmentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'amount' => ['required', 'numeric', 'min:0'],
+            'start_date' => ['nullable', 'date'],
+            'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'interest_period' => ['nullable', 'in:YEARLY,MONTHLY,QUARTERLY'],
+            'monthly_premium' => ['nullable', 'numeric', 'min:0'],
             'current_value' => ['nullable', 'numeric', 'min:0'],
             'is_hidden' => ['sometimes', 'boolean'],
             'pin' => ['nullable', 'string', 'min:4', 'max:20', 'required_if:is_hidden,1'],
             'details' => ['nullable', 'string'],
         ]);
+
+        // Family Investments (no owner) cannot be hidden
+        if (empty($validated['family_member_id']) && !empty($validated['is_hidden'])) {
+            $validated['is_hidden'] = false;
+        }
 
         $this->investmentService->createInvestment(
             array_merge($validated, ['created_by' => Auth::id()]),
@@ -255,9 +280,20 @@ class InvestmentController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'amount' => ['required', 'numeric', 'min:0'],
+            'start_date' => ['nullable', 'date'],
+            'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'interest_period' => ['nullable', 'in:YEARLY,MONTHLY,QUARTERLY'],
+            'monthly_premium' => ['nullable', 'numeric', 'min:0'],
             'current_value' => ['nullable', 'numeric', 'min:0'],
             'details' => ['nullable', 'string'],
         ]);
+
+        // Family Investments (no owner) cannot be hidden
+        // If removing owner from a hidden investment, make it visible
+        if (empty($validated['family_member_id']) && $investment->is_hidden) {
+            // This will be handled in the service, but we ensure it's not set to hidden
+            $validated['is_hidden'] = false;
+        }
 
         $this->investmentService->updateInvestment($investment->id, $validated);
 

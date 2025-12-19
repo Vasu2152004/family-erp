@@ -44,7 +44,7 @@ class ShoppingListController extends Controller
                 'addedBy:id,name'
             ])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         $purchasedItems = ShoppingListItem::where('family_id', $family->id)
             ->purchased()
@@ -54,8 +54,7 @@ class ShoppingListController extends Controller
                 'purchasedBy:id,name'
             ])
             ->orderBy('purchased_at', 'desc')
-            ->limit(20)
-            ->get();
+            ->paginate(10);
 
         // Only load inventory items that might be needed for the dropdown (limit to 100 most recent)
         $inventoryItems = InventoryItem::where('family_id', $family->id)

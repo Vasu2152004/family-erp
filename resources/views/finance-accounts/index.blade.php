@@ -89,6 +89,10 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="mt-6">
+                    {{ $accounts->links() }}
+                </div>
             </div>
         @else
             <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-12 text-center">

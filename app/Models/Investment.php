@@ -24,6 +24,10 @@ class Investment extends Model
         'name',
         'description',
         'amount',
+        'start_date',
+        'interest_rate',
+        'interest_period',
+        'monthly_premium',
         'current_value',
         'is_hidden',
         'pin_hash',
@@ -37,6 +41,9 @@ class Investment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'start_date' => 'date',
+            'interest_rate' => 'decimal:2',
+            'monthly_premium' => 'decimal:2',
             'current_value' => 'decimal:2',
             'is_hidden' => 'boolean',
         ];
@@ -223,7 +230,8 @@ class Investment extends Model
             return trim("{$this->familyMember->first_name} {$this->familyMember->last_name}");
         }
 
-        return $this->createdBy?->name;
+        // If no family member assigned, it's a Family Investment
+        return 'Family Investment';
     }
 
     public function effectiveOwnerUserId(): ?int
@@ -280,5 +288,25 @@ class Investment extends Model
         $role = $user->getFamilyRole($this->family_id);
 
         return $role && in_array($role->role, ['OWNER', 'ADMIN']);
+    }
+
+    /**
+     * Set the interest_period attribute.
+     * Ensures enum values are always stored as strings.
+     */
+    public function setInterestPeriodAttribute($value): void
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['interest_period'] = null;
+        } else {
+            // Ensure it's a valid enum value and store as string
+            $validPeriods = ['YEARLY', 'MONTHLY', 'QUARTERLY'];
+            $value = (string) $value;
+            if (in_array($value, $validPeriods, true)) {
+                $this->attributes['interest_period'] = $value;
+            } else {
+                $this->attributes['interest_period'] = null;
+            }
+        }
     }
 }

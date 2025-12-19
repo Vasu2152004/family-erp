@@ -12,6 +12,7 @@ use App\Models\AssetUnlockRequest;
 use App\Models\FamilyMember;
 use App\Services\AssetService;
 use App\Services\AssetUnlockRequestService;
+use App\Services\AssetAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,7 +26,8 @@ class AssetController extends Controller
 
     public function __construct(
         private AssetService $assetService,
-        private AssetUnlockRequestService $assetUnlockRequestService
+        private AssetUnlockRequestService $assetUnlockRequestService,
+        private AssetAnalyticsService $analyticsService
     ) {
     }
 
@@ -57,13 +59,23 @@ class AssetController extends Controller
         }
 
         $assets = $query->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(10);
 
         $members = FamilyMember::where('family_id', $family->id)
             ->orderBy('first_name')
             ->get();
 
-        return view('assets.index', compact('family', 'assets', 'members'));
+        // Get analytics data for charts (excluding locked assets)
+        $typeDistributionData = $this->analyticsService->getAssetTypeDistribution($family->id);
+        $ownerDistributionData = $this->analyticsService->getOwnerWiseDistribution($family->id);
+
+        return view('assets.index', compact(
+            'family',
+            'assets',
+            'members',
+            'typeDistributionData',
+            'ownerDistributionData'
+        ));
     }
 
     /**

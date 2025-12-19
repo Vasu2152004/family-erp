@@ -64,7 +64,7 @@ class VehicleController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $vehicles = $query->paginate(15)->appends($request->query());
+        $vehicles = $query->paginate(10)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)

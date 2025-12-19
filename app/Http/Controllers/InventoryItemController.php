@@ -66,7 +66,7 @@ class InventoryItemController extends Controller
         }
 
         $items = $query->orderBy('name')
-            ->paginate(20);
+            ->paginate(10);
 
         $categories = InventoryCategory::where('family_id', $family->id)
             ->orderBy('name')

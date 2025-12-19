@@ -61,6 +61,9 @@
                         </div>
                     @endforeach
                 </div>
+                <div class="mt-6">
+                    {{ $categories->links() }}
+                </div>
             @else
                 <div class="text-center py-12">
                     <p class="text-[var(--color-text-secondary)]">No categories found. Create your first category to get started.</p>

@@ -40,7 +40,7 @@ class NoteController extends Controller
             });
         }
 
-        $notes = $query->orderBy('updated_at', 'desc')->paginate(15)->appends($request->query());
+        $notes = $query->orderBy('updated_at', 'desc')->paginate(10)->appends($request->query());
 
         return view('notes.index', [
             'family' => $family,
@@ -133,6 +133,8 @@ class NoteController extends Controller
             ->with('error', 'Invalid PIN. Please try again.');
     }
 }
+
+
 
 
 

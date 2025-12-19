@@ -146,6 +146,67 @@
                 </div>
             </div>
         @endif
+
+        <!-- Charts Section - Moved to bottom after the list -->
+        @if($assets->count() > 0)
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Asset Type Distribution Chart (Donut) -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Asset Type Distribution</h2>
+                    @if(count($typeDistributionData) > 0)
+                        <div id="assetTypeDistributionChart" style="min-height: 400px;"></div>
+                    @else
+                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+                            <p>No visible assets available for chart visualization.</p>
+                            <p class="text-sm mt-2">Locked assets are excluded from charts.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Owner-wise Distribution Chart (Donut) -->
+                <div class="card">
+                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
+                    @if(count($ownerDistributionData) > 0)
+                        <div id="assetOwnerDistributionChart" style="min-height: 400px;"></div>
+                    @else
+                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
+                            <p>No visible assets available for chart visualization.</p>
+                            <p class="text-sm mt-2">Locked assets are excluded from charts.</p>
+                        </div>
+                    @endif
+                </div>
+
+            </div>
+        @endif
     </div>
+
+    @if($assets->count() > 0 && (count($typeDistributionData ?? []) > 0 || count($ownerDistributionData ?? []) > 0))
+        @push('scripts')
+            <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+            <script src="{{ asset('js/asset-charts.js') }}"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Asset Type Distribution Data
+                    const typeDistributionData = @json($typeDistributionData ?? []);
+                    // Owner-wise Distribution Data
+                    const ownerDistributionData = @json($ownerDistributionData ?? []);
+                    
+                    // Initialize charts once ApexCharts is loaded
+                    if (typeof ApexCharts !== 'undefined' && typeof initAssetCharts === 'function') {
+                        initAssetCharts(typeDistributionData, [], ownerDistributionData, []);
+                    } else {
+                        // Wait for ApexCharts to load
+                        window.addEventListener('load', function() {
+                            if (typeof ApexCharts !== 'undefined' && typeof initAssetCharts === 'function') {
+                                initAssetCharts(typeDistributionData, [], ownerDistributionData, []);
+                            } else {
+                                console.error('ApexCharts or initAssetCharts function not available');
+                            }
+                        });
+                    }
+                });
+            </script>
+        @endpush
+    @endif
 </x-app-layout>
 

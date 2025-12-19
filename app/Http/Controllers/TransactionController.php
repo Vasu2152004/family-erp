@@ -84,7 +84,7 @@ class TransactionController extends Controller
         $transactions = $query->with(['financeAccount', 'familyMember', 'category', 'budget.category', 'budget.familyMember.user'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
 
         // Get filter options
         $accounts = FinanceAccount::where('family_id', $family->id)->get();
