@@ -398,3 +398,4 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
 
 
 
+

@@ -25,14 +25,34 @@ class EventReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $startTime = $this->event->start_at?->format('M d, Y');
+        $startTimeFull = $this->event->start_at?->format('M d, Y h:i A');
+        $hoursUntilEvent = $this->event->start_at ? (int)now()->diffInHours($this->event->start_at, false) : null;
+
         return (new MailMessage)
-            ->subject('Event Reminder: ' . $this->event->title)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('You have an upcoming event:')
-            ->line($this->event->title)
-            ->line($this->event->start_at?->format('M d, Y H:i'))
-            ->action('View Calendar', route('families.calendar.index', ['family' => $this->event->family_id]))
-            ->line('Reminder set ' . $this->event->reminder_before_minutes . ' minutes before the event.');
+            ->subject('📅 Event Reminder: ' . $this->event->title)
+            ->view('emails.layout', [
+                'subject' => 'Event Reminder',
+                'headerIcon' => '📅',
+                'headerTitle' => 'Event Reminder',
+                'greeting' => 'Hello ' . $notifiable->name . ',',
+                'introLines' => [
+                    "You have an upcoming event: **{$this->event->title}**",
+                ],
+                'details' => [
+                    'Event' => $this->event->title,
+                    'Date' => $startTime,
+                    'Time' => $this->event->start_at?->format('h:i A'),
+                    'Time Until Event' => $hoursUntilEvent !== null && $hoursUntilEvent > 0 ? "{$hoursUntilEvent} hours" : 'Starting soon',
+                ],
+                'actionUrl' => route('families.calendar.index', ['family' => $this->event->family_id]),
+                'actionText' => 'View Calendar',
+                'outroLines' => [
+                    "This reminder was set {$this->event->reminder_before_minutes} minutes before the event.",
+                    'Don\'t forget to attend!',
+                ],
+                'salutation' => 'Best regards,<br>Family ERP Team',
+            ]);
     }
 
     public function toDatabase(object $notifiable): array

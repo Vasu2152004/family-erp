@@ -37,12 +37,33 @@ return [
 
     'mailers' => [
 
+        /*
+        |--------------------------------------------------------------------------
+        | SMTP Mailer
+        |--------------------------------------------------------------------------
+        |
+        | SMTP (Simple Mail Transfer Protocol) is the most common mail transport
+        | driver. Configure your SMTP server settings below.
+        |
+        | Required environment variables:
+        | - MAIL_HOST: Your SMTP server hostname (e.g., smtp.gmail.com, smtp.mailtrap.io)
+        | - MAIL_PORT: SMTP port (typically 587 for TLS, 465 for SSL, 25 for unencrypted)
+        | - MAIL_USERNAME: Your SMTP username/email address
+        | - MAIL_PASSWORD: Your SMTP password or app-specific password
+        | - MAIL_ENCRYPTION: Encryption method ('tls', 'ssl', or null for unencrypted)
+        |
+        | Common SMTP providers:
+        | - Gmail: smtp.gmail.com, port 587, encryption tls
+        | - Outlook: smtp-mail.outlook.com, port 587, encryption tls
+        | - Mailtrap (testing): smtp.mailtrap.io, port 2525, encryption tls
+        |
+        */
+
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => env('MAIL_SCHEME'),
-            'url' => env('MAIL_URL'),
             'host' => env('MAIL_HOST', '127.0.0.1'),
-            'port' => env('MAIL_PORT', 2525),
+            'port' => env('MAIL_PORT', 587),
+            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
             'timeout' => null,

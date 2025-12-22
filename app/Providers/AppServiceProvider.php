@@ -49,5 +49,28 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\App\Models\Vehicle::class, \App\Policies\VehiclePolicy::class);
         Gate::policy(\App\Models\Asset::class, \App\Policies\AssetPolicy::class);
         Gate::policy(\App\Models\Investment::class, \App\Policies\InvestmentPolicy::class);
+        Gate::policy(\App\Models\Medicine::class, \App\Policies\MedicinePolicy::class);
+
+        // Route model binding for Medicine - scope to family
+        \Illuminate\Support\Facades\Route::bind('medicine', function ($value, $route) {
+            $family = $route->parameter('family');
+            if ($family instanceof \App\Models\Family) {
+                return \App\Models\Medicine::where('id', $value)
+                    ->where('family_id', $family->id)
+                    ->firstOrFail();
+            }
+            return \App\Models\Medicine::findOrFail($value);
+        });
+
+        // Route model binding for MedicineIntakeReminder - scope to medicine and family
+        \Illuminate\Support\Facades\Route::bind('reminder', function ($value, $route) {
+            $medicine = $route->parameter('medicine');
+            if ($medicine instanceof \App\Models\Medicine) {
+                return \App\Models\MedicineIntakeReminder::where('id', $value)
+                    ->where('medicine_id', $medicine->id)
+                    ->firstOrFail();
+            }
+            return \App\Models\MedicineIntakeReminder::findOrFail($value);
+        });
     }
 }

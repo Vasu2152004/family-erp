@@ -26,14 +26,33 @@ class DocumentExpiryReminder extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $expiry = $this->document->expires_at?->format('M d, Y');
+        $daysUntilExpiry = (int)now()->diffInDays($this->document->expires_at, false);
 
         return (new MailMessage)
-            ->subject('Document Expiry Reminder: ' . $this->document->title)
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line("{$this->document->title} ({$this->document->document_type}) is approaching expiry.")
-            ->line("Expiry date: {$expiry}")
-            ->action('Review Document', route('families.documents.index', ['family' => $this->document->family_id]))
-            ->line('Please renew or update this document to keep your records accurate.');
+            ->subject('📄 Document Expiry Reminder: ' . $this->document->title)
+            ->view('emails.layout', [
+                'subject' => 'Document Expiry Reminder',
+                'headerIcon' => '📄',
+                'headerTitle' => 'Document Expiry Reminder',
+                'greeting' => 'Hello ' . $notifiable->name . ',',
+                'introLines' => [
+                    "Your document **{$this->document->title}** ({$this->document->document_type}) is approaching expiry.",
+                ],
+                'details' => [
+                    'Document' => $this->document->title,
+                    'Type' => ucfirst(str_replace('_', ' ', $this->document->document_type)),
+                    'Expiry Date' => $expiry,
+                    'Days Remaining' => $daysUntilExpiry > 0 ? "{$daysUntilExpiry} days" : 'Expired',
+                ],
+                'actionUrl' => route('families.documents.index', ['family' => $this->document->family_id]),
+                'actionText' => 'Review Document',
+                'outroLines' => [
+                    'Please renew or update this document to keep your records accurate.',
+                    '',
+                    '<small style="color: #718096;">Reminder Schedule: You will receive reminders at 30 days, 7 days, and on the expiry date.</small>',
+                ],
+                'salutation' => 'Best regards,<br>Family ERP Team',
+            ]);
     }
 
     public function toDatabase(object $notifiable): array
@@ -48,6 +67,7 @@ class DocumentExpiryReminder extends Notification implements ShouldQueue
         ];
     }
 }
+
 
 
 

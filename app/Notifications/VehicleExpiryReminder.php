@@ -31,14 +31,39 @@ class VehicleExpiryReminder extends Notification implements ShouldQueue
         $expiry = $expiryDate?->format('M d, Y');
         $typeLabel = $this->getTypeLabel();
         $vehicleName = "{$this->vehicle->make} {$this->vehicle->model} ({$this->vehicle->registration_number})";
+        $daysUntilExpiry = $expiryDate ? (int)now()->diffInDays($expiryDate, false) : null;
+        $icon = match($this->reminderType) {
+            'rc_expiry' => '🚗',
+            'insurance_expiry' => '🛡️',
+            'puc_expiry' => '🌿',
+            default => '🚙',
+        };
 
         return (new MailMessage)
-            ->subject("Vehicle {$typeLabel} Expiry Reminder: {$vehicleName}")
-            ->greeting('Hello ' . $notifiable->name . ',')
-            ->line("Your vehicle {$vehicleName} has an expiring {$typeLabel}.")
-            ->line("Expiry date: {$expiry}")
-            ->action('View Vehicle', route('families.vehicles.show', ['family' => $this->vehicle->family_id, 'vehicle' => $this->vehicle->id]))
-            ->line('Please renew or update this document to keep your records accurate.');
+            ->subject("{$icon} Vehicle {$typeLabel} Expiry Reminder: {$vehicleName}")
+            ->view('emails.layout', [
+                'subject' => "Vehicle {$typeLabel} Expiry Reminder",
+                'headerIcon' => $icon,
+                'headerTitle' => 'Vehicle Expiry Reminder',
+                'greeting' => 'Hello ' . $notifiable->name . ',',
+                'introLines' => [
+                    "Your vehicle **{$vehicleName}** has an expiring {$typeLabel}.",
+                ],
+                'details' => [
+                    'Vehicle' => $vehicleName,
+                    'Document Type' => $typeLabel,
+                    'Expiry Date' => $expiry,
+                    'Days Remaining' => $daysUntilExpiry !== null && $daysUntilExpiry > 0 ? "{$daysUntilExpiry} days" : ($daysUntilExpiry === 0 ? 'Expires today' : 'Expired'),
+                ],
+                'actionUrl' => route('families.vehicles.show', ['family' => $this->vehicle->family_id, 'vehicle' => $this->vehicle->id]),
+                'actionText' => 'View Vehicle Details',
+                'outroLines' => [
+                    'Please renew or update this document to keep your vehicle records accurate.',
+                    '',
+                    '<small style="color: #718096;">Reminder Schedule: You will receive reminders at 30 days, 7 days, and on the expiry date.</small>',
+                ],
+                'salutation' => 'Best regards,<br>Family ERP Team',
+            ]);
     }
 
     public function toDatabase(object $notifiable): array
@@ -77,6 +102,7 @@ class VehicleExpiryReminder extends Notification implements ShouldQueue
         };
     }
 }
+
 
 
 

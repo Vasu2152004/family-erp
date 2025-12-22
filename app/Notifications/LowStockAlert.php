@@ -39,16 +39,46 @@ class LowStockAlert extends Notification implements ShouldQueue
     {
         $categoryName = $this->inventoryItem->category?->name ?? 'Uncategorized';
         $familyName = $this->inventoryItem->family->name;
+        $shortage = $this->inventoryItem->min_qty - $this->inventoryItem->qty;
+        $percentage = ($this->inventoryItem->qty / $this->inventoryItem->min_qty) * 100;
+        
+        // Format numbers - show integers when appropriate
+        $formatNumber = function($value) {
+            return $value == (int)$value ? (int)$value : number_format((float)$value, 2, '.', '');
+        };
+        
+        $currentQty = $formatNumber($this->inventoryItem->qty);
+        $minQty = $formatNumber($this->inventoryItem->min_qty);
+        $shortageFormatted = $formatNumber($shortage);
+        $percentageFormatted = number_format($percentage, 1);
 
         return (new MailMessage)
-            ->subject('Low Stock Alert: ' . $this->inventoryItem->name)
-            ->line("⚠️ Low Stock Alert for {$familyName}")
-            ->line("Item: {$this->inventoryItem->name}")
-            ->line("Category: {$categoryName}")
-            ->line("Current Quantity: {$this->inventoryItem->qty} {$this->inventoryItem->unit}")
-            ->line("Minimum Quantity: {$this->inventoryItem->min_qty} {$this->inventoryItem->unit}")
-            ->action('View Inventory', route('inventory.items.index', ['family_id' => $this->inventoryItem->family_id]))
-            ->line('Please restock this item soon.');
+            ->subject('⚠️ Low Stock Alert: ' . $this->inventoryItem->name)
+            ->view('emails.layout', [
+                'subject' => 'Low Stock Alert',
+                'headerIcon' => '⚠️',
+                'headerTitle' => 'Low Stock Alert',
+                'greeting' => 'Hello ' . $notifiable->name . ',',
+                'introLines' => [
+                    "**{$this->inventoryItem->name}** is running low in your inventory.",
+                    "Current stock is below the minimum required quantity.",
+                ],
+                'details' => [
+                    'Item Name' => $this->inventoryItem->name,
+                    'Category' => $categoryName,
+                    'Family' => $familyName,
+                    'Current Quantity' => "{$currentQty} {$this->inventoryItem->unit}",
+                    'Minimum Required' => "{$minQty} {$this->inventoryItem->unit}",
+                    'Shortage' => "{$shortageFormatted} {$this->inventoryItem->unit}",
+                    'Stock Level' => "{$percentageFormatted}%",
+                ],
+                'actionUrl' => route('inventory.items.index', ['family_id' => $this->inventoryItem->family_id]),
+                'actionText' => 'View Inventory',
+                'outroLines' => [
+                    'Please restock this item soon to avoid running out.',
+                ],
+                'salutation' => 'Best regards,<br>Family ERP Team',
+            ]);
     }
 
     /**

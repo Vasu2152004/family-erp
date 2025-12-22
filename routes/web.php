@@ -14,19 +14,19 @@ Route::get('/', function () {
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    // Login Routes
+    // Login Routes - Rate limit: 5 attempts per minute
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'login']);
+    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
 
-    // Registration Routes
+    // Registration Routes - Rate limit: 3 attempts per hour
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register']);
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:3,60');
 
-    // Password Reset Routes
+    // Password Reset Routes - Rate limit: 3 attempts per hour
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotPassword'])->name('forgot-password');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink']);
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->middleware('throttle:3,60');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('reset-password');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('reset-password')->middleware('throttle:3,60');
 });
 
 // Authenticated Routes
@@ -302,6 +302,30 @@ Route::middleware(['auth', 'tenant'])->group(function () {
                 Route::delete('{fuelEntry}', [\App\Http\Controllers\FuelEntryController::class, 'destroy'])->name('destroy');
             });
         });
+
+        // Medicines
+        Route::resource('medicines', \App\Http\Controllers\MedicineController::class)
+            ->names([
+                'index' => 'medicines.index',
+                'create' => 'medicines.create',
+                'store' => 'medicines.store',
+                'show' => 'medicines.show',
+                'edit' => 'medicines.edit',
+                'update' => 'medicines.update',
+                'destroy' => 'medicines.destroy',
+            ]);
+
+        Route::get('medicines/{medicine}/prescription/download', [\App\Http\Controllers\MedicineController::class, 'downloadPrescription'])
+            ->name('medicines.prescription.download');
+
+        Route::post('medicines/{medicine}/intake-reminders', [\App\Http\Controllers\MedicineIntakeReminderController::class, 'store'])
+            ->name('medicines.intake-reminders.store');
+        Route::patch('medicines/{medicine}/intake-reminders/{reminder}', [\App\Http\Controllers\MedicineIntakeReminderController::class, 'update'])
+            ->name('medicines.intake-reminders.update');
+        Route::delete('medicines/{medicine}/intake-reminders/{reminder}', [\App\Http\Controllers\MedicineIntakeReminderController::class, 'destroy'])
+            ->name('medicines.intake-reminders.destroy');
+        Route::patch('medicines/{medicine}/intake-reminders/{reminder}/toggle', [\App\Http\Controllers\MedicineIntakeReminderController::class, 'toggleStatus'])
+            ->name('medicines.intake-reminders.toggle');
 
         // Notes
         Route::prefix('notes')->name('notes.')->group(function () {
