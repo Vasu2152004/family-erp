@@ -10,6 +10,7 @@ use App\Models\Prescription;
 use App\Models\MedicineReminder;
 use App\Models\Family;
 use App\Models\User;
+use App\Services\TimezoneService;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -221,8 +222,18 @@ class HealthService
     public function createMedicineReminder(array $data, int $tenantId, int $familyId, Prescription $prescription, int $userId): MedicineReminder
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId, $prescription, $userId) {
-            $reminderTime = $data['reminder_time'] ?? null;
-            $nextRunAt = $reminderTime ? $this->calculateNextRunAt($reminderTime, $data['days_of_week'] ?? null, $data['start_date'] ?? null) : null;
+            // Convert reminder_time from IST to UTC for storage
+            // reminder_time is stored as datetime but we treat it as time
+            $reminderTime = null;
+            $utcTimeString = null;
+            if (!empty($data['reminder_time'])) {
+                // Input is in IST (HH:MM or HH:MM:SS), convert to UTC time string
+                $utcTimeString = TimezoneService::convertIstTimeToUtcTimeString($data['reminder_time']);
+                // Store as datetime with today's date (time portion is what matters)
+                $reminderTime = Carbon::today()->setTimeFromTimeString($utcTimeString);
+            }
+            
+            $nextRunAt = $utcTimeString ? $this->calculateNextRunAt($utcTimeString, $data['days_of_week'] ?? null, $data['start_date'] ?? null) : null;
 
             return MedicineReminder::create([
                 'tenant_id' => $tenantId,
@@ -248,14 +259,28 @@ class HealthService
     public function updateMedicineReminder(MedicineReminder $reminder, array $data, int $userId): MedicineReminder
     {
         return DB::transaction(function () use ($reminder, $data, $userId) {
-            $reminderTime = $data['reminder_time'] ?? ($reminder->reminder_time ? $reminder->reminder_time->format('H:i') : null);
+            // Convert reminder_time from IST to UTC if provided
+            $reminderTime = null;
+            $utcTimeString = null;
+            
+            if (isset($data['reminder_time'])) {
+                // Input is in IST, convert to UTC time string
+                $utcTimeString = TimezoneService::convertIstTimeToUtcTimeString($data['reminder_time']);
+                // Store as datetime with today's date
+                $reminderTime = Carbon::today()->setTimeFromTimeString($utcTimeString);
+            } elseif ($reminder->reminder_time) {
+                // Use existing reminder_time, extract UTC time string
+                $utcTimeString = $reminder->reminder_time->format('H:i:s');
+                $reminderTime = $reminder->reminder_time;
+            }
+            
             $daysOfWeek = $data['days_of_week'] ?? $reminder->days_of_week;
             $startDate = $data['start_date'] ?? ($reminder->start_date ? $reminder->start_date->format('Y-m-d') : null);
-            $nextRunAt = $reminderTime ? $this->calculateNextRunAt($reminderTime, $daysOfWeek, $startDate) : null;
+            $nextRunAt = $utcTimeString ? $this->calculateNextRunAt($utcTimeString, $daysOfWeek, $startDate) : null;
 
             $reminder->update([
                 'frequency' => $data['frequency'] ?? $reminder->frequency,
-                'reminder_time' => $reminderTime,
+                'reminder_time' => $reminderTime ?? $reminder->reminder_time,
                 'start_date' => $data['start_date'] ?? $reminder->start_date,
                 'end_date' => $data['end_date'] ?? $reminder->end_date,
                 'days_of_week' => $daysOfWeek,
@@ -290,6 +315,7 @@ class HealthService
 
     /**
      * Calculate next run time for medicine reminder.
+     * $reminderTime is expected to be in UTC (HH:MM:SS format).
      */
     private function calculateNextRunAt(?string $reminderTime, ?array $daysOfWeek, ?string $startDate = null): ?Carbon
     {
@@ -297,8 +323,9 @@ class HealthService
             return null;
         }
 
-        $time = Carbon::parse($reminderTime);
-        $now = Carbon::now();
+        // Parse UTC time string (HH:MM:SS)
+        $time = Carbon::parse('2000-01-01 ' . $reminderTime);
+        $now = Carbon::now(); // UTC
         
         // If start_date is provided and in the future, use it
         if ($startDate) {
@@ -329,7 +356,13 @@ class HealthService
             'sunday' => Carbon::SUNDAY,
         ];
 
-        $targetDays = array_map(fn($day) => $dayMap[strtolower($day)], $daysOfWeek);
+        $targetDays = array_map(fn($day) => $dayMap[strtolower($day)] ?? null, $daysOfWeek);
+        $targetDays = array_filter($targetDays);
+
+        if (empty($targetDays)) {
+            return null;
+        }
+
         $currentDay = $now->dayOfWeek;
 
         // Check if today is a target day and time hasn't passed

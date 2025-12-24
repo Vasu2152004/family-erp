@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\TimezoneService;
 
 class CalendarEvent extends Model
 {
@@ -77,6 +78,22 @@ class CalendarEvent extends Model
 
         return Carbon::now()->greaterThanOrEqualTo($reminderTime)
             && Carbon::now()->lessThanOrEqualTo($this->start_at);
+    }
+
+    /**
+     * Get start_at in IST timezone for display.
+     */
+    public function getStartAtIstAttribute(): ?Carbon
+    {
+        return $this->start_at ? TimezoneService::convertUtcToIst($this->start_at) : null;
+    }
+
+    /**
+     * Get end_at in IST timezone for display.
+     */
+    public function getEndAtIstAttribute(): ?Carbon
+    {
+        return $this->end_at ? TimezoneService::convertUtcToIst($this->end_at) : null;
     }
 }
 

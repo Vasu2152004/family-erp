@@ -109,3 +109,5 @@ class MedicineIntakeReminderController extends Controller
             ->with('success', "Intake reminder {$newStatus} successfully.");
     }
 }
+
+

@@ -68,15 +68,15 @@ class SendVehicleExpiryReminders extends Command
         }
 
         // Get users from family roles
-        $family->roles()->with('user')->get()->each(function ($role) use ($users) {
-            if ($role->user instanceof User) {
+        $family->roles()->with('user')->get()->each(function ($role) use ($users, $reminder) {
+            if ($role->user instanceof User && $role->user->email && $role->user->tenant_id === $reminder->vehicle->tenant_id) {
                 $users->push($role->user);
             }
         });
 
         // Get users from family members
-        $family->members()->with('user')->get()->each(function ($member) use ($users) {
-            if ($member->user instanceof User) {
+        $family->members()->with('user')->get()->each(function ($member) use ($users, $reminder) {
+            if ($member->user instanceof User && $member->user->email && $member->user->tenant_id === $reminder->vehicle->tenant_id) {
                 $users->push($member->user);
             }
         });
@@ -94,6 +94,7 @@ class SendVehicleExpiryReminders extends Command
         };
     }
 }
+
 
 
 

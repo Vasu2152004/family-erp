@@ -71,13 +71,13 @@ class SendDocumentExpiryReminders extends Command
             ->get();
 
         foreach ($adminRoles as $role) {
-            if ($role->user && $role->user->tenant_id === $reminder->document->tenant_id) {
+            if ($role->user && $role->user->email && $role->user->tenant_id === $reminder->document->tenant_id) {
                 $users->push($role->user);
             }
         }
 
         $linkedUser = $reminder->document->familyMember?->user;
-        if ($linkedUser && $linkedUser->tenant_id === $reminder->document->tenant_id) {
+        if ($linkedUser && $linkedUser->email && $linkedUser->tenant_id === $reminder->document->tenant_id) {
             $users->push($linkedUser);
         }
 
@@ -89,6 +89,7 @@ class SendDocumentExpiryReminders extends Command
         return in_array($documentType, ['PASSPORT', 'DRIVING_LICENSE', 'INSURANCE'], true);
     }
 }
+
 
 
 

@@ -342,7 +342,7 @@
                                     <span class="text-sm text-[var(--color-text-primary)]">
                                         <span class="font-medium capitalize">{{ $reminder->frequency }}</span>
                                         @if($reminder->reminder_time)
-                                            • {{ \Carbon\Carbon::parse($reminder->reminder_time)->format('h:i A') }}
+                                            • {{ \App\Services\TimezoneService::convertUtcToIst($reminder->reminder_time)->format('h:i A') }} IST
                                         @endif
                                         @if($reminder->days_of_week && count($reminder->days_of_week) > 0)
                                             • {{ implode(', ', array_map('ucfirst', $reminder->days_of_week)) }}

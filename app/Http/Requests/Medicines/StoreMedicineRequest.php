@@ -32,3 +32,5 @@ class StoreMedicineRequest extends FormRequest
         ];
     }
 }
+
+

@@ -137,7 +137,7 @@ class InventoryItemController extends Controller
             $family->id
         );
 
-        return redirect()->route('inventory.items.index', ['family_id' => $family->id])
+        return redirect()->route('families.inventory.items.index', ['family' => $family->id])
             ->with('success', 'Inventory item created successfully.');
     }
 
@@ -199,7 +199,7 @@ class InventoryItemController extends Controller
 
         $this->inventoryService->updateItem($item->id, $validated);
 
-        return redirect()->route('inventory.items.index', ['family_id' => $family->id])
+        return redirect()->route('families.inventory.items.index', ['family' => $family->id])
             ->with('success', 'Inventory item updated successfully.');
     }
 
@@ -236,7 +236,7 @@ class InventoryItemController extends Controller
             $family->id
         );
 
-        return redirect()->route('inventory.items.edit', ['item' => $item->id, 'family_id' => $family->id])
+        return redirect()->route('families.inventory.items.edit', ['family' => $family->id, 'item' => $item->id])
             ->with('success', 'Batch added successfully.');
     }
 
@@ -263,8 +263,38 @@ class InventoryItemController extends Controller
 
         $this->inventoryService->updateQuantity($item->id, $validated['qty']);
 
-        return redirect()->route('inventory.items.index', ['family_id' => $family->id])
+        return redirect()->route('families.inventory.items.index', ['family' => $family->id])
             ->with('success', 'Item quantity updated successfully.');
+    }
+
+    /**
+     * Log usage by subtracting quantity.
+     */
+    public function logUsage(Request $request, Family $family, InventoryItem $item): RedirectResponse
+    {
+        $this->authorize('update', $item);
+
+        $validated = $request->validate([
+            'amount_used' => ['required', 'numeric', 'min:0.01'],
+        ]);
+
+        $amount = (float) $validated['amount_used'];
+        $available = $item->getTotalQty();
+
+        if ($amount > $available) {
+            return redirect()->route('families.inventory.items.index', ['family' => $family->id])
+                ->with('error', 'Usage exceeds available quantity.');
+        }
+
+        try {
+            $this->inventoryService->logUsage($item->id, $amount, $request->user()?->id);
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('families.inventory.items.index', ['family' => $family->id])
+                ->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('families.inventory.items.index', ['family' => $family->id])
+            ->with('success', 'Usage logged and quantity updated.');
     }
 
     /**
@@ -286,7 +316,7 @@ class InventoryItemController extends Controller
 
         $this->inventoryService->deleteItem($item->id);
 
-        return redirect()->route('inventory.items.index', ['family_id' => $family->id])
+        return redirect()->route('families.inventory.items.index', ['family' => $family->id])
             ->with('success', 'Inventory item deleted successfully.');
     }
 }

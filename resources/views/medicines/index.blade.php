@@ -127,10 +127,24 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex gap-2">
-                                            <a href="{{ route('families.medicines.show', ['family' => $family->id, 'medicine' => $medicine->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">View</a>
+                                        <div class="flex flex-wrap gap-2 items-center">
+                                            <a href="{{ route('families.medicines.show', ['family' => $family->id, 'medicine' => $medicine->id]) }}">
+                                                <x-button variant="outline" size="sm">View</x-button>
+                                            </a>
+                                            <a href="{{ route('families.medicines.show', ['family' => $family->id, 'medicine' => $medicine->id]) }}#add-intake-reminder">
+                                                <x-button variant="primary" size="sm">Add Reminder</x-button>
+                                            </a>
                                             @can('update', $medicine)
-                                                <a href="{{ route('families.medicines.edit', ['family' => $family->id, 'medicine' => $medicine->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">Edit</a>
+                                                <a href="{{ route('families.medicines.edit', ['family' => $family->id, 'medicine' => $medicine->id]) }}">
+                                                    <x-button variant="outline" size="sm">Edit</x-button>
+                                                </a>
+                                            @endcan
+                                            @can('delete', $medicine)
+                                                <form action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" method="POST" onsubmit="return confirm('Delete this medicine?');" class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
+                                                </form>
                                             @endcan
                                         </div>
                                     </td>
@@ -156,3 +170,5 @@
         </div>
     </div>
 </x-app-layout>
+
+

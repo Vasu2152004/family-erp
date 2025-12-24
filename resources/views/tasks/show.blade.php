@@ -85,7 +85,7 @@
                 @if($task->recurrence_time)
                     <div>
                         <label class="text-sm text-[var(--color-text-secondary)]">Recurrence Time</label>
-                        <p class="text-[var(--color-text-primary)] font-medium">{{ \Carbon\Carbon::parse($task->recurrence_time)->format('h:i A') }}</p>
+                        <p class="text-[var(--color-text-primary)] font-medium">{{ \App\Services\TimezoneService::convertUtcToIst($task->recurrence_time)->format('h:i A') }} IST</p>
                     </div>
                 @endif
 

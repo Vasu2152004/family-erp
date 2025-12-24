@@ -16,11 +16,11 @@
                 </div>
                 <div class="flex gap-2">
                     @can('create', [\App\Models\InventoryItem::class, $family])
-                        <a href="{{ route('inventory.items.create', ['family_id' => $family->id]) }}">
+                        <a href="{{ route('families.inventory.items.create', ['family' => $family->id]) }}">
                             <x-button variant="primary" size="md">Add Item</x-button>
                         </a>
                     @endcan
-                    <a href="{{ route('inventory.categories.index', ['family_id' => $family->id]) }}">
+                    <a href="{{ route('families.inventory.categories.index', ['family' => $family->id]) }}">
                         <x-button variant="outline" size="md">Categories</x-button>
                     </a>
                 </div>
@@ -46,7 +46,7 @@
             </div>
 
             <!-- Filters -->
-            <form method="GET" action="{{ route('inventory.items.index', ['family_id' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <form method="GET" action="{{ route('families.inventory.items.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <x-label for="category_id">Category</x-label>
                     <select name="category_id" id="category_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -72,7 +72,7 @@
                 </div>
                 <div class="md:col-span-3">
                     <x-button type="submit" variant="outline" size="md">Apply Filters</x-button>
-                    <a href="{{ route('inventory.items.index', ['family_id' => $family->id]) }}" class="ml-2">
+                    <a href="{{ route('families.inventory.items.index', ['family' => $family->id]) }}" class="ml-2">
                         <x-button type="button" variant="outline" size="md">Clear</x-button>
                     </a>
                 </div>
@@ -132,17 +132,36 @@
                                         {{ $item->location ?? 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div class="flex gap-2">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex gap-3 items-center">
+                                                @can('update', $item)
+                                                    <a href="{{ route('families.inventory.items.edit', ['family' => $family->id, 'item' => $item->id]) }}">
+                                                        <x-button variant="outline" size="sm">Edit</x-button>
+                                                    </a>
+                                                @endcan
+                                                @can('delete', $item)
+                                                    <form action="{{ route('families.inventory.items.destroy', ['family' => $family->id, 'item' => $item->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
+                                                    </form>
+                                                @endcan
+                                            </div>
+
                                             @can('update', $item)
-                                                <a href="{{ route('inventory.items.edit', ['item' => $item->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    Edit
-                                                </a>
-                                            @endcan
-                                            @can('delete', $item)
-                                                <form action="{{ route('inventory.items.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                                <form action="{{ route('families.inventory.items.log-usage', ['family' => $family->id, 'item' => $item->id]) }}" method="POST" class="flex items-center gap-2">
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                                    <input
+                                                        type="number"
+                                                        name="amount_used"
+                                                        step="0.01"
+                                                        min="0.01"
+                                                        max="{{ number_format($item->getTotalQty(), 2, '.', '') }}"
+                                                        placeholder="Amount"
+                                                        class="w-24 rounded-md border border-[var(--color-border-primary)] px-2 py-1 text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                                        required
+                                                    />
+                                                    <x-button type="submit" variant="primary" size="sm">Log Usage</x-button>
                                                 </form>
                                             @endcan
                                         </div>
@@ -160,7 +179,7 @@
                 <div class="text-center py-12">
                     <p class="text-[var(--color-text-secondary)] mb-4">No inventory items found.</p>
                     @can('create', [\App\Models\InventoryItem::class, $family])
-                        <a href="{{ route('inventory.items.create', ['family_id' => $family->id]) }}">
+                        <a href="{{ route('families.inventory.items.create', ['family' => $family->id]) }}">
                             <x-button variant="primary" size="md">Add First Item</x-button>
                         </a>
                     @endcan

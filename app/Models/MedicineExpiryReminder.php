@@ -43,3 +43,5 @@ class MedicineExpiryReminder extends Model
         return $this->belongsTo(Medicine::class);
     }
 }
+
+

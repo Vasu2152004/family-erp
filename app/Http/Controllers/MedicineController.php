@@ -254,3 +254,5 @@ class MedicineController extends Controller
         );
     }
 }
+
+

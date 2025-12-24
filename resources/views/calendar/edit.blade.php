@@ -31,13 +31,13 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <x-label for="start_at" required>Start</x-label>
-                        <x-input type="datetime-local" id="start_at" name="start_at" value="{{ old('start_at', $event->start_at?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full" required />
+                        <x-label for="start_at" required>Start (IST)</x-label>
+                        <x-input type="datetime-local" id="start_at" name="start_at" value="{{ old('start_at', $event->start_at_ist?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full" required />
                         @error('start_at') <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <x-label for="end_at">End</x-label>
-                        <x-input type="datetime-local" id="end_at" name="end_at" value="{{ old('end_at', $event->end_at?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full" />
+                        <x-label for="end_at">End (IST)</x-label>
+                        <x-input type="datetime-local" id="end_at" name="end_at" value="{{ old('end_at', $event->end_at_ist?->format('Y-m-d\TH:i')) }}" class="mt-1 w-full" />
                         @error('end_at') <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p> @enderror
                     </div>
                 </div>

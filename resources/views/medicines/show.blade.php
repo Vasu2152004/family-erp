@@ -21,14 +21,21 @@
                         <p class="text-sm text-[var(--color-text-secondary)] mt-1">{{ $medicine->manufacturer }}</p>
                     @endif
                 </div>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     @can('update', $medicine)
                         <a href="{{ route('families.medicines.edit', ['family' => $family->id, 'medicine' => $medicine->id]) }}">
-                            <x-button variant="outline" size="md">Edit</x-button>
+                            <x-button variant="primary" size="md">Edit</x-button>
                         </a>
                     @endcan
+                    @can('delete', $medicine)
+                        <form action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" method="POST" onsubmit="return confirm('Delete this medicine?');" class="inline-flex">
+                            @csrf
+                            @method('DELETE')
+                            <x-button variant="ghost" size="md" class="text-red-600 hover:text-red-700">Delete</x-button>
+                        </form>
+                    @endcan
                     <a href="{{ route('families.medicines.index', ['family' => $family->id]) }}">
-                        <x-button variant="ghost" size="md">Back</x-button>
+                        <x-button variant="outline" size="md">Back</x-button>
                     </a>
                 </div>
             </div>
@@ -226,7 +233,7 @@
                             <span class="text-sm text-[var(--color-text-primary)]">
                                 <span class="font-medium capitalize">{{ $reminder->frequency }}</span>
                                 @if($reminder->reminder_time)
-                                    • {{ \Carbon\Carbon::parse('2000-01-01 ' . $reminder->reminder_time)->format('h:i A') }}
+                                    • {{ \App\Services\TimezoneService::convertUtcToIst(\Carbon\Carbon::parse('2000-01-01 ' . $reminder->reminder_time, 'UTC'))->format('h:i A') }} IST
                                 @endif
                                 @if($reminder->frequency === 'weekly' && $reminder->days_of_week && count($reminder->days_of_week) > 0)
                                     • {{ implode(', ', array_map('ucfirst', $reminder->days_of_week)) }}
@@ -403,3 +410,5 @@
         });
     </script>
 </x-app-layout>
+
+

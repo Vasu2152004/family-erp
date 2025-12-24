@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Models\Task;
 use App\Models\TaskLog;
+use App\Services\TimezoneService;
 use Illuminate\Support\Facades\DB;
 
 class TaskService
@@ -16,6 +17,20 @@ class TaskService
     public function createTask(array $data, int $tenantId, int $familyId, int $userId): Task
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId, $userId) {
+            // Convert recurrence_time from IST to UTC if provided
+            $recurrenceTime = null;
+            if (!empty($data['recurrence_time'])) {
+                // Input is in IST (datetime or time), convert to UTC
+                if (is_string($data['recurrence_time']) && strlen($data['recurrence_time']) <= 8) {
+                    // Time only (HH:MM or HH:MM:SS), convert to UTC time
+                    $utcTimeString = TimezoneService::convertIstTimeToUtcTimeString($data['recurrence_time']);
+                    $recurrenceTime = \Carbon\Carbon::today()->setTimeFromTimeString($utcTimeString);
+                } else {
+                    // Full datetime, convert IST to UTC
+                    $recurrenceTime = TimezoneService::convertIstToUtc($data['recurrence_time']);
+                }
+            }
+
             $task = Task::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
@@ -26,7 +41,7 @@ class TaskService
                 'status' => $data['status'] ?? 'pending',
                 'due_date' => $data['due_date'] ?? null,
                 'recurrence_day' => $data['recurrence_day'] ?? null,
-                'recurrence_time' => $data['recurrence_time'] ?? null,
+                'recurrence_time' => $recurrenceTime,
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
@@ -47,6 +62,24 @@ class TaskService
             $oldStatus = $task->status;
             $oldAssignedTo = $task->family_member_id;
 
+            // Convert recurrence_time from IST to UTC if provided
+            $recurrenceTime = $task->recurrence_time;
+            if (isset($data['recurrence_time'])) {
+                if (empty($data['recurrence_time'])) {
+                    $recurrenceTime = null;
+                } else {
+                    // Input is in IST, convert to UTC
+                    if (is_string($data['recurrence_time']) && strlen($data['recurrence_time']) <= 8) {
+                        // Time only (HH:MM or HH:MM:SS), convert to UTC time
+                        $utcTimeString = TimezoneService::convertIstTimeToUtcTimeString($data['recurrence_time']);
+                        $recurrenceTime = \Carbon\Carbon::today()->setTimeFromTimeString($utcTimeString);
+                    } else {
+                        // Full datetime, convert IST to UTC
+                        $recurrenceTime = TimezoneService::convertIstToUtc($data['recurrence_time']);
+                    }
+                }
+            }
+
             $task->update([
                 'title' => $data['title'] ?? $task->title,
                 'description' => $data['description'] ?? $task->description,
@@ -55,7 +88,7 @@ class TaskService
                 'status' => $data['status'] ?? $task->status,
                 'due_date' => $data['due_date'] ?? $task->due_date,
                 'recurrence_day' => $data['recurrence_day'] ?? $task->recurrence_day,
-                'recurrence_time' => $data['recurrence_time'] ?? $task->recurrence_time,
+                'recurrence_time' => $recurrenceTime,
                 'updated_by' => $userId,
             ]);
 
@@ -149,6 +182,8 @@ class TaskService
         ]);
     }
 }
+
+
 
 
 

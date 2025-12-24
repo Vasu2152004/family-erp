@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
+use App\Services\TimezoneService;
 
 class MedicineIntakeReminder extends Model
 {
@@ -87,7 +88,8 @@ class MedicineIntakeReminder extends Model
     }
 
     /**
-     * Calculate next run time based on frequency
+     * Calculate next run time based on frequency.
+     * reminder_time is stored in UTC (HH:MM:SS format).
      */
     public function calculateNextRunAt(): ?Carbon
     {
@@ -95,10 +97,10 @@ class MedicineIntakeReminder extends Model
             return null;
         }
 
-        // Parse time string (HH:MM:SS) and get just the time portion
+        // Parse UTC time string (HH:MM:SS) - reminder_time is stored in UTC
         $timeStr = $this->attributes['reminder_time'];
         $time = Carbon::parse('2000-01-01 ' . $timeStr);
-        $now = Carbon::now();
+        $now = Carbon::now(); // UTC
 
         // If start_date is provided and in the future, use it
         if ($this->start_date && Carbon::parse($this->start_date)->isFuture()) {
@@ -177,3 +179,6 @@ class MedicineIntakeReminder extends Model
         return null;
     }
 }
+
+
+

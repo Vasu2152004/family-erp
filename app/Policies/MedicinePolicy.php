@@ -76,3 +76,5 @@ class MedicinePolicy
         return $role !== null || $isMember;
     }
 }
+
+

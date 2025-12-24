@@ -59,10 +59,10 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-                                        {{ $event->start_at?->format('M d, Y H:i') }}
+                                        {{ $event->start_at_ist?->format('M d, Y h:i A') }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-                                        {{ $event->end_at?->format('M d, Y H:i') ?? '—' }}
+                                        {{ $event->end_at_ist?->format('M d, Y h:i A') ?? '—' }}
                                     </td>
                                     <td class="px-4 py-3 text-sm text-[var(--color-text-secondary)]">
                                         @if($event->reminder_before_minutes)

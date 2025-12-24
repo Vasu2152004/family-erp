@@ -64,13 +64,13 @@ class SendMedicineExpiryReminders extends Command
 
         // Get all family members (roles and direct members)
         $family->roles()->with('user')->get()->each(function ($role) use ($users, $reminder) {
-            if ($role->user && $role->user->tenant_id === $reminder->medicine->tenant_id) {
+            if ($role->user && $role->user->email && $role->user->tenant_id === $reminder->medicine->tenant_id) {
                 $users->push($role->user);
             }
         });
 
         $family->members()->with('user')->get()->each(function ($member) use ($users, $reminder) {
-            if ($member->user && $member->user->tenant_id === $reminder->medicine->tenant_id) {
+            if ($member->user && $member->user->email && $member->user->tenant_id === $reminder->medicine->tenant_id) {
                 $users->push($member->user);
             }
         });
@@ -78,3 +78,6 @@ class SendMedicineExpiryReminders extends Command
         return $users->unique('id');
     }
 }
+
+
+

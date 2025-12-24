@@ -20,7 +20,7 @@ class DocumentExpiryReminder extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', \App\Notifications\Channels\DatabaseWithMetaChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -67,6 +67,7 @@ class DocumentExpiryReminder extends Notification implements ShouldQueue
         ];
     }
 }
+
 
 
 

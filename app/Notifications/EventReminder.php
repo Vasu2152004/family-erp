@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\CalendarEvent;
+use App\Services\TimezoneService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -20,13 +21,15 @@ class EventReminder extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', \App\Notifications\Channels\DatabaseWithMetaChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        $startTime = $this->event->start_at?->format('M d, Y');
-        $startTimeFull = $this->event->start_at?->format('M d, Y h:i A');
+        // Convert UTC times to IST for display in email
+        $startAtIst = $this->event->start_at ? TimezoneService::convertUtcToIst($this->event->start_at) : null;
+        $startTime = $startAtIst?->format('M d, Y');
+        $startTimeFull = $startAtIst?->format('M d, Y h:i A');
         $hoursUntilEvent = $this->event->start_at ? (int)now()->diffInHours($this->event->start_at, false) : null;
 
         return (new MailMessage)
@@ -41,8 +44,7 @@ class EventReminder extends Notification implements ShouldQueue
                 ],
                 'details' => [
                     'Event' => $this->event->title,
-                    'Date' => $startTime,
-                    'Time' => $this->event->start_at?->format('h:i A'),
+                    'Date & Time (IST)' => $startAtIst?->format('M d, Y h:i A') . ' IST',
                     'Time Until Event' => $hoursUntilEvent !== null && $hoursUntilEvent > 0 ? "{$hoursUntilEvent} hours" : 'Starting soon',
                 ],
                 'actionUrl' => route('families.calendar.index', ['family' => $this->event->family_id]),
@@ -57,13 +59,16 @@ class EventReminder extends Notification implements ShouldQueue
 
     public function toDatabase(object $notifiable): array
     {
+        // Convert UTC to IST for display in notification
+        $startAtIst = $this->event->start_at ? TimezoneService::convertUtcToIst($this->event->start_at) : null;
+        
         return [
             'event_id' => $this->event->id,
             'family_id' => $this->event->family_id,
             'title' => $this->event->title,
             'start_at' => $this->event->start_at,
             'reminder_before_minutes' => $this->event->reminder_before_minutes,
-            'message' => 'Event "' . $this->event->title . '" starts at ' . $this->event->start_at?->format('M d, Y H:i'),
+            'message' => 'Event "' . $this->event->title . '" starts at ' . $startAtIst?->format('M d, Y h:i A') . ' IST',
         ];
     }
 }

@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Medicine;
 use App\Models\MedicineExpiryReminder;
 use App\Models\MedicineIntakeReminder;
+use App\Services\TimezoneService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -162,12 +163,11 @@ class MedicineService
     public function createIntakeReminder(array $data, int $tenantId, int $familyId, Medicine $medicine, int $userId): MedicineIntakeReminder
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId, $medicine, $userId) {
-            // reminder_time is a TIME column - ensure it's in H:i:s format
-            $reminderTime = $data['reminder_time'];
-            if (is_string($reminderTime) && strlen($reminderTime) === 5) {
-                // Format is HH:MM, add seconds
-                $reminderTime = $reminderTime . ':00';
-            }
+            // Convert reminder_time from IST to UTC for storage
+            // reminder_time is a TIME column - input is in IST (HH:MM or HH:MM:SS)
+            $reminderTime = isset($data['reminder_time']) 
+                ? TimezoneService::convertIstTimeToUtcTimeString($data['reminder_time'])
+                : null;
 
             $reminder = MedicineIntakeReminder::create([
                 'tenant_id' => $tenantId,
@@ -199,15 +199,21 @@ class MedicineService
     public function updateIntakeReminder(MedicineIntakeReminder $reminder, array $data, int $userId): MedicineIntakeReminder
     {
         return DB::transaction(function () use ($reminder, $data, $userId) {
+            // Convert reminder_time from IST to UTC if provided
+            $updateData = $data;
+            if (isset($data['reminder_time'])) {
+                $updateData['reminder_time'] = TimezoneService::convertIstTimeToUtcTimeString($data['reminder_time']);
+            }
+
             $reminder->update([
-                'family_member_id' => $data['family_member_id'] ?? $reminder->family_member_id,
-                'reminder_time' => $data['reminder_time'] ?? $reminder->reminder_time,
-                'frequency' => $data['frequency'] ?? $reminder->frequency,
-                'days_of_week' => $data['days_of_week'] ?? $reminder->days_of_week,
-                'selected_dates' => $data['selected_dates'] ?? $reminder->selected_dates,
-                'start_date' => $data['start_date'] ?? $reminder->start_date,
-                'end_date' => $data['end_date'] ?? $reminder->end_date,
-                'status' => $data['status'] ?? $reminder->status,
+                'family_member_id' => $updateData['family_member_id'] ?? $reminder->family_member_id,
+                'reminder_time' => $updateData['reminder_time'] ?? $reminder->reminder_time,
+                'frequency' => $updateData['frequency'] ?? $reminder->frequency,
+                'days_of_week' => $updateData['days_of_week'] ?? $reminder->days_of_week,
+                'selected_dates' => $updateData['selected_dates'] ?? $reminder->selected_dates,
+                'start_date' => $updateData['start_date'] ?? $reminder->start_date,
+                'end_date' => $updateData['end_date'] ?? $reminder->end_date,
+                'status' => $updateData['status'] ?? $reminder->status,
                 'updated_by' => $userId,
             ]);
 
@@ -249,3 +255,6 @@ class MedicineService
         ];
     }
 }
+
+
+

@@ -133,3 +133,5 @@ class Medicine extends Model
         return (int)now()->diffInDays($this->expiry_date, false);
     }
 }
+
+

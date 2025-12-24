@@ -30,12 +30,12 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <x-label for="start_at" required>Start</x-label>
+                        <x-label for="start_at" required>Start (IST)</x-label>
                         <x-input type="datetime-local" id="start_at" name="start_at" value="{{ old('start_at') }}" class="mt-1 w-full" required />
                         @error('start_at') <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <x-label for="end_at">End</x-label>
+                        <x-label for="end_at">End (IST)</x-label>
                         <x-input type="datetime-local" id="end_at" name="end_at" value="{{ old('end_at') }}" class="mt-1 w-full" />
                         @error('end_at') <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p> @enderror
                     </div>

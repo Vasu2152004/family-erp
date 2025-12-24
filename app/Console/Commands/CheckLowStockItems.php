@@ -61,7 +61,7 @@ class CheckLowStockItems extends Command
                     ->get();
 
                 foreach ($adminsAndOwners as $role) {
-                    if ($role->user) {
+                    if ($role->user && $role->user->email) {
                         $usersToNotify->push($role->user);
                     }
                 }

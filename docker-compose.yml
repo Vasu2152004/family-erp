@@ -43,6 +43,42 @@ services:
     networks:
       - family_erp_network
 
+  queue:
+    image: familyerp-app
+    container_name: family_erp_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - family_erp_network
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      - db
+      - app
+    env_file:
+      - .env
+
+  scheduler:
+    image: familyerp-app
+    container_name: family_erp_scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - family_erp_network
+    command: >
+      sh -c "while true; do
+        php artisan schedule:run --verbose --no-interaction
+        sleep 60
+      done"
+    depends_on:
+      - db
+      - app
+    env_file:
+      - .env
+
 networks:
   family_erp_network:
 

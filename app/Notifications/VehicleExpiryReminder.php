@@ -22,7 +22,7 @@ class VehicleExpiryReminder extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', \App\Notifications\Channels\DatabaseWithMetaChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -78,6 +78,7 @@ class VehicleExpiryReminder extends Notification implements ShouldQueue
             'reminder_type' => $this->reminderType,
             'vehicle_name' => $vehicleName,
             'expiry_date' => $expiryDate,
+            'title' => 'Vehicle Expiry Reminder',
             'message' => "{$vehicleName} - {$typeLabel} expires on {$expiryDate?->format('M d, Y')}",
         ];
     }
@@ -102,6 +103,7 @@ class VehicleExpiryReminder extends Notification implements ShouldQueue
         };
     }
 }
+
 
 
 

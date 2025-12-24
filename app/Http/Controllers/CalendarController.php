@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\HasFamilyContext;
 use App\Models\CalendarEvent;
 use App\Models\Family;
+use App\Services\TimezoneService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -68,7 +69,14 @@ class CalendarController extends Controller
             'reminder_before_minutes' => ['nullable', 'integer', 'min:0', 'max:10080'], // up to 7 days
         ]);
 
-        CalendarEvent::create(array_merge($validated, [
+        // Convert IST datetime inputs to UTC for storage
+        $data = $validated;
+        $data['start_at'] = TimezoneService::convertIstDateTimeToUtcString($validated['start_at']);
+        if (!empty($validated['end_at'])) {
+            $data['end_at'] = TimezoneService::convertIstDateTimeToUtcString($validated['end_at']);
+        }
+
+        CalendarEvent::create(array_merge($data, [
             'tenant_id' => $family->tenant_id,
             'family_id' => $family->id,
             'created_by' => Auth::id(),
@@ -80,25 +88,15 @@ class CalendarController extends Controller
             ->with('success', 'Event created successfully.');
     }
 
-    public function edit(Request $request, CalendarEvent $event): View|RedirectResponse
+    public function edit(Request $request, Family $family, CalendarEvent $event): View|RedirectResponse
     {
-        $family = $this->getActiveFamily($request->input('family_id')) ?? $event->family;
-        if (!$family) {
-            return redirect()->route('dashboard')->with('error', 'Family not found.');
-        }
-
         $this->authorize('update', $event);
 
         return view('calendar.edit', compact('family', 'event'));
     }
 
-    public function update(Request $request, CalendarEvent $event): RedirectResponse
+    public function update(Request $request, Family $family, CalendarEvent $event): RedirectResponse
     {
-        $family = $this->getActiveFamily($request->input('family_id')) ?? $event->family;
-        if (!$family) {
-            return redirect()->route('dashboard')->with('error', 'Family not found.');
-        }
-
         $this->authorize('update', $event);
 
         $validated = $request->validate([
@@ -109,7 +107,14 @@ class CalendarController extends Controller
             'reminder_before_minutes' => ['nullable', 'integer', 'min:0', 'max:10080'],
         ]);
 
-        $event->update(array_merge($validated, [
+        // Convert IST datetime inputs to UTC for storage
+        $data = $validated;
+        $data['start_at'] = TimezoneService::convertIstDateTimeToUtcString($validated['start_at']);
+        if (!empty($validated['end_at'])) {
+            $data['end_at'] = TimezoneService::convertIstDateTimeToUtcString($validated['end_at']);
+        }
+
+        $event->update(array_merge($data, [
             'updated_by' => Auth::id(),
             // reset reminder status on change
             'reminder_sent_at' => null,
@@ -119,13 +124,8 @@ class CalendarController extends Controller
             ->with('success', 'Event updated successfully.');
     }
 
-    public function destroy(Request $request, CalendarEvent $event): RedirectResponse
+    public function destroy(Request $request, Family $family, CalendarEvent $event): RedirectResponse
     {
-        $family = $this->getActiveFamily($request->input('family_id')) ?? $event->family;
-        if (!$family) {
-            return redirect()->route('dashboard')->with('error', 'Family not found.');
-        }
-
         $this->authorize('delete', $event);
 
         $event->delete();

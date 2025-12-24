@@ -20,7 +20,7 @@ class MedicineExpiryReminder extends Notification implements ShouldQueue
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail', \App\Notifications\Channels\DatabaseWithMetaChannel::class];
     }
 
     public function toMail(object $notifiable): MailMessage
@@ -67,7 +67,10 @@ class MedicineExpiryReminder extends Notification implements ShouldQueue
             'family_id' => $this->medicine->family_id,
             'name' => $this->medicine->name,
             'expiry_date' => $this->medicine->expiry_date,
+            'title' => 'Medicine Expiry Reminder',
             'message' => "{$this->medicine->name} expires on {$expiry} ({$daysUntilExpiry} days remaining)",
         ];
     }
 }
+
+

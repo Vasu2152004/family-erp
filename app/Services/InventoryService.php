@@ -176,6 +176,59 @@ class InventoryService
     }
 
     /**
+     * Log usage by subtracting quantity (consumes base qty first, then batches by earliest expiry).
+     */
+    public function logUsage(int $itemId, float $amount, ?int $userId = null): InventoryItem
+    {
+        return DB::transaction(function () use ($itemId, $amount, $userId) {
+            $item = InventoryItem::with(['batches' => function ($q) {
+                $q->orderBy('expiry_date')->orderBy('created_at');
+            }])->lockForUpdate()->findOrFail($itemId);
+
+            $totalQty = $item->getTotalQty();
+            if ($amount > $totalQty) {
+                throw new \InvalidArgumentException('Usage exceeds available quantity.');
+            }
+
+            $remaining = $amount;
+
+            if ($item->qty >= $remaining) {
+                $item->decrement('qty', $remaining);
+                $remaining = 0;
+            } else {
+                $remaining -= $item->qty;
+                $item->qty = 0;
+                $item->save();
+            }
+
+            if ($remaining > 0) {
+                foreach ($item->batches as $batch) {
+                    if ($remaining <= 0) {
+                        break;
+                    }
+
+                    if ($batch->qty >= $remaining) {
+                        $batch->decrement('qty', $remaining);
+                        $remaining = 0;
+                    } else {
+                        $remaining -= $batch->qty;
+                        $batch->qty = 0;
+                        $batch->save();
+                    }
+
+                    if ($batch->qty <= 0) {
+                        $batch->delete();
+                    }
+                }
+            }
+
+            $item->update(['updated_by' => $userId ?? auth()->id()]);
+
+            return $item->fresh();
+        });
+    }
+
+    /**
      * Get items expiring soon.
      */
     public function getExpiringItems(int $familyId, int $days = 7): Collection

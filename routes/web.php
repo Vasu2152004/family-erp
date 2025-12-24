@@ -192,6 +192,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::patch('{item}', [\App\Http\Controllers\InventoryItemController::class, 'update'])->name('update');
             Route::delete('{item}', [\App\Http\Controllers\InventoryItemController::class, 'destroy'])->name('destroy');
             Route::patch('{item}/quantity', [\App\Http\Controllers\InventoryItemController::class, 'updateQuantity'])->name('update-quantity');
+            Route::post('{item}/usage', [\App\Http\Controllers\InventoryItemController::class, 'logUsage'])->name('log-usage');
         });
 
         // Shopping List
