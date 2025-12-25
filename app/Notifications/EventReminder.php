@@ -6,14 +6,11 @@ namespace App\Notifications;
 
 use App\Models\CalendarEvent;
 use App\Services\TimezoneService;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class EventReminder extends Notification implements ShouldQueue
+class EventReminder extends Notification
 {
-    use Queueable;
 
     public function __construct(private CalendarEvent $event)
     {
