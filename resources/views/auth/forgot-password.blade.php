@@ -26,7 +26,7 @@
 
         <div class="flex items-center justify-between">
             <x-link href="{{ route('login') }}" variant="secondary" class="text-sm">
-                Back to login
+                Back to login!
             </x-link>
             <x-button type="submit" variant="primary" size="md">
                 Send Reset Link
