@@ -30,6 +30,8 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    nodejs \
+    npm \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -47,6 +49,12 @@ COPY --chown=www-data:www-data . /var/www/html
 
 # Copy vendor from builder stage
 COPY --from=builder --chown=www-data:www-data /var/www/html/vendor /var/www/html/vendor
+
+# Create storage and cache directories
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
+
+# Install npm dependencies and build assets
+RUN npm ci && npm run build && rm -rf node_modules
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -85,8 +93,10 @@ RUN echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/custom.ini
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+# Create directories and set permissions (directories will be created via volumes in dev)
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html || true \
+    && chmod -R 775 storage bootstrap/cache || true
 
 EXPOSE 9000
 
