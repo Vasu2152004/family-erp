@@ -42,6 +42,32 @@ services:
       app:
         condition: service_started
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: production
+    container_name: family_erp_scheduler_prod
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    networks:
+      - family_erp_network
+    env_file:
+      - .env
+    command: >
+      sh -c "while true; do
+        php artisan schedule:run --verbose --no-interaction
+        sleep 60
+      done"
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+
   web:
     image: nginx:1.27-alpine
     container_name: family_erp_web_prod

@@ -24,3 +24,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temporary documentation files
+EMAIL_*.md
+ALL_EMAIL_*.md
+SYSTEM_*.md
+*_DIAGNOSIS.md
+*_ANALYSIS.md
