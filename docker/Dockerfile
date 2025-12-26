@@ -50,6 +50,9 @@ COPY --chown=www-data:www-data . /var/www/html
 # Copy vendor from builder stage
 COPY --from=builder --chown=www-data:www-data /var/www/html/vendor /var/www/html/vendor
 
+# Create storage and cache directories if they don't exist
+RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache
+
 # Install npm dependencies and build assets
 RUN npm ci && npm run build && rm -rf node_modules
 
@@ -90,8 +93,10 @@ RUN echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "upload_max_filesize = 20M" >> /usr/local/etc/php/conf.d/custom.ini \
     && echo "post_max_size = 20M" >> /usr/local/etc/php/conf.d/custom.ini
 
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 storage bootstrap/cache
+# Set permissions (directories will be created via volumes, so check if they exist)
+RUN chown -R www-data:www-data /var/www/html || true \
+    && ([ -d storage ] && chmod -R 775 storage || mkdir -p storage && chmod -R 775 storage || true) \
+    && ([ -d bootstrap/cache ] && chmod -R 775 bootstrap/cache || mkdir -p bootstrap/cache && chmod -R 775 bootstrap/cache || true)
 
 EXPOSE 9000
 
