@@ -30,6 +30,8 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libzip-dev \
+    nodejs \
+    npm \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -47,6 +49,9 @@ COPY --chown=www-data:www-data . /var/www/html
 
 # Copy vendor from builder stage
 COPY --from=builder --chown=www-data:www-data /var/www/html/vendor /var/www/html/vendor
+
+# Install npm dependencies and build assets
+RUN npm ci && npm run build && rm -rf node_modules
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html \
