@@ -6,8 +6,12 @@ namespace App\Services;
 
 use App\Models\AdminRoleRequest;
 use App\Models\FamilyUserRole;
+use App\Notifications\AdminRoleRequestApproved;
+use App\Notifications\AdminRoleRequestNotification;
+use App\Notifications\AdminRoleRequestRejected;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class FamilyRoleService
@@ -137,23 +141,15 @@ class FamilyRoleService
                 ->with('user')
                 ->get();
 
-            // Create notifications for all admins and owners
-            foreach ($adminsAndOwners as $role) {
-                \App\Models\Notification::create([
-                    'tenant_id' => $family->tenant_id,
-                    'user_id' => $role->user_id,
-                    'type' => 'admin_role_request',
-                    'title' => 'Admin Role Request',
-                    'message' => "{$requestingUser->name} has requested admin role for {$family->name}. This is request #{$request->request_count} of 3.",
-                    'data' => [
-                        'family_id' => $familyId,
-                        'family_name' => $family->name,
-                        'request_id' => $request->id,
-                        'requesting_user_id' => $userId,
-                        'requesting_user_name' => $requestingUser->name,
-                        'request_count' => $request->request_count,
-                    ],
-                ]);
+            // Send email notifications to all admins and owners
+            $request->refresh();
+            $request->load(['user', 'family']);
+            $recipients = $adminsAndOwners->map(fn($role) => $role->user)
+                ->filter(fn($user) => $user && $user->email && $user->tenant_id === $family->tenant_id)
+                ->unique('id');
+            
+            if ($recipients->isNotEmpty()) {
+                Notification::send($recipients, new AdminRoleRequestNotification($request));
             }
 
             // If this is the 3rd request, check for auto-promotion immediately
@@ -310,23 +306,15 @@ class FamilyRoleService
             // Clear cache
             $this->clearRoleCache($request->user_id, $request->family_id);
             
-            // Create notification for the requesting user
-            $family = \App\Models\Family::findOrFail($request->family_id);
+            // Send email notification to the requesting user
+            $request->load(['user', 'family']);
+            $family = $request->family;
             $approver = \App\Models\User::findOrFail($approvedByUserId);
-            \App\Models\Notification::create([
-                'tenant_id' => $family->tenant_id,
-                'user_id' => $request->user_id,
-                'type' => 'admin_role_approved',
-                'title' => 'Admin Role Approved',
-                'message' => "Your admin role request for {$family->name} has been approved by {$approver->name}.",
-                'data' => [
-                    'family_id' => $request->family_id,
-                    'family_name' => $family->name,
-                    'request_id' => $request->id,
-                    'approved_by_user_id' => $approvedByUserId,
-                    'approved_by_user_name' => $approver->name,
-                ],
-            ]);
+            $requestingUser = $request->user;
+            
+            if ($requestingUser && $requestingUser->email) {
+                $requestingUser->notify(new AdminRoleRequestApproved($request, $approver));
+            }
             
             return $role;
         });
@@ -361,23 +349,15 @@ class FamilyRoleService
             // Update request status to rejected
             $request->update(['status' => 'rejected']);
             
-            // Create notification for the requesting user
-            $family = \App\Models\Family::findOrFail($request->family_id);
+            // Send email notification to the requesting user
+            $request->load(['user', 'family']);
+            $family = $request->family;
             $rejector = \App\Models\User::findOrFail($rejectedByUserId);
-            \App\Models\Notification::create([
-                'tenant_id' => $family->tenant_id,
-                'user_id' => $request->user_id,
-                'type' => 'admin_role_rejected',
-                'title' => 'Admin Role Rejected',
-                'message' => "Your admin role request for {$family->name} has been rejected by {$rejector->name}.",
-                'data' => [
-                    'family_id' => $request->family_id,
-                    'family_name' => $family->name,
-                    'request_id' => $request->id,
-                    'rejected_by_user_id' => $rejectedByUserId,
-                    'rejected_by_user_name' => $rejector->name,
-                ],
-            ]);
+            $requestingUser = $request->user;
+            
+            if ($requestingUser && $requestingUser->email) {
+                $requestingUser->notify(new AdminRoleRequestRejected($request, $rejector));
+            }
         });
     }
 

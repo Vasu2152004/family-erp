@@ -203,10 +203,33 @@ class VehicleController extends Controller
     {
         $this->authorize('delete', $vehicle);
 
-        $this->vehicleService->deleteVehicle($vehicle);
+        $saleData = null;
+        if ($request->has('is_sold') && $request->boolean('is_sold')) {
+            $validated = $request->validate([
+                'is_sold' => ['required', 'boolean'],
+                'sold_to' => ['required', 'string', 'max:255'],
+                'sold_date' => ['required', 'date'],
+                'sold_price' => ['required', 'numeric', 'min:0.01'],
+                'notes' => ['nullable', 'string'],
+            ]);
+
+            $saleData = [
+                'is_sold' => true,
+                'sold_to' => $validated['sold_to'],
+                'sold_date' => $validated['sold_date'],
+                'sold_price' => $validated['sold_price'],
+                'notes' => $validated['notes'] ?? null,
+            ];
+        }
+
+        $this->vehicleService->deleteVehicle($vehicle, $saleData, $request->user()->id);
+
+        $message = $saleData 
+            ? 'Vehicle sold and deleted successfully. Income transaction has been created.'
+            : 'Vehicle deleted successfully.';
 
         return redirect()->route('families.vehicles.index', ['family' => $family->id])
-            ->with('success', 'Vehicle deleted successfully.');
+            ->with('success', $message);
     }
 }
 

@@ -401,3 +401,6 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
 
 
 
+
+
+

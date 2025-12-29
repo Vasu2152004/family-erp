@@ -6,6 +6,11 @@ namespace App\Services;
 
 use App\Models\FamilyMemberRequest;
 use App\Models\FamilyMember;
+use App\Models\FamilyUserRole;
+use App\Models\User;
+use App\Notifications\FamilyMemberRequestAcceptedNotification;
+use App\Notifications\FamilyMemberRequestNotification;
+use App\Notifications\FamilyMemberRequestRejectedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,7 +22,7 @@ class FamilyMemberRequestService
     }
 
     /**
-     * Create a request to add a family member.
+     * Create a family member request.
      */
     public function createRequest(array $data, int $tenantId, int $familyId, int $requestedByUserId, int $requestedUserId): FamilyMemberRequest
     {
@@ -33,7 +38,7 @@ class FamilyMemberRequestService
                 ]);
             }
 
-            // Check if there's already a pending request
+            // Check if there's already a pending request for this user and family
             $existingRequest = FamilyMemberRequest::where('family_id', $familyId)
                 ->where('requested_user_id', $requestedUserId)
                 ->where('status', 'pending')
@@ -41,11 +46,11 @@ class FamilyMemberRequestService
 
             if ($existingRequest) {
                 throw ValidationException::withMessages([
-                    'user_id' => ['There is already a pending request for this user.'],
+                    'user_id' => ['A pending request already exists for this user in this family.'],
                 ]);
             }
 
-            return FamilyMemberRequest::create([
+            $request = FamilyMemberRequest::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
                 'requested_by_user_id' => $requestedByUserId,
@@ -59,6 +64,12 @@ class FamilyMemberRequestService
                 'email' => $data['email'] ?? null,
                 'status' => 'pending',
             ]);
+
+            // Send email notification to the requested user
+            $requestedUser = User::findOrFail($requestedUserId);
+            $requestedUser->notify(new FamilyMemberRequestNotification($request));
+
+            return $request;
         });
     }
 
@@ -70,40 +81,57 @@ class FamilyMemberRequestService
         return DB::transaction(function () use ($requestId, $userId) {
             $request = FamilyMemberRequest::findOrFail($requestId);
 
-            // Verify the user is the one who should accept
+            // Verify the user accepting is the requested user
             if ($request->requested_user_id !== $userId) {
                 throw ValidationException::withMessages([
-                    'request' => ['You are not authorized to accept this request.'],
+                    'request' => ['You can only accept requests sent to you.'],
                 ]);
             }
 
-            // Verify request is still pending
-            if (!$request->isPending()) {
+            // Check if request is still pending
+            if ($request->status !== 'pending') {
                 throw ValidationException::withMessages([
-                    'request' => ['This request has already been ' . $request->status . '.'],
+                    'request' => ['This request has already been processed.'],
                 ]);
             }
 
-            // Create the family member
-            $member = $this->familyMemberService->createMember(
-                [
-                    'first_name' => $request->first_name,
-                    'last_name' => $request->last_name,
-                    'gender' => $request->gender,
-                    'date_of_birth' => $request->date_of_birth,
-                    'relation' => $request->relation,
-                    'phone' => $request->phone,
-                    'user_id' => $request->requested_user_id,
-                ],
-                $request->tenant_id,
-                $request->family_id
-            );
+            // Check if user is already a member
+            $existingMember = FamilyMember::where('family_id', $request->family_id)
+                ->where('user_id', $userId)
+                ->first();
+
+            if ($existingMember) {
+                // Update request status even if member already exists
+                $request->update([
+                    'status' => 'accepted',
+                    'responded_at' => now(),
+                ]);
+                
+                throw ValidationException::withMessages([
+                    'request' => ['You are already a member of this family.'],
+                ]);
+            }
+
+            // Create family member from request data
+            $member = $this->familyMemberService->createMember([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'gender' => $request->gender,
+                'date_of_birth' => $request->date_of_birth,
+                'relation' => $request->relation,
+                'phone' => $request->phone,
+                'email' => $request->email,
+                'user_id' => $userId,
+            ], $request->tenant_id, $request->family_id);
 
             // Update request status
             $request->update([
                 'status' => 'accepted',
                 'responded_at' => now(),
             ]);
+
+            // Send email notification to the family admin/owner who created the request
+            $this->notifyRequestCreator($request, 'accepted');
 
             return $member;
         });
@@ -112,22 +140,22 @@ class FamilyMemberRequestService
     /**
      * Reject a family member request.
      */
-    public function rejectRequest(int $requestId, int $userId): FamilyMemberRequest
+    public function rejectRequest(int $requestId, int $userId): void
     {
-        return DB::transaction(function () use ($requestId, $userId) {
+        DB::transaction(function () use ($requestId, $userId) {
             $request = FamilyMemberRequest::findOrFail($requestId);
 
-            // Verify the user is the one who should reject
+            // Verify the user rejecting is the requested user
             if ($request->requested_user_id !== $userId) {
                 throw ValidationException::withMessages([
-                    'request' => ['You are not authorized to reject this request.'],
+                    'request' => ['You can only reject requests sent to you.'],
                 ]);
             }
 
-            // Verify request is still pending
-            if (!$request->isPending()) {
+            // Check if request is still pending
+            if ($request->status !== 'pending') {
                 throw ValidationException::withMessages([
-                    'request' => ['This request has already been ' . $request->status . '.'],
+                    'request' => ['This request has already been processed.'],
                 ]);
             }
 
@@ -137,8 +165,25 @@ class FamilyMemberRequestService
                 'responded_at' => now(),
             ]);
 
-            return $request;
+            // Send email notification to the family admin/owner who created the request
+            $this->notifyRequestCreator($request, 'rejected');
         });
     }
-}
 
+    /**
+     * Notify the family admin/owner who created the request about accept/reject.
+     */
+    private function notifyRequestCreator(FamilyMemberRequest $request, string $status): void
+    {
+        // Get the user who created the request
+        $requestCreator = $request->requestedBy;
+        
+        if ($requestCreator) {
+            if ($status === 'accepted') {
+                $requestCreator->notify(new FamilyMemberRequestAcceptedNotification($request));
+            } else {
+                $requestCreator->notify(new FamilyMemberRequestRejectedNotification($request));
+            }
+        }
+    }
+}

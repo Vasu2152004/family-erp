@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
 {
@@ -28,6 +29,11 @@ class User extends Authenticatable
         'email',
         'password',
         'tenant_id',
+        'avatar_path',
+    ];
+
+    protected $appends = [
+        'avatar_url',
     ];
 
     /**
@@ -113,5 +119,17 @@ class User extends Authenticatable
     public function isFamilyAdmin(int $familyId): bool
     {
         return $this->hasFamilyRole($familyId, 'ADMIN') || $this->isFamilyOwner($familyId);
+    }
+
+    /**
+     * Get the avatar URL attribute.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        return Storage::disk(config('filesystems.default'))->url($this->avatar_path);
     }
 }

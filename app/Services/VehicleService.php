@@ -8,6 +8,10 @@ use App\Models\Vehicle;
 use App\Models\ServiceLog;
 use App\Models\FuelEntry;
 use App\Models\VehicleReminder;
+use App\Models\VehicleSale;
+use App\Models\Transaction;
+use App\Models\TransactionCategory;
+use App\Models\FinanceAccount;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -70,15 +74,91 @@ class VehicleService
 
     /**
      * Delete a vehicle and related data.
+     * If sale data is provided, creates a vehicle sale record and income transaction.
      */
-    public function deleteVehicle(Vehicle $vehicle): void
+    public function deleteVehicle(Vehicle $vehicle, ?array $saleData = null, ?int $userId = null): void
     {
-        DB::transaction(function () use ($vehicle) {
+        DB::transaction(function () use ($vehicle, $saleData, $userId) {
+            // If vehicle is sold, create sale record and transaction
+            if ($saleData && isset($saleData['is_sold']) && $saleData['is_sold']) {
+                $this->createVehicleSale($vehicle, $saleData, $userId);
+            }
+
+            // Delete related data
             $vehicle->reminders()->delete();
             $vehicle->serviceLogs()->delete();
             $vehicle->fuelEntries()->delete();
             $vehicle->delete();
         });
+    }
+
+    /**
+     * Create vehicle sale record and income transaction.
+     */
+    private function createVehicleSale(Vehicle $vehicle, array $saleData, ?int $userId): void
+    {
+        // Create vehicle sale record
+        $vehicleSale = VehicleSale::create([
+            'tenant_id' => $vehicle->tenant_id,
+            'family_id' => $vehicle->family_id,
+            'vehicle_id' => $vehicle->id,
+            'sold_to' => $saleData['sold_to'],
+            'sold_date' => $saleData['sold_date'],
+            'sold_price' => $saleData['sold_price'],
+            'notes' => $saleData['notes'] ?? null,
+            'created_by' => $userId ?? auth()->id(),
+        ]);
+
+        // Get or create vehicle sale category
+        $category = TransactionCategory::firstOrCreate(
+            [
+                'tenant_id' => $vehicle->tenant_id,
+                'family_id' => $vehicle->family_id,
+                'name' => 'Vehicle Sale',
+                'type' => 'INCOME',
+            ],
+            [
+                'is_system' => false,
+                'icon' => '🚗',
+                'color' => '#10b981',
+            ]
+        );
+
+        // Get default finance account (first active account or create one)
+        $financeAccount = FinanceAccount::where('family_id', $vehicle->family_id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$financeAccount) {
+            // Create a default cash account if none exists
+            $financeAccount = FinanceAccount::create([
+                'tenant_id' => $vehicle->tenant_id,
+                'family_id' => $vehicle->family_id,
+                'name' => 'Cash',
+                'type' => 'CASH',
+                'initial_balance' => 0,
+                'current_balance' => 0,
+                'is_active' => true,
+            ]);
+        }
+
+        // Create income transaction
+        // Transaction should be on vehicle owner if exists, otherwise family transaction (family_member_id = null)
+        Transaction::create([
+            'tenant_id' => $vehicle->tenant_id,
+            'family_id' => $vehicle->family_id,
+            'finance_account_id' => $financeAccount->id,
+            'family_member_id' => $vehicle->family_member_id, // Vehicle owner if exists, null for family transaction
+            'category_id' => $category->id,
+            'type' => 'INCOME',
+            'amount' => $saleData['sold_price'],
+            'description' => "Vehicle Sale: {$vehicle->make} {$vehicle->model} ({$vehicle->registration_number}) - Sold to {$saleData['sold_to']}",
+            'transaction_date' => $saleData['sold_date'],
+            'is_shared' => $vehicle->family_member_id ? false : true, // Shared if no owner, private if has owner
+        ]);
+
+        // Update account balance
+        $financeAccount->updateBalance();
     }
 
     /**

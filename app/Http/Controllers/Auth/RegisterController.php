@@ -42,6 +42,9 @@ class RegisterController extends Controller
 
         event(new Registered($user));
 
+        // Send welcome email
+        $user->notify(new \App\Notifications\WelcomeNotification());
+
         Auth::login($user);
 
         return redirect(route('dashboard'));

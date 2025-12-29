@@ -129,11 +129,9 @@
                                 </div>
                                 <div class="flex gap-2">
                                     @can('markPurchased', $item)
-                                        <form action="{{ route('shopping-list.mark-purchased', ['item' => $item->id, 'family_id' => $family->id]) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <x-button type="submit" variant="primary" size="sm">Mark Purchased</x-button>
-                                        </form>
+                                        <button type="button" onclick="openPurchaseModal({{ $item->id }}, '{{ addslashes($item->name) }}')" class="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors text-sm font-medium">
+                                            Mark Purchased
+                                        </button>
                                     @endcan
                                     @can('update', $item)
                                         <a href="#" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Edit</a>
@@ -174,9 +172,15 @@
                                         </div>
                                         <p class="text-sm text-[var(--color-text-secondary)] mt-1">
                                             Quantity: {{ number_format($item->qty, 2) }} {{ $item->unit }}
+                                            @if($item->amount)
+                                                • Amount: ₹{{ number_format($item->amount, 2) }}
+                                            @endif
                                         </p>
                                         <p class="text-xs text-[var(--color-text-secondary)] mt-1">
                                             Purchased by {{ $item->purchasedBy->name ?? 'Unknown' }} on {{ $item->purchased_at->format('M d, Y') }}
+                                            @if($item->budget)
+                                                • Budget: {{ $item->budget->category->name ?? 'Uncategorized' }}
+                                            @endif
                                         </p>
                                     </div>
                                     <div class="flex gap-2">
@@ -199,5 +203,83 @@
             @endif
         </div>
     </div>
+
+    <!-- Purchase Modal -->
+    <div id="purchaseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Mark as Purchased</h3>
+            
+            <form method="POST" id="purchaseForm" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="family_id" value="{{ $family->id }}">
+                
+                <div>
+                    <p class="text-[var(--color-text-secondary)] mb-4">
+                        Item: <strong id="purchaseItemName"></strong>
+                    </p>
+                </div>
+                
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Amount (₹)</label>
+                    <input type="number" name="amount" id="amount" step="0.01" min="0.01" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0.00">
+                    <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Leave empty if no transaction needed</p>
+                </div>
+                
+                <div>
+                    <label for="budget_id" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Budget (Optional)</label>
+                    <select name="budget_id" id="budget_id" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option value="">No Budget</option>
+                        @foreach($budgets as $budget)
+                            <option value="{{ $budget->id }}">
+                                {{ $budget->category->name ?? 'Uncategorized' }}
+                                @if($budget->family_member_id)
+                                    (Personal)
+                                @else
+                                    (Family)
+                                @endif
+                                - ₹{{ number_format($budget->amount, 2) }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Only your personal budgets and family budgets are shown</p>
+                </div>
+                
+                <div class="flex gap-3 justify-end pt-4">
+                    <button type="button" onclick="closePurchaseModal()" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-dark)] transition-colors">
+                        Mark Purchased
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            function openPurchaseModal(itemId, itemName) {
+                document.getElementById('purchaseModal').classList.remove('hidden');
+                document.getElementById('purchaseModal').classList.add('flex');
+                document.getElementById('purchaseItemName').textContent = itemName;
+                const baseUrl = '{{ route("shopping-list.mark-purchased", ["item" => 0, "family_id" => $family->id]) }}';
+                document.getElementById('purchaseForm').action = baseUrl.replace('/0/', '/' + itemId + '/');
+            }
+            
+            function closePurchaseModal() {
+                document.getElementById('purchaseModal').classList.add('hidden');
+                document.getElementById('purchaseModal').classList.remove('flex');
+                document.getElementById('purchaseForm').reset();
+            }
+            
+            // Close modal on outside click
+            document.getElementById('purchaseModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePurchaseModal();
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 

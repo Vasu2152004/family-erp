@@ -25,6 +25,11 @@
                             <x-button variant="outline" size="md">Edit</x-button>
                         </a>
                     @endcan
+                    @can('delete', $vehicle)
+                        <button type="button" onclick="openDeleteModal()" class="px-4 py-2 rounded-lg border border-red-600 text-red-600 hover:bg-red-50 transition-colors">
+                            Delete
+                        </button>
+                    @endcan
                     <a href="{{ route('families.vehicles.index', ['family' => $family->id]) }}">
                         <x-button variant="ghost" size="md">Back</x-button>
                     </a>
@@ -181,5 +186,107 @@
             </div>
         </div>
     </div>
+
+    <!-- Delete Vehicle Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Delete Vehicle</h3>
+            
+            <form method="POST" action="{{ route('families.vehicles.destroy', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}" id="deleteForm">
+                @csrf
+                @method('DELETE')
+                
+                <div class="mb-4">
+                    <p class="text-[var(--color-text-secondary)] mb-4">
+                        Are you sure you want to delete <strong>{{ $vehicle->make }} {{ $vehicle->model }}</strong> ({{ $vehicle->registration_number }})?
+                    </p>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer mb-4">
+                        <input type="checkbox" name="is_sold" id="is_sold" value="1" onchange="toggleSaleFields()" class="rounded border-[var(--color-border-primary)]">
+                        <span class="text-sm text-[var(--color-text-primary)]">Vehicle is sold</span>
+                    </label>
+                    
+                    <div id="saleFields" class="hidden space-y-3">
+                        <div>
+                            <label for="sold_to" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Sold To <span class="text-red-600">*</span></label>
+                            <input type="text" name="sold_to" id="sold_to" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Buyer name">
+                        </div>
+                        
+                        <div>
+                            <label for="sold_date" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Sold Date <span class="text-red-600">*</span></label>
+                            <input type="date" name="sold_date" id="sold_date" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" value="{{ date('Y-m-d') }}">
+                        </div>
+                        
+                        <div>
+                            <label for="sold_price" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Sold Price <span class="text-red-600">*</span></label>
+                            <input type="number" name="sold_price" id="sold_price" step="0.01" min="0.01" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0.00">
+                        </div>
+                        
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Notes</label>
+                            <textarea name="notes" id="notes" rows="3" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Additional notes about the sale"></textarea>
+                        </div>
+                        
+                        <p class="text-xs text-[var(--color-text-secondary)]">
+                            An income transaction will be automatically created in your finance module.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 justify-end">
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+                        Delete Vehicle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            function openDeleteModal() {
+                document.getElementById('deleteModal').classList.remove('hidden');
+                document.getElementById('deleteModal').classList.add('flex');
+            }
+            
+            function closeDeleteModal() {
+                document.getElementById('deleteModal').classList.add('hidden');
+                document.getElementById('deleteModal').classList.remove('flex');
+                // Reset form
+                document.getElementById('deleteForm').reset();
+                document.getElementById('is_sold').checked = false;
+                toggleSaleFields();
+            }
+            
+            function toggleSaleFields() {
+                const isSold = document.getElementById('is_sold').checked;
+                const saleFields = document.getElementById('saleFields');
+                
+                if (isSold) {
+                    saleFields.classList.remove('hidden');
+                    // Make fields required
+                    document.getElementById('sold_to').required = true;
+                    document.getElementById('sold_date').required = true;
+                    document.getElementById('sold_price').required = true;
+                } else {
+                    saleFields.classList.add('hidden');
+                    // Remove required
+                    document.getElementById('sold_to').required = false;
+                    document.getElementById('sold_date').required = false;
+                    document.getElementById('sold_price').required = false;
+                }
+            }
+            
+            // Close modal on outside click
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
+                }
+            });
+        </script>
+    @endpush
 </x-app-layout>
 

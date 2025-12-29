@@ -8,6 +8,8 @@ use App\Http\Controllers\Concerns\HasFamilyContext;
 use App\Models\Family;
 use App\Models\ShoppingListItem;
 use App\Models\InventoryItem;
+use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Services\ShoppingListService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -51,7 +53,8 @@ class ShoppingListController extends Controller
             ->with([
                 'inventoryItem:id,name,unit,family_id',
                 'addedBy:id,name',
-                'purchasedBy:id,name'
+                'purchasedBy:id,name',
+                'budget.category:id,name'
             ])
             ->orderBy('purchased_at', 'desc')
             ->paginate(10);
@@ -63,7 +66,37 @@ class ShoppingListController extends Controller
             ->limit(100)
             ->get();
 
-        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems'));
+        // Get budgets for current user (personal budgets + family budgets)
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $currentUserMember = FamilyMember::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        $budgetsQuery = Budget::where('family_id', $family->id)
+            ->where('month', $currentMonth)
+            ->where('year', $currentYear)
+            ->where('is_active', true)
+            ->with(['category']);
+
+        // Get user role
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
+
+        if ($isAdminOrOwner) {
+            // OWNER/ADMIN can see all budgets
+            $budgets = $budgetsQuery->get();
+        } else {
+            // MEMBER can see family budgets + their own personal budgets
+            $budgets = $budgetsQuery->where(function ($q) use ($currentUserMember) {
+                $q->whereNull('family_member_id') // Family budgets
+                    ->orWhere('family_member_id', $currentUserMember?->id); // Their personal budgets
+            })->get();
+        }
+
+        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets'));
     }
 
     /**
@@ -145,10 +178,43 @@ class ShoppingListController extends Controller
 
         $this->authorize('markPurchased', $item);
 
-        $this->shoppingListService->markAsPurchased($item->id, Auth::id());
+        $validated = $request->validate([
+            'amount' => ['nullable', 'numeric', 'min:0.01'],
+            'budget_id' => ['nullable', 'exists:budgets,id'],
+        ]);
+
+        $amount = isset($validated['amount']) ? (float) $validated['amount'] : null;
+        $budgetId = isset($validated['budget_id']) ? (int) $validated['budget_id'] : null;
+
+        // If budget is provided, validate it belongs to the user
+        if ($budgetId) {
+            $budget = Budget::find($budgetId);
+            if ($budget && $budget->family_id !== $family->id) {
+                return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                    ->with('error', 'Invalid budget selected.');
+            }
+
+            // If budget is personal, ensure it belongs to current user
+            if ($budget && $budget->family_member_id) {
+                $currentUserMember = FamilyMember::where('family_id', $family->id)
+                    ->where('user_id', Auth::id())
+                    ->first();
+                
+                if (!$currentUserMember || $budget->family_member_id !== $currentUserMember->id) {
+                    return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                        ->with('error', 'You can only use your own personal budgets.');
+                }
+            }
+        }
+
+        $this->shoppingListService->markAsPurchased($item->id, Auth::id(), $amount, $budgetId);
+
+        $message = $amount 
+            ? 'Item marked as purchased and transaction created successfully.'
+            : 'Item marked as purchased.';
 
         return redirect()->route('shopping-list.index', ['family_id' => $family->id])
-            ->with('success', 'Item marked as purchased.');
+            ->with('success', $message);
     }
 
     /**

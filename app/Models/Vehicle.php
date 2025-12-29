@@ -81,6 +81,11 @@ class Vehicle extends Model
         return $this->hasMany(VehicleReminder::class);
     }
 
+    public function sale(): HasMany
+    {
+        return $this->hasMany(VehicleSale::class);
+    }
+
     public function scopeForTenant(Builder $query, int $tenantId): Builder
     {
         return $query->where('tenant_id', $tenantId);
@@ -114,6 +119,9 @@ class Vehicle extends Model
         return (float) $entries->avg('calculated_mileage');
     }
 }
+
+
+
 
 
 

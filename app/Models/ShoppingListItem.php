@@ -22,6 +22,9 @@ class ShoppingListItem extends Model
         'qty',
         'unit',
         'notes',
+        'amount',
+        'budget_id',
+        'transaction_id',
         'added_by',
         'purchased_by',
         'purchased_at',
@@ -33,6 +36,7 @@ class ShoppingListItem extends Model
     {
         return [
             'qty' => 'decimal:2',
+            'amount' => 'decimal:2',
             'is_purchased' => 'boolean',
             'is_auto_added' => 'boolean',
             'purchased_at' => 'datetime',
@@ -62,6 +66,16 @@ class ShoppingListItem extends Model
     public function purchasedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'purchased_by');
+    }
+
+    public function budget(): BelongsTo
+    {
+        return $this->belongsTo(Budget::class);
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     /**

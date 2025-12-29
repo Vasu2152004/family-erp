@@ -82,13 +82,16 @@ class InvestmentPolicy
     public function create(User $user, Family $family): bool
     {
         $role = $user->getFamilyRole($family->id);
-        
-        if (!$role) {
-            return false;
+
+        // OWNER/ADMIN/MEMBER role can create
+        if ($role && in_array($role->role, ['OWNER', 'ADMIN', 'MEMBER'])) {
+            return true;
         }
 
-        // OWNER/ADMIN/MEMBER can create
-        return in_array($role->role, ['OWNER', 'ADMIN', 'MEMBER']);
+        // Fallback: linked family member without explicit role can create
+        return FamilyMember::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->exists();
     }
 
     /**
@@ -176,6 +179,10 @@ class InvestmentPolicy
         return in_array($role->role, ['OWNER', 'ADMIN']);
     }
 }
+
+
+
+
 
 
 

@@ -25,15 +25,19 @@
 
     <!-- User Profile Section -->
     <div class="px-6 py-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-[var(--color-primary)]/10 rounded-full flex items-center justify-center text-[var(--color-primary)] font-semibold shadow-sm">
-                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+        <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
+            <div class="w-10 h-10 rounded-full overflow-hidden border border-[var(--color-border-primary)] shadow-sm flex items-center justify-center bg-[var(--color-primary)]/10">
+                @if(Auth::user()->avatar_url)
+                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
+                @else
+                    <span class="text-[var(--color-primary)] font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                @endif
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">{{ Auth::user()->name }}</p>
                 <p class="text-xs text-[var(--color-text-secondary)] truncate">{{ Auth::user()->email }}</p>
             </div>
-        </div>
+        </a>
     </div>
 
     <!-- Navigation Menu -->
@@ -89,22 +93,22 @@
         @endphp
         <ul class="space-y-1">
             <li>
-                @php $isActive = $match(['profile.edit'], ['profile']); @endphp
-                <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.88 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    <span class="font-medium">My Profile</span>
-                </a>
-            </li>
-
-            <li>
                 @php $isActive = $match(['dashboard'], ['dashboard']); @endphp
                 <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
                     <span class="font-medium">Dashboard</span>
+                </a>
+            </li>
+
+            <li>
+                @php $isActive = $match(['profile.*'], ['profile*']); @endphp
+                <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span class="font-medium">Profile</span>
                 </a>
             </li>
 
@@ -124,7 +128,6 @@
                          !str_starts_with($currentRoute, 'families.documents.') &&
                          !str_starts_with($currentRoute, 'families.document-types.') &&
                          !str_starts_with($currentRoute, 'families.health.') &&
-                         !str_starts_with($currentRoute, 'families.medicines.') &&
                          !str_starts_with($currentRoute, 'families.tasks.') &&
                          !str_starts_with($currentRoute, 'families.notes.') &&
                          !str_starts_with($currentRoute, 'families.vehicles.')) ||
@@ -149,6 +152,9 @@
                             'families.transactions.*',
                             'families.budgets.*',
                             'families.finance-analytics.*',
+                            'finance.assets.*',
+                            'finance.investments.*',
+                            'finance.investment-unlock-requests.*',
                         ],
                         [
                             'finance*',
@@ -156,6 +162,9 @@
                             'families/*/transactions*',
                             'families/*/budgets*',
                             'families/*/finance-analytics*',
+                            'finance/assets*',
+                            'finance/investments*',
+                            'finance/investment-unlock-requests*',
                         ]
                     );
                 @endphp
@@ -168,36 +177,6 @@
             </li>
 
             @if($activeFamily)
-                <li>
-                    @php
-                        $isActive = $match(
-                            ['assets.*'],
-                            ['assets*']
-                        );
-                    @endphp
-                    <a href="{{ route('assets.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span class="font-medium">Assets</span>
-                    </a>
-                </li>
-
-                <li>
-                    @php
-                        $isActive = $match(
-                            ['investments.*', 'investment-unlock-requests.*'],
-                            ['investments*', 'investment-unlock-requests*']
-                        );
-                    @endphp
-                    <a href="{{ route('investments.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h11m-6 6h7m4-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2h11a2 2 0 002-2z"></path>
-                        </svg>
-                        <span class="font-medium">Investments</span>
-                    </a>
-                </li>
-
                 <li>
                     @php
                         $isActive = $match(
@@ -260,25 +239,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6m14 0a10 10 0 11-20 0 10 10 0 0120 0z"></path>
                         </svg>
                         <span class="font-medium">Health</span>
-                    </a>
-                </li>
-
-                <li>
-                    @php
-                        $isActive = $match(
-                            [
-                                'families.medicines.*',
-                            ],
-                            [
-                                'families/*/medicines*',
-                            ]
-                        );
-                    @endphp
-                    <a href="{{ route('families.medicines.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
-                        </svg>
-                        <span class="font-medium">Medicines</span>
                     </a>
                 </li>
 
