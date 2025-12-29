@@ -64,7 +64,7 @@
                         <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
                         <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-alt)] transition-colors">Reset</a>
                     </div>
-                </form>
+                </x-form>
             </div>
 
             @if($tasks->count() > 0)

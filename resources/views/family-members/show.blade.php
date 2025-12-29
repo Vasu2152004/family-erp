@@ -124,16 +124,16 @@
                 <div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg p-4 space-y-3">
                     <p class="text-sm text-[var(--color-text-secondary)]">A deceased verification is in progress. All family users must vote. If anyone denies, the request fails.</p>
                     @if($myVote && $myVote->status === 'pending')
-                        <form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
+                        <x-form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
                             @csrf
                             <input type="hidden" name="decision" value="approved">
                             <x-button type="submit" variant="primary" size="sm">Approve</x-button>
-                        </form>
-                        <form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
+                        </x-form>
+                        <x-form method="POST" action="{{ route('families.members.deceased.vote', [$family, $member]) }}" class="flex gap-2">
                             @csrf
                             <input type="hidden" name="decision" value="denied">
                             <x-button type="submit" variant="outline" size="sm" class="text-red-600 border-red-300 hover:bg-red-50">Deny</x-button>
-                        </form>
+                        </x-form>
                     @elseif($myVote)
                         <p class="text-sm text-[var(--color-text-secondary)]">You voted: <span class="font-semibold text-[var(--color-text-primary)]">{{ ucfirst($myVote->status) }}</span></p>
                     @endif
@@ -150,34 +150,34 @@
                         <x-button variant="primary" size="md">Edit Member</x-button>
                     </a>
                     @if(!$member->is_deceased && !$member->is_deceased_pending)
-                        <form action="{{ route('families.members.deceased.request', [$family, $member]) }}" method="POST" class="flex items-center gap-3">
+                        <x-form method="POST" action="{{ route('families.members.deceased.request', [$family, $member]) }}" class="flex items-center gap-3">
                             @csrf
                             <div>
                                 <x-label for="date_of_death">Date of Death (optional)</x-label>
                                 <x-input type="date" name="date_of_death" id="date_of_death" value="{{ old('date_of_death', $member->date_of_death?->format('Y-m-d')) }}" class="mt-1" />
                             </div>
                             <x-button type="submit" variant="outline" size="md">Start Deceased Verification</x-button>
-                        </form>
+                        </x-form>
                     @endif
                     @if(!$member->user)
                         <button onclick="document.getElementById('linkUserForm').classList.toggle('hidden')" class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)]">
                             Link to User Account
                         </button>
                     @endif
-                    <form action="{{ route('families.members.destroy', [$family, $member]) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this family member?');">
+                    <x-form method="POST" action="{{ route('families.members.destroy', [$family, $member]) }}" onsubmit="return confirm('Are you sure you want to delete this family member?');">
                         @csrf
                         @method('DELETE')
                         <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
                             Delete Member
                         </x-button>
-                    </form>
+                    </x-form>
                 </div>
 
                 @if(!$member->user)
                     <!-- Link User Form (Hidden by default) -->
                     <div id="linkUserForm" class="hidden mt-6 bg-[var(--color-bg-secondary)] rounded-lg p-6 border border-[var(--color-border-primary)]">
                         <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Link to User Account</h3>
-                        <form action="{{ route('families.members.link-user', [$family, $member]) }}" method="POST" class="space-y-4">
+                        <x-form method="POST" action="{{ route('families.members.link-user', [$family, $member]) }}" class="space-y-4">
                             @csrf
                             <div>
                                 <x-label for="user_id" required>Select User</x-label>
@@ -190,9 +190,7 @@
                                         <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                                     @endforeach
                                 </select>
-                                @error('user_id')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="user_id" />
                             </div>
                             <div class="flex gap-2">
                                 <x-button type="submit" variant="primary" size="md">Link User</x-button>
@@ -200,7 +198,7 @@
                                     Cancel
                                 </button>
                             </div>
-                        </form>
+                        </x-form>
                     </div>
                 @endif
             </div>

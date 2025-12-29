@@ -13,8 +13,7 @@
             <p class="pill mb-3 w-fit">Service</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Add Service Log</h2>
 
-            <form method="POST" action="{{ route('families.vehicles.service-logs.store', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
-                @csrf
+            <x-form method="POST" action="{{ route('families.vehicles.service-logs.store', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
                 @include('vehicles.service-logs._form', ['serviceLog' => null])
                 <div class="mt-6 flex gap-3">
                     <x-button type="submit" variant="primary" size="md">Create Service Log</x-button>
@@ -22,7 +21,7 @@
                         <x-button variant="ghost" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

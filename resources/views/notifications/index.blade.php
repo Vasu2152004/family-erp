@@ -18,7 +18,7 @@
                     <form action="{{ route('notifications.read-all') }}" method="POST">
                         @csrf
                         <x-button type="submit" variant="secondary" size="md">Mark All as Read</x-button>
-                    </form>
+                    </x-form>
                 @endif
             </div>
         </div>
@@ -95,11 +95,11 @@
                                                 <form action="{{ route('investment-unlock-requests.approve', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
                                                     @csrf
                                                     <x-button type="submit" variant="primary" size="sm">Approve</x-button>
-                                                </form>
+                                                </x-form>
                                                 <form action="{{ route('investment-unlock-requests.reject', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
                                                     @csrf
                                                     <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                                                </form>
+                                                </x-form>
                                             </div>
                                         @endif
                                     @endif
@@ -108,7 +108,7 @@
                                     <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-4">
                                         @csrf
                                         <x-button type="submit" variant="outline" size="sm">Mark as Read</x-button>
-                                    </form>
+                                    </x-form>
                                 @endif
                             </div>
                         </div>

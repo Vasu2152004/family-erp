@@ -73,12 +73,12 @@
                                     </p>
                                 </div>
                             @else
-                                <form action="{{ route('families.roles.request-admin', $family) }}" method="POST">
+                                <x-form method="POST" action="{{ route('families.roles.request-admin', $family) }}">
                                     @csrf
                                     <x-button type="submit" variant="primary" size="sm">
                                         Submit Request #{{ $userAdminRequest->request_count + 1 }}
                                     </x-button>
-                                </form>
+                                </x-form>
                             @endif
                         </div>
                         @if($userAdminRequest->isEligibleForAutoPromotion())
@@ -105,12 +105,12 @@
                         You can request admin role. You need to submit 3 requests (with 2 days between each) to be automatically promoted to ADMIN if admins don't respond, regardless of whether active admins exist.
                     </p>
                 @endif
-                <form action="{{ route('families.roles.request-admin', $family) }}" method="POST">
+                <x-form method="POST" action="{{ route('families.roles.request-admin', $family) }}">
                     @csrf
                     <x-button type="submit" variant="primary" size="md">
                         Request Admin Role
                     </x-button>
-                </form>
+                </x-form>
             </div>
         @endif
 
@@ -164,18 +164,18 @@
                                             <div class="flex items-center gap-2 justify-end">
                                                 @if($role->role === 'OWNER' && Auth::user()->isFamilyOwner($family->id))
                                                     @if($role->is_backup_admin)
-                                                        <form action="{{ route('families.roles.remove-backup-admin', $family) }}" method="POST" class="inline">
+                                                        <x-form method="POST" action="{{ route('families.roles.remove-backup-admin', $family) }}" class="inline">
                                                             @csrf
                                                             @method('DELETE')
                                                             <input type="hidden" name="user_id" value="{{ $role->user_id }}">
                                                             <x-button type="submit" variant="outline" size="sm">Remove Backup</x-button>
-                                                        </form>
+                                                        </x-form>
                                                     @else
-                                                        <form action="{{ route('families.roles.backup-admin', $family) }}" method="POST" class="inline">
+                                                        <x-form method="POST" action="{{ route('families.roles.backup-admin', $family) }}" class="inline">
                                                             @csrf
                                                             <input type="hidden" name="user_id" value="{{ $role->user_id }}">
                                                             <x-button type="submit" variant="outline" size="sm">Set Backup</x-button>
-                                                        </form>
+                                                        </x-form>
                                                     @endif
                                                 @endif
                                                 @if($isOwnerOrAdmin && $role->role !== 'OWNER')
@@ -194,7 +194,7 @@
                                             <td colspan="4" class="px-6 py-4 bg-[var(--color-bg-secondary)]">
                                                 <div class="bg-[var(--color-bg-secondary)] rounded-lg p-4 border border-[var(--color-border-primary)]">
                                                     <h4 class="text-sm font-semibold text-[var(--color-text-primary)] mb-3">Edit Role for {{ $role->user->name }}</h4>
-                                                    <form action="{{ route('families.roles.assign', $family) }}" method="POST" class="space-y-3">
+                                                    <x-form method="POST" action="{{ route('families.roles.assign', $family) }}" class="space-y-3">
                                                         @csrf
                                                         <input type="hidden" name="user_id" value="{{ $role->user_id }}">
                                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -217,7 +217,7 @@
                                                                 Cancel
                                                             </button>
                                                         </div>
-                                                    </form>
+                                                    </x-form>
                                                 </div>
                                             </td>
                                         </tr>
@@ -251,16 +251,16 @@
                                         </p>
                                     </div>
                                     <div class="flex gap-2">
-                                        <form action="{{ route('families.roles.approve-admin-request', $family) }}" method="POST">
+                                        <x-form method="POST" action="{{ route('families.roles.approve-admin-request', $family) }}">
                                             @csrf
                                             <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
                                             <x-button type="submit" variant="primary" size="sm">Approve</x-button>
-                                        </form>
-                                        <form action="{{ route('families.roles.reject-admin-request', $family) }}" method="POST">
+                                        </x-form>
+                                        <x-form method="POST" action="{{ route('families.roles.reject-admin-request', $family) }}">
                                             @csrf
                                             <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
                                             <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                                        </form>
+                                        </x-form>
                                     </div>
                                 </div>
                             </div>
@@ -276,7 +276,7 @@
                     <p class="text-sm text-[var(--color-text-secondary)] mb-4">
                         Assign a role to a user. If the user already has a role, it will be updated.
                     </p>
-                    <form action="{{ route('families.roles.assign', $family) }}" method="POST" class="space-y-4">
+                    <x-form method="POST" action="{{ route('families.roles.assign', $family) }}" class="space-y-4">
                         @csrf
                         <div>
                             <x-label for="user_id" required>User</x-label>
@@ -293,9 +293,7 @@
                             @if($allUsers->count() === 0)
                                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">No other users available in your tenant.</p>
                             @endif
-                            @error('user_id')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="user_id" />
                         </div>
                         <div>
                             <x-label for="role" required>Role</x-label>
@@ -311,9 +309,7 @@
                             @if($isOwnerOrAdmin && !Auth::user()->isFamilyOwner($family->id))
                                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Note: Only owners can assign OWNER role.</p>
                             @endif
-                            @error('role')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="role" />
                         </div>
                         <div class="flex items-center">
                             <input type="checkbox" name="is_backup_admin" id="is_backup_admin" value="1" class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
@@ -325,7 +321,7 @@
                                 Cancel
                             </button>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             @endcan
         </div>

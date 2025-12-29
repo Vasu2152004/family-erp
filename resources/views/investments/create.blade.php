@@ -15,7 +15,7 @@
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('investments.store', ['family_id' => $family->id]) }}" class="space-y-6">
+            <x-form method="POST" action="{{ route('investments.store', ['family_id' => $family->id]) }}" class="space-y-6">
                 @csrf
                 <input type="hidden" name="family_id" value="{{ $family->id }}">
 
@@ -31,7 +31,7 @@
                         </x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

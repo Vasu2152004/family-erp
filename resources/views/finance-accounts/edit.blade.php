@@ -16,7 +16,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('finance.accounts.update', ['account' => $financeAccount->id, 'family_id' => $family->id]) }}" class="space-y-6">
+        <x-form method="POST" action="{{ route('finance.accounts.update', ['account' => $financeAccount->id, 'family_id' => $family->id]) }}" class="space-y-6">
             @csrf
             @method('PUT')
             <input type="hidden" name="family_id" value="{{ $family->id }}">
@@ -33,9 +33,7 @@
                     autofocus
                     class="mt-1"
                 />
-                @error('name')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="name" />
             </div>
 
             <div>
@@ -49,9 +47,7 @@
                     required
                     class="mt-1"
                 />
-                @error('type')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="type" />
             </div>
 
             <div>
@@ -67,9 +63,7 @@
                     class="mt-1"
                 />
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Current Balance: {{ number_format($financeAccount->current_balance, 2) }}</p>
-                @error('initial_balance')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="initial_balance" />
             </div>
 
             <div>
@@ -81,9 +75,7 @@
                     placeholder="Optional description for this account"
                     class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >{{ old('description', $financeAccount->description) }}</textarea>
-                @error('description')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="description" />
             </div>
 
             <div class="flex items-center">
@@ -101,7 +93,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 </x-app-layout>

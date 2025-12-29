@@ -46,7 +46,7 @@
                         <x-button type="submit" variant="primary" size="md">Apply</x-button>
                         <a href="{{ route('families.vehicles.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
                     </div>
-                </form>
+                </x-form>
             </div>
 
             @if($vehicles->count() > 0)
@@ -196,7 +196,7 @@
                         Delete Vehicle
                     </button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 

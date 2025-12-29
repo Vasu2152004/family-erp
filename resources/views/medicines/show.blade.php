@@ -28,11 +28,11 @@
                         </a>
                     @endcan
                     @can('delete', $medicine)
-                        <form action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" method="POST" onsubmit="return confirm('Delete this medicine?');" class="inline-flex">
+                        <x-form method="POST" action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" onsubmit="return confirm('Delete this medicine?');" class="inline-flex">
                             @csrf
                             @method('DELETE')
                             <x-button variant="ghost" size="md" class="text-red-600 hover:text-red-700">Delete</x-button>
-                        </form>
+                        </x-form>
                     @endcan
                     <a href="{{ route('families.medicines.index', ['family' => $family->id]) }}">
                         <x-button variant="outline" size="md">Back</x-button>
@@ -160,15 +160,13 @@
                                 </ul>
                             </div>
                         @endif
-                        <form method="POST" action="{{ route('families.medicines.intake-reminders.store', ['family' => $family->id, 'medicine' => $medicine->id]) }}" class="space-y-4" id="add-reminder-form" onsubmit="prepareReminderForm(event)">
+                        <x-form method="POST" action="{{ route('families.medicines.intake-reminders.store', ['family' => $family->id, 'medicine' => $medicine->id]) }}" class="space-y-4" id="add-reminder-form" onsubmit="prepareReminderForm(event)">
                             @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <x-label for="reminder_time" required>Reminder Time</x-label>
                                     <x-input type="time" name="reminder_time" id="reminder_time" required class="mt-1" />
-                                    @error('reminder_time')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="reminder_time" />
                                 </div>
                                 <div>
                                     <x-label for="frequency" required>Frequency</x-label>
@@ -177,9 +175,7 @@
                                         <option value="weekly">Weekly</option>
                                         <option value="custom">Custom Dates</option>
                                     </select>
-                                    @error('frequency')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="frequency" />
                                 </div>
                                 <div id="days-of-week-container" class="hidden">
                                     <x-label for="days_of_week">Days of Week</x-label>
@@ -191,39 +187,31 @@
                                             </label>
                                         @endforeach
                                     </div>
-                                    @error('days_of_week')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="days_of_week" />
                                 </div>
                                 <div id="selected-dates-container" class="hidden md:col-span-2">
                                     <x-label for="selected_dates_input">Select Dates</x-label>
                                     <x-input type="text" name="selected_dates_input" id="selected_dates_input" placeholder="YYYY-MM-DD, YYYY-MM-DD, ..." class="mt-1" />
                                     <input type="hidden" name="selected_dates" id="selected_dates" />
                                     <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Enter dates in YYYY-MM-DD format, comma-separated (e.g., 2025-12-25, 2025-12-30)</p>
-                                    @error('selected_dates')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="selected_dates" />
                                 </div>
                                 <div>
                                     <x-label for="start_date">Start Date</x-label>
                                     <x-input type="date" name="start_date" id="start_date" class="mt-1" />
-                                    @error('start_date')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="start_date" />
                                 </div>
                                 <div>
                                     <x-label for="end_date">End Date</x-label>
                                     <x-input type="date" name="end_date" id="end_date" class="mt-1" />
-                                    @error('end_date')
-                                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                    @enderror
+                                    <x-error-message field="end_date" />
                                 </div>
                             </div>
                             <div class="flex gap-2">
                                 <x-button type="submit" variant="primary" size="sm">Add Reminder</x-button>
                                 <button type="button" onclick="document.getElementById('add-intake-reminder').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                             </div>
-                        </form>
+                        </x-form>
                     </div>
                 @endcan
 
@@ -252,27 +240,27 @@
                         <div class="flex gap-2">
                             @can('update', $medicine)
                                 <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
-                                <form method="POST" action="{{ route('families.medicines.intake-reminders.toggle', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}">
+                                <x-form method="POST" action="{{ route('families.medicines.intake-reminders.toggle', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}">
                                     @csrf
                                     @method('PATCH')
                                     <button type="submit" class="text-xs text-[var(--color-primary)] hover:underline">
                                         {{ $reminder->status === 'active' ? 'Pause' : 'Activate' }}
                                     </button>
-                                </form>
+                                </x-form>
                             @endcan
                             @can('update', $medicine)
-                                <form method="POST" action="{{ route('families.medicines.intake-reminders.destroy', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                <x-form method="POST" action="{{ route('families.medicines.intake-reminders.destroy', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
-                                </form>
+                                </x-form>
                             @endcan
                         </div>
                     </div>
 
                     @can('update', $medicine)
                         <div id="edit-reminder-{{ $reminder->id }}" class="hidden mb-2 p-4 bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border-primary)]">
-                            <form method="POST" action="{{ route('families.medicines.intake-reminders.update', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" class="space-y-4">
+                            <x-form method="POST" action="{{ route('families.medicines.intake-reminders.update', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" class="space-y-4">
                                 @csrf
                                 @method('PATCH')
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -317,7 +305,7 @@
                                     <x-button type="submit" variant="primary" size="sm">Update</x-button>
                                     <button type="button" onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                                 </div>
-                            </form>
+                            </x-form>
                         </div>
                     @endcan
                 @empty

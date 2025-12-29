@@ -241,7 +241,7 @@
                         Delete Vehicle
                     </button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 

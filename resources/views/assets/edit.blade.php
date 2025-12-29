@@ -16,7 +16,7 @@
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('assets.update', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="space-y-6">
+            <x-form method="POST" action="{{ route('assets.update', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="space-y-6">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="family_id" value="{{ $family->id }}">
@@ -32,15 +32,15 @@
                             Cancel
                         </x-button>
                     </a>
-                    <form method="POST" action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" onsubmit="return confirm('Delete this asset?');">
+                    <x-form method="POST" action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" onsubmit="return confirm('Delete this asset?');">
                         @csrf
                         @method('DELETE')
                         <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
                             Delete
                         </x-button>
-                    </form>
+                    </x-form>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

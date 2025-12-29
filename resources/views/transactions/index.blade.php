@@ -68,7 +68,7 @@
                         <x-button type="button" variant="outline" size="sm">Clear</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
 
         <!-- Transactions List -->
@@ -151,7 +151,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                                                </form>
+                                                </x-form>
                                             @endcan
                                         </div>
                                     </td>

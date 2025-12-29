@@ -16,9 +16,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('finance.transactions.update', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" class="space-y-6">
-            @csrf
-            @method('PUT')
+        <x-form method="PUT" action="{{ route('finance.transactions.update', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" class="space-y-6">
             <input type="hidden" name="family_id" value="{{ $family->id }}">
 
             <div>
@@ -27,9 +25,7 @@
                     <option value="INCOME" {{ old('type', $transaction->type) == 'INCOME' ? 'selected' : '' }}>Income</option>
                     <option value="EXPENSE" {{ old('type', $transaction->type) == 'EXPENSE' ? 'selected' : '' }}>Expense</option>
                 </select>
-                @error('type')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="type" />
             </div>
 
             <div>
@@ -39,9 +35,7 @@
                         <option value="{{ $account->id }}" {{ old('finance_account_id', $transaction->finance_account_id) == $account->id ? 'selected' : '' }}>{{ $account->name }} ({{ $account->type }})</option>
                     @endforeach
                 </select>
-                @error('finance_account_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="finance_account_id" />
             </div>
 
             <div>
@@ -57,9 +51,7 @@
                     required
                     class="mt-1"
                 />
-                @error('amount')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="amount" />
             </div>
 
             <div>
@@ -70,9 +62,7 @@
                         <option value="{{ $category->id }}" {{ old('category_id', $transaction->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }} ({{ $category->type }})</option>
                     @endforeach
                 </select>
-                @error('category_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="category_id" />
             </div>
 
             <div>
@@ -83,9 +73,7 @@
                         <option value="{{ $member->id }}" {{ old('family_member_id', $transaction->family_member_id) == $member->id ? 'selected' : '' }}>{{ $member->first_name }} {{ $member->last_name }}</option>
                     @endforeach
                 </select>
-                @error('family_member_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="family_member_id" />
             </div>
 
             <div>
@@ -98,9 +86,7 @@
                     required
                     class="mt-1"
                 />
-                @error('transaction_date')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="transaction_date" />
             </div>
 
             <div>
@@ -112,9 +98,7 @@
                     placeholder="Optional description"
                     class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >{{ old('description', $transaction->description) }}</textarea>
-                @error('description')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="description" />
             </div>
 
             <div class="flex items-center">
@@ -140,9 +124,7 @@
                     @endforeach
                 </select>
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Select a specific budget this expense will be deducted from. If not selected, the expense won't affect any budget.</p>
-                @error('budget_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="budget_id" />
             </div>
 
             <div class="flex gap-4">
@@ -155,7 +137,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 

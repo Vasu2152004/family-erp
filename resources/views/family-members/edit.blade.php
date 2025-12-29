@@ -16,7 +16,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6" enctype="multipart/form-data">
+        <x-form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -30,9 +30,7 @@
                         accept="image/*"
                         class="mt-1 block w-full text-sm text-[var(--color-text-primary)] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-[var(--color-surface)] file:text-[var(--color-text-primary)] hover:file:bg-[var(--color-surface-alt)]"
                     />
-                    @error('avatar')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="avatar" />
                     @if($member->avatar_url)
                         <div class="mt-3 flex items-center gap-3">
                             <img src="{{ $member->avatar_url }}" alt="Avatar preview" class="w-14 h-14 rounded-full object-cover border border-[var(--color-border-primary)]">
@@ -53,9 +51,7 @@
                         autofocus
                         class="mt-1"
                     />
-                    @error('first_name')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="first_name" />
                 </div>
 
                 <div>
@@ -69,9 +65,7 @@
                         required
                         class="mt-1"
                     />
-                    @error('last_name')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="last_name" />
                 </div>
 
                 <div>
@@ -82,9 +76,7 @@
                         <option value="female" {{ old('gender', $member->gender) == 'female' ? 'selected' : '' }}>Female</option>
                         <option value="other" {{ old('gender', $member->gender) == 'other' ? 'selected' : '' }}>Other</option>
                     </select>
-                    @error('gender')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="gender" />
                 </div>
 
                 <div>
@@ -96,9 +88,7 @@
                         value="{{ old('date_of_birth', $member->date_of_birth ? $member->date_of_birth->format('Y-m-d') : '') }}"
                         class="mt-1"
                     />
-                    @error('date_of_birth')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="date_of_birth" />
                 </div>
 
                 <div>
@@ -112,9 +102,7 @@
                         required
                         class="mt-1"
                     />
-                    @error('relation')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="relation" />
                 </div>
 
                 <div>
@@ -127,9 +115,7 @@
                         placeholder="Enter phone number"
                         class="mt-1"
                     />
-                    @error('phone')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="phone" />
                 </div>
 
                 <div>
@@ -142,9 +128,7 @@
                         placeholder="Enter email address"
                         class="mt-1"
                     />
-                    @error('email')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="email" />
                 </div>
 
                 <div>
@@ -163,9 +147,7 @@
                             <span class="ml-2 text-sm text-[var(--color-text-primary)]">Mark as Deceased</span>
                         </label>
                     </div>
-                    @error('is_deceased')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="is_deceased" />
                 </div>
 
                 <div id="date_of_death_field" class="{{ old('is_deceased', $member->is_deceased) ? '' : 'hidden' }}">
@@ -177,9 +159,7 @@
                         value="{{ old('date_of_death', $member->date_of_death ? $member->date_of_death->format('Y-m-d') : '') }}"
                         class="mt-1"
                     />
-                    @error('date_of_death')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="date_of_death" />
                 </div>
             </div>
 
@@ -193,7 +173,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 </x-app-layout>

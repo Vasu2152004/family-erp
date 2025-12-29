@@ -11,7 +11,7 @@
             <p class="pill mb-3 w-fit">💊 Medicine Management</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Add Medicine</h2>
 
-            <form method="POST" action="{{ route('families.medicines.store', ['family' => $family->id]) }}" enctype="multipart/form-data">
+            <x-form method="POST" action="{{ route('families.medicines.store', ['family' => $family->id]) }}" enctype="multipart/form-data">
                 @csrf
                 @include('medicines._form')
                 <div class="mt-6 flex gap-3">
@@ -20,7 +20,7 @@
                         <x-button variant="ghost" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

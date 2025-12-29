@@ -132,7 +132,7 @@
             <!-- Add Prescription Form -->
             @can('create', \App\Models\Prescription::class)
                 <div id="add-prescription-form" class="hidden mb-6 p-4 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">
-                    <form method="POST" action="{{ route('families.health.visits.prescriptions.store', ['family' => $family->id, 'visit' => $visit->id]) }}" enctype="multipart/form-data" class="space-y-4">
+                    <x-form method="POST" action="{{ route('families.health.visits.prescriptions.store', ['family' => $family->id, 'visit' => $visit->id]) }}" enctype="multipart/form-data" class="space-y-4">
                         @csrf
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -176,7 +176,7 @@
                             <x-button type="submit" variant="primary" size="md">Add Prescription</x-button>
                             <button type="button" onclick="document.getElementById('add-prescription-form').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             @endcan
 
@@ -213,11 +213,11 @@
                                 <button onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.toggle('hidden')" class="text-[var(--color-primary)] hover:underline text-sm">Edit</button>
                             @endcan
                             @can('delete', $prescription)
-                                <form method="POST" action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                <x-form method="POST" action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" onsubmit="return confirm('Are you sure?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
-                                </form>
+                                </x-form>
                             @endcan
                         </div>
                     </div>
@@ -225,7 +225,7 @@
                     <!-- Edit Prescription Form -->
                     @can('update', $prescription)
                         <div id="edit-prescription-{{ $prescription->id }}" class="hidden mb-4 p-4 bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)]">
-                            <form method="POST" action="{{ route('families.health.visits.prescriptions.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" enctype="multipart/form-data" class="space-y-4">
+                            <x-form method="POST" action="{{ route('families.health.visits.prescriptions.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" enctype="multipart/form-data" class="space-y-4">
                                 @csrf
                                 @method('PATCH')
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -270,7 +270,7 @@
                                     <x-button type="submit" variant="primary" size="md">Update</x-button>
                                     <button type="button" onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                                 </div>
-                            </form>
+                            </x-form>
                         </div>
                     @endcan
 
@@ -285,7 +285,7 @@
 
                         @can('create', \App\Models\MedicineReminder::class)
                             <div id="add-reminder-{{ $prescription->id }}" class="hidden mb-3 p-3 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-primary)]">
-                                <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.store', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" class="space-y-3">
+                                <x-form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.store', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" class="space-y-3">
                                     @csrf
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div>
@@ -332,7 +332,7 @@
                                         <x-button type="submit" variant="primary" size="sm">Add</x-button>
                                         <button type="button" onclick="document.getElementById('add-reminder-{{ $prescription->id }}').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                                     </div>
-                                </form>
+                                </x-form>
                             </div>
                         @endcan
 
@@ -363,18 +363,18 @@
                                         <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
                                     @endcan
                                     @can('delete', $reminder)
-                                        <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                        <x-form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
-                                        </form>
+                                        </x-form>
                                     @endcan
                                 </div>
                             </div>
 
                             @can('update', $reminder)
                                 <div id="edit-reminder-{{ $reminder->id }}" class="hidden mb-2 p-3 bg-[var(--color-bg-primary)] rounded border border-[var(--color-border-primary)]">
-                                    <form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" class="space-y-3">
+                                    <x-form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.update', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" class="space-y-3">
                                         @csrf
                                         @method('PATCH')
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -422,7 +422,7 @@
                                             <x-button type="submit" variant="primary" size="sm">Update</x-button>
                                             <button type="button" onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.add('hidden')" class="px-3 py-1 text-sm rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)]">Cancel</button>
                                         </div>
-                                    </form>
+                                    </x-form>
                                 </div>
                             @endcan
                         @empty

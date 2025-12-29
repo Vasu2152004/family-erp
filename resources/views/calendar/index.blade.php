@@ -33,7 +33,7 @@
                     <x-button type="submit" variant="secondary" size="md">Filter</x-button>
                     <a href="{{ route('families.calendar.index', ['family' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Reset</a>
                 </div>
-            </form>
+            </x-form>
 
             @if($events->count() > 0)
                 <div class="overflow-x-auto">
@@ -77,11 +77,11 @@
                                     <td class="px-4 py-3 text-right text-sm">
                                         <div class="flex justify-end gap-3">
                                             <a href="{{ route('families.calendar.edit', ['family' => $family->id, 'event' => $event->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">Edit</a>
-                                            <form method="POST" action="{{ route('families.calendar.destroy', ['family' => $family->id, 'event' => $event->id]) }}" onsubmit="return confirm('Delete this event?');">
+                                            <x-form method="POST" action="{{ route('families.calendar.destroy', ['family' => $family->id, 'event' => $event->id]) }}" onsubmit="return confirm('Delete this event?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                                            </form>
+                                            </x-form>
                                         </div>
                                     </td>
                                 </tr>

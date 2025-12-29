@@ -11,7 +11,7 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Add Doctor Visit</h2>
 
-            <form method="POST" action="{{ route('families.health.visits.store', ['family' => $family->id]) }}" class="space-y-6">
+            <x-form method="POST" action="{{ route('families.health.visits.store', ['family' => $family->id]) }}" class="space-y-6">
                 @csrf
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -23,9 +23,7 @@
                                 <option value="{{ $member->id }}" {{ old('family_member_id') == $member->id ? 'selected' : '' }}>{{ $member->first_name }} {{ $member->last_name }}</option>
                             @endforeach
                         </select>
-                        @error('family_member_id')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="family_member_id" />
                     </div>
 
                     <div>
@@ -35,9 +33,7 @@
                             <option value="completed" {{ old('status') == 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="cancelled" {{ old('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
-                        @error('status')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="status" />
                     </div>
 
                     <div>
@@ -64,49 +60,37 @@
                             @endforeach
                         </select>
                         <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Leave empty to create a new medical record automatically</p>
-                        @error('medical_record_id')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="medical_record_id" />
                     </div>
 
                     <div>
                         <x-label for="visit_date" required>Visit Date</x-label>
                         <x-input type="date" name="visit_date" id="visit_date" value="{{ old('visit_date', date('Y-m-d')) }}" required class="mt-1" />
-                        @error('visit_date')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="visit_date" />
                     </div>
 
                     <div>
                         <x-label for="visit_time">Visit Time</x-label>
                         <x-input type="time" name="visit_time" id="visit_time" value="{{ old('visit_time') }}" class="mt-1" />
-                        @error('visit_time')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="visit_time" />
                     </div>
 
                     <div>
                         <x-label for="doctor_name" required>Doctor Name</x-label>
                         <x-input type="text" name="doctor_name" id="doctor_name" value="{{ old('doctor_name') }}" required class="mt-1" />
-                        @error('doctor_name')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="doctor_name" />
                     </div>
 
                     <div>
                         <x-label for="clinic_name">Clinic/Hospital Name</x-label>
                         <x-input type="text" name="clinic_name" id="clinic_name" value="{{ old('clinic_name') }}" class="mt-1" />
-                        @error('clinic_name')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="clinic_name" />
                     </div>
 
                     <div>
                         <x-label for="specialization">Specialization</x-label>
                         <x-input type="text" name="specialization" id="specialization" value="{{ old('specialization') }}" placeholder="e.g., Cardiologist, General Physician" class="mt-1" />
-                        @error('specialization')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="specialization" />
                     </div>
 
                     <div>
@@ -119,58 +103,44 @@
                             <option value="surgery" {{ old('visit_type') == 'surgery' ? 'selected' : '' }}>Surgery</option>
                             <option value="other" {{ old('visit_type') == 'other' ? 'selected' : '' }}>Other</option>
                         </select>
-                        @error('visit_type')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="visit_type" />
                     </div>
 
                     <div>
                         <x-label for="next_visit_date">Next Visit Date</x-label>
                         <x-input type="date" name="next_visit_date" id="next_visit_date" value="{{ old('next_visit_date') }}" class="mt-1" />
-                        @error('next_visit_date')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="next_visit_date" />
                     </div>
                 </div>
 
                     <div>
                         <x-label for="chief_complaint">Chief Complaint</x-label>
                         <x-input type="text" name="chief_complaint" id="chief_complaint" value="{{ old('chief_complaint') }}" class="mt-1" />
-                        @error('chief_complaint')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="chief_complaint" />
                     </div>
 
                 <div>
                     <x-label for="examination_findings">Examination Findings</x-label>
                     <textarea name="examination_findings" id="examination_findings" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('examination_findings') }}</textarea>
-                    @error('examination_findings')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="examination_findings" />
                 </div>
 
                     <div>
                         <x-label for="diagnosis">Diagnosis</x-label>
                         <x-input type="text" name="diagnosis" id="diagnosis" value="{{ old('diagnosis') }}" class="mt-1" />
-                        @error('diagnosis')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="diagnosis" />
                     </div>
 
                 <div>
                     <x-label for="treatment_given">Treatment Given</x-label>
                     <textarea name="treatment_given" id="treatment_given" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('treatment_given') }}</textarea>
-                    @error('treatment_given')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="treatment_given" />
                 </div>
 
                 <div>
                     <x-label for="notes">Notes</x-label>
                     <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes') }}</textarea>
-                    @error('notes')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="notes" />
                 </div>
 
                 <div class="flex gap-4">
@@ -179,7 +149,7 @@
                         <x-button type="button" variant="outline" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

@@ -70,11 +70,11 @@
                                         </a>
                                     @endcan
                                     @can('delete', $budget)
-                                        <form action="{{ route('finance.budgets.destroy', ['budget' => $budget->id, 'family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this budget?');">
+                                        <x-form method="POST" action="{{ route('finance.budgets.destroy', ['budget' => $budget->id, 'family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this budget?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
-                                        </form>
+                                        </x-form>
                                     @endcan
                                 </div>
                             </div>

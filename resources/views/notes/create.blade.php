@@ -10,7 +10,7 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Create Note</h2>
 
-            <form method="POST" action="{{ route('families.notes.store', ['family' => $family->id]) }}" class="space-y-6">
+            <x-form method="POST" action="{{ route('families.notes.store', ['family' => $family->id]) }}" class="space-y-6">
                 @csrf
                 @include('notes._form')
 
@@ -20,7 +20,7 @@
                     </a>
                     <x-button type="submit" variant="primary" size="md">Create</x-button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

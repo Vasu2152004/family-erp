@@ -25,7 +25,7 @@
             </div>
 
             <!-- Filters -->
-            <form method="GET" action="{{ route('investments.index', ['family_id' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <x-form method="GET" action="{{ route('investments.index', ['family_id' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <x-label for="investment_type">Investment Type</x-label>
                     <select name="investment_type" id="investment_type" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -63,7 +63,7 @@
                         <x-button type="button" variant="outline" size="md">Clear</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
 
         <!-- Investments List -->

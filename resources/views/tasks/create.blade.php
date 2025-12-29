@@ -11,8 +11,7 @@
             <p class="pill mb-3 w-fit">New Task</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Create Task</h2>
 
-            <form method="POST" action="{{ route('families.tasks.store', ['family' => $family->id]) }}" class="space-y-6">
-                @csrf
+            <x-form method="POST" action="{{ route('families.tasks.store', ['family' => $family->id]) }}" class="space-y-6">
 
                 @include('tasks._form', ['task' => null])
 
@@ -22,7 +21,7 @@
                     </a>
                     <x-button type="submit" variant="primary" size="md">Create Task</x-button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

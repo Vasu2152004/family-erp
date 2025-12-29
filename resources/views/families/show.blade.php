@@ -134,14 +134,14 @@
                                             </p>
                                         </div>
                                         <div class="flex gap-2">
-                                            <form action="{{ route('family-member-requests.accept', $request) }}" method="POST">
+                                            <x-form method="POST" action="{{ route('family-member-requests.accept', $request) }}">
                                                 @csrf
                                                 <x-button type="submit" variant="primary" size="sm">Accept</x-button>
-                                            </form>
-                                            <form action="{{ route('family-member-requests.reject', $request) }}" method="POST">
+                                            </x-form>
+                                            <x-form method="POST" action="{{ route('family-member-requests.reject', $request) }}">
                                                 @csrf
                                                 <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                                            </form>
+                                            </x-form>
                                         </div>
                                     </div>
                                 </div>
@@ -195,16 +195,16 @@
                                             </p>
                                         </div>
                                         <div class="flex gap-2">
-                                            <form action="{{ route('families.roles.approve-admin-request', $family) }}" method="POST">
+                                            <x-form method="POST" action="{{ route('families.roles.approve-admin-request', $family) }}">
                                                 @csrf
                                                 <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
                                                 <x-button type="submit" variant="primary" size="sm">Approve</x-button>
-                                            </form>
-                                            <form action="{{ route('families.roles.reject-admin-request', $family) }}" method="POST">
+                                            </x-form>
+                                            <x-form method="POST" action="{{ route('families.roles.reject-admin-request', $family) }}">
                                                 @csrf
                                                 <input type="hidden" name="request_id" value="{{ $adminRequest->id }}">
                                                 <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                                            </form>
+                                            </x-form>
                                         </div>
                                     </div>
                                 </div>

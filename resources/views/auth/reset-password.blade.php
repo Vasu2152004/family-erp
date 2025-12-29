@@ -1,5 +1,5 @@
 <x-auth-layout title="Reset Password" subtitle="Enter your new password">
-    <form method="POST" action="{{ route('reset-password') }}" class="space-y-6" id="reset-password-form">
+    <x-form method="POST" action="{{ route('reset-password') }}" class="space-y-6" id="reset-password-form">
         @csrf
 
         <!-- Token -->
@@ -24,9 +24,7 @@
                 :autofocus="true"
                 :error="$errors->has('email')"
             />
-            @error('email')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="email" />
         </div>
 
         <!-- Password -->
@@ -57,9 +55,7 @@
                     </svg>
                 </button>
             </div>
-            @error('password')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="password" />
         </div>
 
         <!-- Password Confirmation -->
@@ -90,9 +86,7 @@
                     </svg>
                 </button>
             </div>
-            @error('password_confirmation')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="password_confirmation" />
         </div>
 
         <!-- Submit Button -->
@@ -101,6 +95,6 @@
                 Reset Password
             </x-button>
         </div>
-    </form>
+    </x-form>
 </x-auth-layout>
 

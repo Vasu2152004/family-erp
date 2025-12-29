@@ -57,7 +57,7 @@
                             @endif
                         </div>
                         @can('view', $asset)
-                            <form method="POST" action="{{ route('assets.unlock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
+                            <x-form method="POST" action="{{ route('assets.unlock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
                                 @csrf
                                 <input type="hidden" name="family_id" value="{{ $family->id }}">
                                 <div class="w-full md:w-64">
@@ -73,9 +73,9 @@
                                     />
                                 </div>
                                 <x-button type="submit" variant="primary" size="md">Unlock (session)</x-button>
-                            </form>
+                            </x-form>
                             @if($canRequestUnlock)
-                                <form method="POST" action="{{ route('assets.request-unlock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
+                                <x-form method="POST" action="{{ route('assets.request-unlock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
                                     @csrf
                                     <input type="hidden" name="family_id" value="{{ $family->id }}">
                                     <x-button type="submit" variant="outline" size="md" :disabled="$cooldownActive">
@@ -87,7 +87,7 @@
                                             Request Unlock (owner deceased)
                                         @endif
                                     </x-button>
-                                </form>
+                                </x-form>
                                 @if($cooldownActive)
                                     <p class="text-xs text-[var(--color-text-secondary)] mt-1">
                                         You can request again in {{ $cooldownDays }} day(s).
@@ -107,7 +107,7 @@
                                 <p class="text-sm text-[var(--color-text-secondary)] font-semibold">Lock Status</p>
                                 <p class="text-lg font-bold text-[var(--color-text-primary)]">Unlocked</p>
                             </div>
-                            <form method="POST" action="{{ route('assets.toggle-lock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
+                            <x-form method="POST" action="{{ route('assets.toggle-lock', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="flex flex-col md:flex-row md:items-end gap-3 w-full md:w-auto">
                                 @csrf
                                 <input type="hidden" name="family_id" value="{{ $family->id }}">
                                 <input type="hidden" name="is_locked" value="1">
@@ -124,7 +124,7 @@
                                     />
                                 </div>
                                 <x-button type="submit" variant="outline" size="md">Lock Asset</x-button>
-                            </form>
+                            </x-form>
                         </div>
                     </div>
                 @endcan

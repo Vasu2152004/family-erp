@@ -13,9 +13,7 @@
                 </option>
             @endforeach
         </select>
-        @error('family_member_id')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="family_member_id" />
     </div>
 
     <div>
@@ -27,9 +25,7 @@
             <option value="JEWELRY" {{ old('asset_type', $asset->asset_type ?? '') == 'JEWELRY' ? 'selected' : '' }}>Jewelry</option>
             <option value="LAND" {{ old('asset_type', $asset->asset_type ?? '') == 'LAND' ? 'selected' : '' }}>Land</option>
         </select>
-        @error('asset_type')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="asset_type" />
     </div>
 
     <div>
@@ -43,9 +39,7 @@
             required
             class="mt-1"
         />
-        @error('name')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="name" />
     </div>
 
     <div>
@@ -57,9 +51,7 @@
             class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="Additional details about the asset"
         >{{ old('description', $asset->description ?? '') }}</textarea>
-        @error('description')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="description" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -72,9 +64,7 @@
                 value="{{ old('purchase_date', isset($asset) && $asset->purchase_date ? $asset->purchase_date->format('Y-m-d') : '') }}"
                 class="mt-1"
             />
-            @error('purchase_date')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="purchase_date" />
         </div>
 
         <div>
@@ -87,9 +77,7 @@
                 placeholder="e.g., Mumbai, Maharashtra"
                 class="mt-1"
             />
-            @error('location')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="location" />
         </div>
     </div>
 
@@ -106,9 +94,7 @@
                 placeholder="0.00"
                 class="mt-1"
             />
-            @error('purchase_value')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="purchase_value" />
         </div>
 
         <div>
@@ -124,9 +110,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Optional: Current market value</p>
-            @error('current_value')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="current_value" />
         </div>
     </div>
 
@@ -139,9 +123,7 @@
             class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="Additional notes, documents reference, etc."
         >{{ old('notes', $asset->notes ?? '') }}</textarea>
-        @error('notes')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="notes" />
     </div>
 
     @if(!$isEdit)
@@ -162,9 +144,7 @@
                 </label>
                 <p class="text-xs text-[var(--color-text-secondary)]">Locked assets require a PIN and notes are encrypted.</p>
             </div>
-            @error('is_locked')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="is_locked" />
         </div>
 
         <div id="asset_pin_field" class="{{ old('is_locked') ? '' : 'hidden' }}">
@@ -179,9 +159,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Required to lock the asset. Keep this PIN safe.</p>
-            @error('pin')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="pin" />
         </div>
     @endif
 </div>

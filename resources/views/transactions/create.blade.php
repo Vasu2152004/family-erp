@@ -16,8 +16,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('finance.transactions.store', ['family_id' => $family->id]) }}" class="space-y-6" id="transactionForm">
-            @csrf
+        <x-form method="POST" action="{{ route('finance.transactions.store', ['family_id' => $family->id]) }}" id="transactionForm" class="space-y-6">
             <input type="hidden" name="family_id" value="{{ $family->id }}">
 
             @php
@@ -47,9 +46,7 @@
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]" id="budget_hint" style="display: none;">
                     💡 <strong>Tip:</strong> Select "Expense" to assign this transaction to a specific budget.
                 </p>
-                @error('type')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="type" />
             </div>
 
             <div>
@@ -60,9 +57,7 @@
                         <option value="{{ $account->id }}" {{ old('finance_account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }} ({{ $account->type }})</option>
                     @endforeach
                 </select>
-                @error('finance_account_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="finance_account_id" />
             </div>
 
             @if(!$isMember)
@@ -74,9 +69,7 @@
                             <option value="{{ $account->id }}" {{ old('transfer_to_account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }} ({{ $account->type }})</option>
                         @endforeach
                     </select>
-                    @error('transfer_to_account_id')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="transfer_to_account_id" />
                 </div>
             @endif
 
@@ -93,9 +86,7 @@
                     required
                     class="mt-1"
                 />
-                @error('amount')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="amount" />
             </div>
 
             <div>
@@ -113,9 +104,7 @@
                 @if(!isset($categories) || !$categories || $categories->count() === 0)
                     <p class="mt-1 text-xs text-[var(--color-text-secondary)]">No categories found. Categories will be created automatically or you can create them in settings.</p>
                 @endif
-                @error('category_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="category_id" />
             </div>
 
             <div id="budget_field">
@@ -143,9 +132,7 @@
                     @endif
                 </select>
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Select a specific budget this expense will be deducted from. Enable this field by selecting "Expense" as the transaction type.</p>
-                @error('budget_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="budget_id" />
             </div>
 
             <div>
@@ -156,9 +143,7 @@
                         <option value="{{ $member->id }}" {{ old('family_member_id') == $member->id ? 'selected' : '' }}>{{ $member->first_name }} {{ $member->last_name }}</option>
                     @endforeach
                 </select>
-                @error('family_member_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="family_member_id" />
             </div>
 
             <div>
@@ -171,9 +156,7 @@
                     required
                     class="mt-1"
                 />
-                @error('transaction_date')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="transaction_date" />
             </div>
 
             <div>
@@ -185,9 +168,7 @@
                     placeholder="Optional description"
                     class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >{{ old('description') }}</textarea>
-                @error('description')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="description" />
             </div>
 
             <div class="flex items-center">
@@ -205,7 +186,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 

@@ -22,7 +22,7 @@
             </div>
 
             <!-- Filters -->
-            <form method="GET" action="{{ route('families.medicines.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+            <x-form method="GET" action="{{ route('families.medicines.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
                 <div>
                     <x-label for="search">Search</x-label>
                     <input type="text" name="search" id="search" value="{{ $filters['search'] ?? '' }}" placeholder="Name, manufacturer, batch..." class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -58,7 +58,7 @@
                         <x-button type="button" variant="outline" size="md">Reset</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
 
             @if($medicines->count() > 0)
                 <div class="overflow-x-auto">
@@ -140,11 +140,11 @@
                                                 </a>
                                             @endcan
                                             @can('delete', $medicine)
-                                                <form action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" method="POST" onsubmit="return confirm('Delete this medicine?');" class="inline">
+                                                <x-form method="POST" action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" onsubmit="return confirm('Delete this medicine?');" class="inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
-                                                </form>
+                                                </x-form>
                                             @endcan
                                         </div>
                                     </td>

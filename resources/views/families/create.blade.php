@@ -14,7 +14,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('families.store') }}" class="space-y-6">
+        <x-form method="POST" action="{{ route('families.store') }}" class="space-y-6">
             @csrf
 
             <div>
@@ -29,9 +29,7 @@
                     autofocus
                     class="mt-1"
                 />
-                @error('name')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="name" />
             </div>
 
             <div class="flex gap-4">
@@ -44,7 +42,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 </x-app-layout>

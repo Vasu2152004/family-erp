@@ -37,7 +37,7 @@
                     <x-button type="submit" variant="primary" size="md">Apply</x-button>
                     <a href="{{ route('families.notes.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
                 </div>
-            </form>
+            </x-form>
 
             @if($notes->count() > 0)
                 <div class="mt-6 space-y-3">

@@ -15,7 +15,7 @@
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('inventory.items.update', ['item' => $item->id, 'family_id' => $family->id]) }}" class="space-y-6">
+            <x-form method="POST" action="{{ route('inventory.items.update', ['item' => $item->id, 'family_id' => $family->id]) }}" class="space-y-6">
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="family_id" value="{{ $family->id }}">
@@ -23,9 +23,7 @@
                 <div>
                     <x-label for="name" required>Item Name</x-label>
                     <x-input type="text" name="name" id="name" value="{{ old('name', $item->name) }}" required class="mt-1" />
-                    @error('name')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="name" />
                 </div>
 
                 <div>
@@ -36,26 +34,20 @@
                             <option value="{{ $category->id }}" {{ old('category_id', $item->category_id) == $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
                         @endforeach
                     </select>
-                    @error('category_id')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="category_id" />
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <x-label for="qty" required>Current Quantity</x-label>
                         <x-input type="number" name="qty" id="qty" value="{{ old('qty', $item->qty) }}" step="0.01" min="0" required class="mt-1" />
-                        @error('qty')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="qty" />
                     </div>
 
                     <div>
                         <x-label for="min_qty" required>Minimum Quantity</x-label>
                         <x-input type="number" name="min_qty" id="min_qty" value="{{ old('min_qty', $item->min_qty) }}" step="0.01" min="0" required class="mt-1" />
-                        @error('min_qty')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="min_qty" />
                     </div>
                 </div>
 
@@ -73,34 +65,26 @@
                             <option value="bottle" {{ old('unit', $item->unit) == 'bottle' ? 'selected' : '' }}>Bottle</option>
                             <option value="other" {{ old('unit', $item->unit) == 'other' ? 'selected' : '' }}>Other</option>
                         </select>
-                        @error('unit')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="unit" />
                     </div>
 
                     <div>
                         <x-label for="expiry_date">Expiry Date</x-label>
                         <x-input type="date" name="expiry_date" id="expiry_date" value="{{ old('expiry_date', $item->expiry_date?->format('Y-m-d')) }}" class="mt-1" />
-                        @error('expiry_date')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="expiry_date" />
                     </div>
                 </div>
 
                 <div>
                     <x-label for="location">Location</x-label>
                     <x-input type="text" name="location" id="location" value="{{ old('location', $item->location) }}" placeholder="e.g., Kitchen, Pantry" class="mt-1" />
-                    @error('location')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="location" />
                 </div>
 
                 <div>
                     <x-label for="notes">Notes</x-label>
                     <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes', $item->notes) }}</textarea>
-                    @error('notes')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="notes" />
                 </div>
 
                 <div class="flex gap-4">
@@ -109,7 +93,7 @@
                         <x-button type="button" variant="outline" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
 
         <!-- Batches (Lots) -->
@@ -156,16 +140,14 @@
 
                 <div>
                     <h3 class="text-lg font-medium text-[var(--color-text-primary)] mb-3">Add Batch</h3>
-                    <form method="POST" action="{{ route('inventory.items.store-batch', ['item' => $item->id, 'family_id' => $family->id]) }}" class="space-y-4">
+                    <x-form method="POST" action="{{ route('inventory.items.store-batch', ['item' => $item->id, 'family_id' => $family->id]) }}" class="space-y-4">
                         @csrf
                         <input type="hidden" name="family_id" value="{{ $family->id }}">
 
                         <div>
                             <x-label for="batch_qty" required>Quantity</x-label>
                             <x-input type="number" name="qty" id="batch_qty" step="0.01" min="0.01" required class="mt-1" />
-                            @error('qty')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="qty" />
                         </div>
 
                         <div>
@@ -181,31 +163,25 @@
                                 <option value="bottle" {{ old('unit') == 'bottle' ? 'selected' : '' }}>Bottle</option>
                                 <option value="other" {{ old('unit') == 'other' ? 'selected' : '' }}>Other</option>
                             </select>
-                            @error('unit')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="unit" />
                         </div>
 
                         <div>
                             <x-label for="batch_expiry">Expiry Date</x-label>
                             <x-input type="date" name="expiry_date" id="batch_expiry" value="{{ old('expiry_date') }}" class="mt-1" />
-                            @error('expiry_date')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="expiry_date" />
                         </div>
 
                         <div>
                             <x-label for="batch_notes">Notes</x-label>
                             <textarea name="notes" id="batch_notes" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="notes" />
                         </div>
 
                         <div class="flex gap-4">
                             <x-button type="submit" variant="primary" size="md">Add Batch</x-button>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             </div>
         </div>

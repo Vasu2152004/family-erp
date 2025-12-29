@@ -15,7 +15,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('families.members.store', $family) }}" class="space-y-6">
+        <x-form method="POST" action="{{ route('families.members.store', $family) }}" class="space-y-6">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -31,9 +31,7 @@
                         autofocus
                         class="mt-1"
                     />
-                    @error('first_name')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="first_name" />
                 </div>
 
                 <div>
@@ -47,9 +45,7 @@
                         required
                         class="mt-1"
                     />
-                    @error('last_name')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="last_name" />
                 </div>
 
                 <div>
@@ -60,9 +56,7 @@
                         <option value="female" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
                         <option value="other" {{ old('gender') == 'other' ? 'selected' : '' }}>Other</option>
                     </select>
-                    @error('gender')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="gender" />
                 </div>
 
                 <div>
@@ -74,9 +68,7 @@
                         value="{{ old('date_of_birth') }}"
                         class="mt-1"
                     />
-                    @error('date_of_birth')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="date_of_birth" />
                 </div>
 
                 <div>
@@ -90,9 +82,7 @@
                         required
                         class="mt-1"
                     />
-                    @error('relation')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="relation" />
                 </div>
 
                 <div>
@@ -105,9 +95,7 @@
                         placeholder="Enter phone number"
                         class="mt-1"
                     />
-                    @error('phone')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="phone" />
                 </div>
 
                 <div class="md:col-span-2">
@@ -147,9 +135,7 @@
                     <p class="mt-1 text-xs text-[var(--color-text-secondary)]">
                         If provided, this will be used to identify the user.
                     </p>
-                    @error('user_id')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="user_id" />
                 </div>
             </div>
 
@@ -163,7 +149,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 </x-app-layout>

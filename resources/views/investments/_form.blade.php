@@ -13,9 +13,7 @@
                 </option>
             @endforeach
         </select>
-        @error('family_member_id')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="family_member_id" />
     </div>
 
     <div>
@@ -30,9 +28,7 @@
             <option value="CRYPTO" {{ old('investment_type', isset($investment) ? ($investment->investment_type ?? '') : '') == 'CRYPTO' ? 'selected' : '' }}>Crypto</option>
             <option value="OTHER" {{ old('investment_type', isset($investment) ? ($investment->investment_type ?? '') : '') == 'OTHER' ? 'selected' : '' }}>Other</option>
         </select>
-        @error('investment_type')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="investment_type" />
     </div>
 
     <div>
@@ -46,9 +42,7 @@
             required
             class="mt-1"
         />
-        @error('name')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="name" />
     </div>
 
     <div>
@@ -60,9 +54,7 @@
             class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             placeholder="Additional details about the investment"
         >{{ old('description', $investment->description ?? '') }}</textarea>
-        @error('description')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="description" />
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -79,9 +71,7 @@
                 required
                 class="mt-1"
             />
-            @error('amount')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="amount" />
         </div>
 
         <div>
@@ -94,9 +84,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Required for FD, RD, SIP to calculate current value</p>
-            @error('start_date')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="start_date" />
         </div>
     </div>
 
@@ -115,9 +103,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Annual interest rate</p>
-            @error('interest_rate')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="interest_rate" />
         </div>
 
         <div>
@@ -128,9 +114,7 @@
                 <option value="MONTHLY" {{ old('interest_period', isset($investment) ? ($investment->interest_period ?? '') : '') == 'MONTHLY' ? 'selected' : '' }}>Monthly</option>
                 <option value="QUARTERLY" {{ old('interest_period', isset($investment) ? ($investment->interest_period ?? '') : '') == 'QUARTERLY' ? 'selected' : '' }}>Quarterly</option>
             </select>
-            @error('interest_period')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="interest_period" />
         </div>
 
         <div id="monthly_premium_field">
@@ -146,9 +130,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">For RD and SIP</p>
-            @error('monthly_premium')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="monthly_premium" />
         </div>
     </div>
 
@@ -165,9 +147,7 @@
             class="mt-1"
         />
         <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Auto-calculated if start date and interest rate provided. Leave empty for manual entry.</p>
-        @error('current_value')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="current_value" />
     </div>
 
     <div>
@@ -180,9 +160,7 @@
             placeholder="Account number, policy details, broker information, etc."
         >{{ old('details', isset($investment) && $investment->details ? $investment->details : (isset($investment) && $investment->encrypted_details ? '[Encrypted - Hidden Investment]' : '')) }}</textarea>
         <p class="mt-1 text-xs text-[var(--color-text-secondary)]">This information will be encrypted if investment is marked as hidden</p>
-        @error('details')
-            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-        @enderror
+        <x-error-message field="details" />
     </div>
 
     @if(!$isEdit)
@@ -206,9 +184,7 @@
                     <span id="hidden_note">Family Investments cannot be hidden. Select an owner to enable this option.</span>
                 </p>
             </div>
-            @error('is_hidden')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="is_hidden" />
         </div>
 
         <div id="pin_field" class="hidden">
@@ -223,9 +199,7 @@
                 class="mt-1"
             />
             <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Required for hidden investments. Keep this PIN safe.</p>
-            @error('pin')
-                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-            @enderror
+            <x-error-message field="pin" />
         </div>
     @endif
 </div>

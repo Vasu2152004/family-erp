@@ -1,34 +1,25 @@
 @props([
-    'type' => 'text',
     'name' => '',
     'id' => null,
-    'value' => '',
-    'placeholder' => '',
     'required' => false,
-    'autofocus' => false,
     'error' => false,
     'validate' => true,
 ])
 
 @php
-    $inputId = $id ?? $name;
+    $selectId = $id ?? $name;
     $hasError = $error || ($errors->has($name) ?? false);
     $baseClasses = 'block w-full rounded-lg border transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-0 shadow-sm';
     $errorClasses = $hasError ? 'border-[var(--color-error)] focus:ring-[var(--color-error)] focus:border-[var(--color-error)]' : 'border-[var(--color-border-primary)] focus:ring-[var(--color-border-focus)] focus:border-[var(--color-border-focus)]';
     $classes = $baseClasses . ' ' . $errorClasses . ' px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)]';
 @endphp
 
-<input
-    type="{{ $type }}"
+<select
     name="{{ $name }}"
-    id="{{ $inputId }}"
-    value="{{ old($name, $value) }}"
-    placeholder="{{ $placeholder }}"
+    id="{{ $selectId }}"
     {{ $required ? 'required' : '' }}
-    {{ $autofocus ? 'autofocus' : '' }}
-    @if($validate && $type === 'email') pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
-    @elseif($validate && $type === 'tel') pattern="[0-9+\-() ]+"
-    @endif
     {{ $attributes->merge(['class' => $classes]) }}
 >
+    {{ $slot }}
+</select>
 

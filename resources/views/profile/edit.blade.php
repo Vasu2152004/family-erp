@@ -14,9 +14,7 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Edit Profile</h2>
 
-            <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                @method('PUT')
+            <x-form method="PUT" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="space-y-6">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Profile Photo -->
@@ -30,9 +28,7 @@
                             class="mt-1 block w-full text-sm text-[var(--color-text-primary)] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-[var(--color-surface)] file:text-[var(--color-text-primary)] hover:file:bg-[var(--color-surface-alt)]"
                             onchange="previewAvatar(this)"
                         />
-                        @error('avatar')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="avatar" />
                         @if($user->avatar_url)
                             <div class="mt-3 flex items-center gap-3">
                                 <img src="{{ $user->avatar_url }}" alt="Avatar preview" id="avatarPreview" class="w-20 h-20 rounded-full object-cover border border-[var(--color-border-primary)]">
@@ -76,18 +72,14 @@
                     <div>
                         <x-label for="name" required>Name</x-label>
                         <x-input type="text" name="name" id="name" value="{{ old('name', $user->name) }}" required class="mt-1" />
-                        @error('name')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="name" />
                     </div>
 
                     <!-- Email -->
                     <div>
                         <x-label for="email" required>Email</x-label>
                         <x-input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required class="mt-1" />
-                        @error('email')
-                            <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="email" />
                     </div>
                 </div>
 
@@ -97,7 +89,7 @@
                         Cancel
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 

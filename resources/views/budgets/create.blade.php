@@ -16,7 +16,7 @@
                 </p>
             </div>
 
-        <form method="POST" action="{{ route('finance.budgets.store', ['family_id' => $family->id]) }}" class="space-y-6">
+        <x-form method="POST" action="{{ route('finance.budgets.store', ['family_id' => $family->id]) }}" class="space-y-6">
             @csrf
             <input type="hidden" name="family_id" value="{{ $family->id }}">
 
@@ -31,9 +31,7 @@
                     @endforeach
                 </select>
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Select a member for personal budget, or leave empty for family budget</p>
-                @error('family_member_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="family_member_id" />
             </div>
 
             <div>
@@ -45,9 +43,7 @@
                     @endforeach
                 </select>
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Leave empty for total budget</p>
-                @error('category_id')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="category_id" />
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -58,9 +54,7 @@
                             <option value="{{ $i }}" {{ old('month', now()->month) == $i ? 'selected' : '' }}>{{ \Carbon\Carbon::create(null, $i, 1)->format('F') }}</option>
                         @endfor
                     </select>
-                    @error('month')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="month" />
                 </div>
 
                 <div>
@@ -75,9 +69,7 @@
                         required
                         class="mt-1"
                     />
-                    @error('year')
-                        <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                    @enderror
+                    <x-error-message field="year" />
                 </div>
             </div>
 
@@ -94,9 +86,7 @@
                     required
                     class="mt-1"
                 />
-                @error('amount')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="amount" />
             </div>
 
             <div>
@@ -113,9 +103,7 @@
                     class="mt-1"
                 />
                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Optional: Get notified when budget reaches this percentage</p>
-                @error('alert_threshold')
-                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                @enderror
+                <x-error-message field="alert_threshold" />
             </div>
 
             <div class="flex items-center">
@@ -133,7 +121,7 @@
                     </x-button>
                 </a>
             </div>
-        </form>
+        </x-form>
         </div>
     </div>
 </x-app-layout>

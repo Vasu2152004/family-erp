@@ -16,8 +16,7 @@
                 <a href="{{ route('families.documents.index', ['family' => $family->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">Back to list</a>
             </div>
 
-            <form method="POST" action="{{ route('families.documents.store', ['family' => $family->id]) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @csrf
+            <x-form method="POST" action="{{ route('families.documents.store', ['family' => $family->id]) }}" enctype="multipart/form-data" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <x-form-field label="Title" labelFor="title" required>
                     <x-input name="title" id="title" required placeholder="e.g., Passport - John" />
                     <x-error-message field="title" />
@@ -89,7 +88,7 @@
                     <a href="{{ route('families.documents.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]">Cancel</a>
                     <x-button type="submit" variant="primary" size="md">Save Document</x-button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 
@@ -122,7 +121,7 @@
                     <button type="button" id="cancel-modal-btn" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]">Cancel</button>
                     <x-button type="submit" variant="primary" size="md">Add Type</x-button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 

@@ -367,7 +367,7 @@
 
     <!-- Sidebar Footer -->
     <div class="px-6 py-4 border-t border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
-        <form method="POST" action="{{ route('logout') }}">
+        <x-form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-[var(--color-text-secondary)] hover:bg-red-50 hover:text-red-600 transition-all duration-200 group">
                 <svg class="w-5 h-5 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,7 +375,7 @@
                 </svg>
                 <span class="font-medium">Logout</span>
             </button>
-        </form>
+        </x-form>
     </div>
 </aside>
 

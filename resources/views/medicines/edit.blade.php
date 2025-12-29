@@ -12,7 +12,7 @@
             <p class="pill mb-3 w-fit">💊 Medicine Management</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Edit Medicine</h2>
 
-            <form method="POST" action="{{ route('families.medicines.update', ['family' => $family->id, 'medicine' => $medicine->id]) }}" enctype="multipart/form-data">
+            <x-form method="POST" action="{{ route('families.medicines.update', ['family' => $family->id, 'medicine' => $medicine->id]) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PATCH')
                 @include('medicines._form')
@@ -22,7 +22,7 @@
                         <x-button variant="ghost" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

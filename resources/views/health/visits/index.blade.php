@@ -33,7 +33,7 @@
                     @endcan
                 </div>
 
-                <form method="GET" action="{{ route('families.health.visits.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+                <x-form method="GET" action="{{ route('families.health.visits.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Search</label>
                         <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Doctor, clinic..." class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -71,7 +71,7 @@
                             <a href="{{ route('families.health.visits.index', ['family' => $family->id, 'upcoming' => 1]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors">Show Upcoming Only</a>
                         @endif
                     </div>
-                </form>
+                </x-form>
             </div>
 
             @if($visits->count() > 0)

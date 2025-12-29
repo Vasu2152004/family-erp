@@ -12,9 +12,7 @@
             <p class="pill mb-3 w-fit">Garage</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Edit Vehicle</h2>
 
-            <form method="POST" action="{{ route('families.vehicles.update', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
-                @csrf
-                @method('PATCH')
+            <x-form method="PATCH" action="{{ route('families.vehicles.update', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
                 @include('vehicles._form')
                 <div class="mt-6 flex gap-3">
                     <x-button type="submit" variant="primary" size="md">Update Vehicle</x-button>
@@ -22,7 +20,7 @@
                         <x-button variant="ghost" size="md">Cancel</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

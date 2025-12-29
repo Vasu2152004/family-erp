@@ -94,14 +94,14 @@
                                         @endif
                                     @endif
                                 </div>
-                                <form action="{{ route('notifications.read', $alert) }}" method="POST" class="ml-4">
+                                <x-form method="POST" action="{{ route('notifications.read', $alert) }}" class="ml-4">
                                     @csrf
                                     <button type="submit" class="text-gray-400 hover:text-gray-600">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                         </svg>
                                     </button>
-                                </form>
+                                </x-form>
                             </div>
                         </div>
                     @endforeach
@@ -187,14 +187,14 @@
                                 <h3 class="font-semibold text-gray-800 mb-1">{{ $notification->title }}</h3>
                                 <p class="text-sm text-gray-600">{{ $notification->message }}</p>
                             </div>
-                            <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-4">
+                            <x-form method="POST" action="{{ route('notifications.read', $notification) }}" class="ml-4">
                                 @csrf
                                 <button type="submit" class="text-gray-400 hover:text-gray-600">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                 </button>
-                            </form>
+                            </x-form>
                         </div>
                     </div>
                 @endforeach

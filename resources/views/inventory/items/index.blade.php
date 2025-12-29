@@ -46,7 +46,7 @@
             </div>
 
             <!-- Filters -->
-            <form method="GET" action="{{ route('families.inventory.items.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <x-form method="GET" action="{{ route('families.inventory.items.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div>
                     <x-label for="category_id">Category</x-label>
                     <select name="category_id" id="category_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -76,7 +76,7 @@
                         <x-button type="button" variant="outline" size="md">Clear</x-button>
                     </a>
                 </div>
-            </form>
+            </x-form>
 
             @if($items->count() > 0)
                 <div class="overflow-x-auto">
@@ -140,16 +140,16 @@
                                                     </a>
                                                 @endcan
                                                 @can('delete', $item)
-                                                    <form action="{{ route('families.inventory.items.destroy', ['family' => $family->id, 'item' => $item->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                                    <x-form method="POST" action="{{ route('families.inventory.items.destroy', ['family' => $family->id, 'item' => $item->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this item?');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
-                                                    </form>
+                                                    </x-form>
                                                 @endcan
                                             </div>
 
                                             @can('update', $item)
-                                                <form action="{{ route('families.inventory.items.log-usage', ['family' => $family->id, 'item' => $item->id]) }}" method="POST" class="flex items-center gap-2">
+                                                <x-form method="POST" action="{{ route('families.inventory.items.log-usage', ['family' => $family->id, 'item' => $item->id]) }}" class="flex items-center gap-2">
                                                     @csrf
                                                     <input
                                                         type="number"
@@ -162,7 +162,7 @@
                                                         required
                                                     />
                                                     <x-button type="submit" variant="primary" size="sm">Log Usage</x-button>
-                                                </form>
+                                                </x-form>
                                             @endcan
                                         </div>
                                     </td>

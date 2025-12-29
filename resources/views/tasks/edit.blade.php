@@ -12,9 +12,7 @@
             <p class="pill mb-3 w-fit">Edit Task</p>
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Edit Task</h2>
 
-            <form method="POST" action="{{ route('families.tasks.update', ['family' => $family->id, 'task' => $task->id]) }}" class="space-y-6">
-                @csrf
-                @method('PATCH')
+            <x-form method="PATCH" action="{{ route('families.tasks.update', ['family' => $family->id, 'task' => $task->id]) }}" class="space-y-6">
 
                 @include('tasks._form', ['task' => $task])
 
@@ -24,7 +22,7 @@
                     </a>
                     <x-button type="submit" variant="primary" size="md">Update Task</x-button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 </x-app-layout>

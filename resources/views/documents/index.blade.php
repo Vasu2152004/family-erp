@@ -22,7 +22,7 @@
                     @endcan
                 </div>
 
-                <form method="GET" action="{{ route('families.documents.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
+                <x-form method="GET" action="{{ route('families.documents.index', ['family' => $family->id]) }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-4">
                     <div class="flex flex-col gap-2">
                         <label class="text-sm text-[var(--color-text-secondary)]">Search</label>
                         <input type="text" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Title or filename" class="rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -76,7 +76,7 @@
                         <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
                         <a href="{{ route('families.documents.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-primary)] transition-colors">Reset</a>
                     </div>
-                </form>
+                </x-form>
             </div>
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -142,11 +142,11 @@
                             </button>
                             
                             @can('delete', $document)
-                                <form method="POST" action="{{ route('families.documents.destroy', ['family' => $family->id, 'document' => $document]) }}" onsubmit="return confirm('Delete this document?');">
+                                <x-form method="POST" action="{{ route('families.documents.destroy', ['family' => $family->id, 'document' => $document]) }}" onsubmit="return confirm('Delete this document?');">
                                     @csrf
                                     @method('DELETE')
                                     <x-button type="submit" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
-                                </form>
+                                </x-form>
                             @endcan
                         </div>
                     </div>
@@ -173,7 +173,7 @@
 
     <form id="document-download-form" method="POST" class="hidden">
         @csrf
-    </form>
+    </x-form>
 
     <!-- Password Modal -->
     <div id="password-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" style="display: none;">

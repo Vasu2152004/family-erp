@@ -16,17 +16,14 @@
                 </div>
                 <div class="flex gap-2">
                     @can('create', [\App\Models\ShoppingListItem::class, $family])
-                        <form action="{{ route('shopping-list.auto-add-low-stock', ['family_id' => $family->id]) }}" method="POST" class="inline">
-                            @csrf
+                        <x-form method="POST" action="{{ route('shopping-list.auto-add-low-stock', ['family_id' => $family->id]) }}" class="inline">
                             <x-button type="submit" variant="outline" size="md">Auto-Add Low Stock</x-button>
-                        </form>
+                        </x-form>
                     @endcan
                     @if($purchasedItems->count() > 0)
-                        <form action="{{ route('shopping-list.clear-purchased', ['family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to clear all purchased items?');">
-                            @csrf
-                            @method('DELETE')
+                        <x-form method="DELETE" action="{{ route('shopping-list.clear-purchased', ['family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to clear all purchased items?');">
                             <x-button type="submit" variant="outline" size="md">Clear Purchased</x-button>
-                        </form>
+                        </x-form>
                     @endif
                 </div>
             </div>
@@ -35,25 +32,20 @@
             @can('create', [\App\Models\ShoppingListItem::class, $family])
                 <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-6 mb-6">
                     <h2 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Add Item</h2>
-                    <form method="POST" action="{{ route('shopping-list.store', ['family_id' => $family->id]) }}" class="space-y-4">
-                        @csrf
+                    <x-form method="POST" action="{{ route('shopping-list.store', ['family_id' => $family->id]) }}" class="space-y-4">
                         <input type="hidden" name="family_id" value="{{ $family->id }}">
 
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <x-label for="name" required>Item Name</x-label>
                                 <x-input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1" />
-                                @error('name')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="name" />
                             </div>
 
                             <div>
                                 <x-label for="qty" required>Quantity</x-label>
                                 <x-input type="number" name="qty" id="qty" value="{{ old('qty', 1) }}" step="0.01" min="0.01" required class="mt-1" />
-                                @error('qty')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="qty" />
                             </div>
 
                             <div>
@@ -69,9 +61,7 @@
                                     <option value="bottle" {{ old('unit') == 'bottle' ? 'selected' : '' }}>Bottle</option>
                                     <option value="other" {{ old('unit') == 'other' ? 'selected' : '' }}>Other</option>
                                 </select>
-                                @error('unit')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="unit" />
                             </div>
 
                             <div>
@@ -82,24 +72,20 @@
                                         <option value="{{ $invItem->id }}">{{ $invItem->name }} ({{ number_format($invItem->qty, 2) }} {{ $invItem->unit }})</option>
                                     @endforeach
                                 </select>
-                                @error('inventory_item_id')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="inventory_item_id" />
                             </div>
                         </div>
 
                         <div>
                             <x-label for="notes">Notes</x-label>
                             <textarea name="notes" id="notes" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                            @enderror
+                            <x-error-message field="notes" />
                         </div>
 
                         <div>
                             <x-button type="submit" variant="primary" size="md">Add to List</x-button>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             @endcan
 
@@ -137,11 +123,9 @@
                                         <a href="#" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Edit</a>
                                     @endcan
                                     @can('delete', $item)
-                                        <form action="{{ route('shopping-list.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to remove this item?');">
-                                            @csrf
-                                            @method('DELETE')
+                                        <x-form method="DELETE" action="{{ route('shopping-list.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to remove this item?');">
                                             <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remove</button>
-                                        </form>
+                                        </x-form>
                                     @endcan
                                 </div>
                             </div>
@@ -185,11 +169,9 @@
                                     </div>
                                     <div class="flex gap-2">
                                         @can('update', $item)
-                                            <form action="{{ route('shopping-list.mark-pending', ['item' => $item->id, 'family_id' => $family->id]) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('PATCH')
+                                            <x-form method="PATCH" action="{{ route('shopping-list.mark-pending', ['item' => $item->id, 'family_id' => $family->id]) }}" class="inline">
                                                 <x-button type="submit" variant="outline" size="sm">Mark Pending</x-button>
-                                            </form>
+                                            </x-form>
                                         @endcan
                                     </div>
                                 </div>
@@ -209,9 +191,7 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
             <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Mark as Purchased</h3>
             
-            <form method="POST" id="purchaseForm" class="space-y-4">
-                @csrf
-                @method('PATCH')
+            <x-form method="PATCH" id="purchaseForm" class="space-y-4">
                 <input type="hidden" name="family_id" value="{{ $family->id }}">
                 
                 <div>
@@ -253,7 +233,7 @@
                         Mark Purchased
                     </button>
                 </div>
-            </form>
+            </x-form>
         </div>
     </div>
 

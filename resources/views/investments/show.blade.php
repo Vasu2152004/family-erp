@@ -50,7 +50,7 @@
                     @endphp
                     @if($isOwner)
                         <!-- Owner can unlock with PIN -->
-                        <form method="POST" action="{{ route('investments.unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="space-y-4">
+                        <x-form method="POST" action="{{ route('investments.unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="space-y-4">
                             @csrf
                             <div>
                                 <x-label for="pin" required>Enter PIN to Unlock</x-label>
@@ -64,12 +64,10 @@
                                     placeholder="Enter your PIN"
                                     class="mt-1"
                                 />
-                                @error('pin')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="pin" />
                             </div>
                             <x-button type="submit" variant="primary" size="md">Unlock Investment</x-button>
-                        </form>
+                        </x-form>
                     @elseif($canRequestUnlock && $isAdminOrOwner)
                         <!-- Admin can request unlock if owner is deceased -->
                         <div class="space-y-4">
@@ -92,10 +90,10 @@
                                             @endif
                                         </p>
                                         @if($request->status === 'pending' && $request->canRequestAgain())
-                                            <form method="POST" action="{{ route('investments.request-unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="mt-2">
+                                            <x-form method="POST" action="{{ route('investments.request-unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="mt-2">
                                                 @csrf
                                                 <x-button type="submit" variant="outline" size="sm">Request Again</x-button>
-                                            </form>
+                                            </x-form>
                                         @elseif($request->status === 'pending')
                                             <p class="text-xs text-yellow-600 mt-2">
                                                 You can request again in {{ $request->getDaysUntilNextRequest() }} day(s).
@@ -106,7 +104,7 @@
                             @endif
 
                             @if($unlockRequests->where('status', 'pending')->count() === 0)
-                                <form method="POST" action="{{ route('investments.request-unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
+                                <x-form method="POST" action="{{ route('investments.request-unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
                                     @csrf
                                     <x-button type="submit" variant="primary" size="md" :disabled="$cooldownActive">
                                         @if($cooldownActive)
@@ -124,12 +122,12 @@
                                             Investment owner is deceased. After 3 requests with no response, it will be automatically unlocked.
                                         </p>
                                     @endif
-                                </form>
+                                </x-form>
                             @endif
                         </div>
                     @else
                         <!-- Admin can unlock with PIN -->
-                        <form method="POST" action="{{ route('investments.unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="space-y-4">
+                        <x-form method="POST" action="{{ route('investments.unlock', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="space-y-4">
                             @csrf
                             <div>
                                 <x-label for="pin" required>Enter PIN to Unlock</x-label>
@@ -143,12 +141,10 @@
                                     placeholder="Enter PIN"
                                     class="mt-1"
                                 />
-                                @error('pin')
-                                    <p class="mt-1 text-sm text-[var(--color-error)]">{{ $message }}</p>
-                                @enderror
+                                <x-error-message field="pin" />
                             </div>
                             <x-button type="submit" variant="primary" size="md">Unlock Investment</x-button>
-                        </form>
+                        </x-form>
                     @endif
                 </div>
             @else

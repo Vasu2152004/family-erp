@@ -113,9 +113,7 @@
             @if(auth()->user()->can('updateStatus', $task))
                 <div class="mt-8 pt-6 border-t border-[var(--color-border-primary)]">
                     <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Update Status</h3>
-                    <form method="POST" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" class="space-y-4" id="task-status-form">
-                        @csrf
-                        <input type="hidden" name="_method" value="PATCH">
+                    <x-form method="PATCH" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" id="task-status-form" class="space-y-4">
                         <div class="flex gap-3">
                             @if($task->status !== 'pending' && $task->canTransitionTo('pending'))
                                 <button type="submit" name="status" value="pending" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
@@ -137,7 +135,7 @@
                             <label class="text-sm text-[var(--color-text-secondary)]">Notes (Optional)</label>
                             <textarea name="notes" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Add notes about this status change..."></textarea>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             @endcan
         </div>

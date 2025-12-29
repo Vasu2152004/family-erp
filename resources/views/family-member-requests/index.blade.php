@@ -46,14 +46,14 @@
                         </div>
 
                         <div class="flex gap-4">
-                            <form action="{{ route('family-member-requests.accept', $request) }}" method="POST">
+                            <x-form method="POST" action="{{ route('family-member-requests.accept', $request) }}">
                                 @csrf
                                 <x-button type="submit" variant="primary" size="sm">Accept</x-button>
-                            </form>
-                            <form action="{{ route('family-member-requests.reject', $request) }}" method="POST">
+                            </x-form>
+                            <x-form method="POST" action="{{ route('family-member-requests.reject', $request) }}">
                                 @csrf
                                 <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                            </form>
+                            </x-form>
                         </div>
                     </div>
                 @endforeach

@@ -38,11 +38,9 @@
                         </a>
                     @endcan
                     @can('delete', $note)
-                        <form method="POST" action="{{ route('families.notes.destroy', ['family' => $family->id, 'note' => $note->id]) }}" onsubmit="return confirm('Delete this note?');">
-                            @csrf
-                            @method('DELETE')
+                        <x-form method="DELETE" action="{{ route('families.notes.destroy', ['family' => $family->id, 'note' => $note->id]) }}" onsubmit="return confirm('Delete this note?');">
                             <x-button variant="danger" size="md">Delete</x-button>
-                        </form>
+                        </x-form>
                     @endcan
                     <a href="{{ route('families.notes.index', ['family' => $family->id]) }}">
                         <x-button variant="ghost" size="md">Back</x-button>
@@ -64,17 +62,14 @@
             @if($note->visibility === 'locked' && !$isUnlocked)
                 <div class="bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-xl p-6">
                     <p class="text-[var(--color-text-primary)] font-semibold mb-3">This note is locked. Enter PIN to unlock.</p>
-                    <form method="POST" action="{{ route('families.notes.unlock', ['family' => $family->id, 'note' => $note->id]) }}" class="flex flex-col gap-3 max-w-md">
-                        @csrf
+                    <x-form method="POST" action="{{ route('families.notes.unlock', ['family' => $family->id, 'note' => $note->id]) }}" class="flex flex-col gap-3 max-w-md">
                         <x-input type="password" name="pin" placeholder="Enter PIN" required autocomplete="current-password" />
-                        @error('pin')
-                            <p class="text-sm text-[var(--color-error)]">{{ $message }}</p>
-                        @enderror
+                        <x-error-message field="pin" />
                         <div class="flex gap-3">
                             <x-button type="submit" variant="primary" size="md">Unlock</x-button>
                             <a href="{{ route('families.notes.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors">Back</a>
                         </div>
-                    </form>
+                    </x-form>
                 </div>
             @else
                 <div class="prose prose-sm max-w-none text-[var(--color-text-primary)]">

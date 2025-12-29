@@ -76,11 +76,11 @@
                                                 </a>
                                             @endcan
                                             @can('delete', $account)
-                                                <form action="{{ route('finance.accounts.destroy', ['account' => $account->id, 'family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this account?');">
+                                                <x-form method="POST" action="{{ route('finance.accounts.destroy', ['account' => $account->id, 'family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this account?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
-                                                </form>
+                                                </x-form>
                                             @endcan
                                         </div>
                                     </td>
