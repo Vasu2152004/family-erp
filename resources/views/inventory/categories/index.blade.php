@@ -51,7 +51,14 @@
                                     </a>
                                 @endcan
                                 @can('delete', $category)
-                                    <x-form method="POST" action="{{ route('inventory.categories.destroy', ['category' => $category->id, 'family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this category?');">
+                                    <x-form 
+                                        method="POST" 
+                                        action="{{ route('inventory.categories.destroy', ['category' => $category->id, 'family_id' => $family->id]) }}" 
+                                        class="inline"
+                                        data-confirm="Are you sure you want to delete this category?"
+                                        data-confirm-title="Delete Category"
+                                        data-confirm-variant="danger"
+                                    >
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>

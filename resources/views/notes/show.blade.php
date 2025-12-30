@@ -38,7 +38,13 @@
                         </a>
                     @endcan
                     @can('delete', $note)
-                        <x-form method="DELETE" action="{{ route('families.notes.destroy', ['family' => $family->id, 'note' => $note->id]) }}" onsubmit="return confirm('Delete this note?');">
+                        <x-form 
+                            method="DELETE" 
+                            action="{{ route('families.notes.destroy', ['family' => $family->id, 'note' => $note->id]) }}" 
+                            data-confirm="Delete this note?"
+                            data-confirm-title="Delete Note"
+                            data-confirm-variant="danger"
+                        >
                             <x-button variant="danger" size="md">Delete</x-button>
                         </x-form>
                     @endcan

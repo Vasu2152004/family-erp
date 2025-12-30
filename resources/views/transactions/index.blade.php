@@ -147,7 +147,14 @@
                                                 </a>
                                             @endcan
                                             @can('delete', $transaction)
-                                                <form action="{{ route('finance.transactions.destroy', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this transaction?');">
+                                                <form 
+                                                    action="{{ route('finance.transactions.destroy', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" 
+                                                    method="POST" 
+                                                    class="inline"
+                                                    data-confirm="Are you sure you want to delete this transaction?"
+                                                    data-confirm-title="Delete Transaction"
+                                                    data-confirm-variant="danger"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>

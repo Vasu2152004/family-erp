@@ -140,7 +140,14 @@
                                                 </a>
                                             @endcan
                                             @can('delete', $medicine)
-                                                <x-form method="POST" action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" onsubmit="return confirm('Delete this medicine?');" class="inline">
+                                                <x-form 
+                                                    method="POST" 
+                                                    action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" 
+                                                    class="inline"
+                                                    data-confirm="Delete this medicine?"
+                                                    data-confirm-title="Delete Medicine"
+                                                    data-confirm-variant="danger"
+                                                >
                                                     @csrf
                                                     @method('DELETE')
                                                     <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>

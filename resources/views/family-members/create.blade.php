@@ -122,21 +122,6 @@
                     @enderror
                 </div>
 
-                <div class="md:col-span-2">
-                    <x-label for="user_id">Or User ID (Optional, for fast lookup)</x-label>
-                    <x-input
-                        type="number"
-                        name="user_id"
-                        id="user_id"
-                        value="{{ old('user_id') }}"
-                        placeholder="Enter user ID for fast lookup"
-                        class="mt-1"
-                    />
-                    <p class="mt-1 text-xs text-[var(--color-text-secondary)]">
-                        If provided, this will be used to identify the user.
-                    </p>
-                    <x-error-message field="user_id" />
-                </div>
             </div>
 
             <div class="flex gap-4">

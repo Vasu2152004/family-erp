@@ -63,28 +63,21 @@ class FamilyMemberController extends Controller
             'date_of_birth' => ['nullable', 'date'],
             'relation' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
-            'email' => ['required_without:user_id', 'nullable', 'email', 'max:255'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id', 'required_without:email'],
+            'email' => ['required', 'email', 'max:255'],
         ], [
-            'email.required_without' => 'Please provide either a user ID or an email address.',
-            'user_id.required_without' => 'Please provide either a user ID or an email address.',
-            'user_id.exists' => 'The selected user does not exist in the system.',
+            'email.required' => 'Please provide an email address.',
         ]);
 
         try {
-            // Find user by email or use provided user_id
-            $requestedUserId = $validated['user_id'] ?? null;
-            if (!$requestedUserId && isset($validated['email'])) {
-                // Search for user by email across all tenants (allow cross-tenant family members)
-                $user = \App\Models\User::where('email', $validated['email'])->first();
+            // Find user by email
+            $user = \App\Models\User::where('email', $validated['email'])->first();
 
-                if (!$user) {
-                    throw ValidationException::withMessages([
-                        'email' => ['No user account found with this email address. The user must register and create an account in the system before you can send them a family member request.'],
-                    ]);
-                }
-                $requestedUserId = $user->id;
+            if (!$user) {
+                throw ValidationException::withMessages([
+                    'email' => ['No user account found with this email address. The user must register and create an account in the system before you can send them a family member request.'],
+                ]);
             }
+            $requestedUserId = $user->id;
 
             $this->requestService->createRequest(
                 $validated,

@@ -14,13 +14,13 @@ Route::get('/', function () {
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
-    // Login Routes - Rate limit: 5 attempts per minute
+    // Login Routes - Rate limiting handled by LoginRequest (email+IP based, more secure)
     Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:5,1');
+    Route::post('/login', [LoginController::class, 'login']);
 
-    // Registration Routes - Rate limit: 3 attempts per hour
+    // Registration Routes - Rate limit: 10 attempts per minute
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:3,60');
+    Route::post('/register', [RegisterController::class, 'register'])->middleware('throttle:10,1');
 
     // Password Reset Routes - Rate limit: 3 attempts per hour
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotPassword'])->name('forgot-password');
@@ -47,6 +47,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Family Management Routes
     Route::resource('families', \App\Http\Controllers\FamilyController::class);
+
+    // Family Routes
+    Route::post('families/{family}/leave', [\App\Http\Controllers\FamilyController::class, 'leave'])
+        ->name('families.leave');
 
     // Family Member Routes (nested under families)
     Route::resource('families.members', \App\Http\Controllers\FamilyMemberController::class)

@@ -122,6 +122,20 @@
                                                     Edit
                                                 </a>
                                             @endcan
+                                            @can('delete', $asset)
+                                                <x-form 
+                                                    method="POST" 
+                                                    action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" 
+                                                    class="inline"
+                                                    data-confirm="Delete this asset?"
+                                                    data-confirm-title="Delete Asset"
+                                                    data-confirm-variant="danger"
+                                                >
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                                </x-form>
+                                            @endcan
                                         </div>
                                     </td>
                                 </tr>

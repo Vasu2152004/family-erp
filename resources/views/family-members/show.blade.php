@@ -164,7 +164,13 @@
                             Link to User Account
                         </button>
                     @endif
-                    <x-form method="POST" action="{{ route('families.members.destroy', [$family, $member]) }}" onsubmit="return confirm('Are you sure you want to delete this family member?');">
+                    <x-form 
+                        method="POST" 
+                        action="{{ route('families.members.destroy', [$family, $member]) }}" 
+                        data-confirm="Are you sure you want to delete this family member?"
+                        data-confirm-title="Delete Family Member"
+                        data-confirm-variant="danger"
+                    >
                         @csrf
                         @method('DELETE')
                         <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">

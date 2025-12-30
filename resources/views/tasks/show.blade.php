@@ -43,6 +43,20 @@
                             <x-button variant="outline" size="md">Edit</x-button>
                         </a>
                     @endcan
+                    @can('delete', $task)
+                        <x-form 
+                            method="POST" 
+                            action="{{ route('families.tasks.destroy', ['family' => $family->id, 'task' => $task->id]) }}" 
+                            class="inline"
+                            data-confirm="Are you sure you want to delete this task?"
+                            data-confirm-title="Delete Task"
+                            data-confirm-variant="danger"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <x-button variant="danger" size="md">Delete</x-button>
+                        </x-form>
+                    @endcan
                     <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}">
                         <x-button variant="ghost" size="md">Back</x-button>
                     </a>

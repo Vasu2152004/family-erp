@@ -13,6 +13,22 @@
                 </p>
             </div>
 
+            @if(session('success'))
+                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
+                    {{ session('success') }}
+                </x-alert>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 space-y-2">
+                    @foreach($errors->all() as $error)
+                        <x-alert type="error" dismissible class="animate-fade-in">
+                            {{ $error }}
+                        </x-alert>
+                    @endforeach
+                </div>
+            @endif
+
         @if($pendingRequests->count() > 0)
             <div class="space-y-6">
                 @foreach($pendingRequests as $request)
@@ -45,7 +61,7 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-4">
+                        <div class="flex gap-4 items-center">
                             <x-form method="POST" action="{{ route('family-member-requests.accept', $request) }}">
                                 @csrf
                                 <x-button type="submit" variant="primary" size="sm">Accept</x-button>
@@ -55,6 +71,12 @@
                                 <x-button type="submit" variant="outline" size="sm">Reject</x-button>
                             </x-form>
                         </div>
+                        
+                        @if($errors->has('request'))
+                            <div class="mt-4">
+                                <x-error-message field="request" />
+                            </div>
+                        @endif
                     </div>
                 @endforeach
             </div>

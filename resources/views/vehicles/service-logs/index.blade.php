@@ -39,7 +39,14 @@
                                 </div>
                                 <div class="flex gap-2">
                                     <a href="{{ route('families.vehicles.service-logs.edit', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">Edit</a>
-                                    <form method="POST" action="{{ route('families.vehicles.service-logs.destroy', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this service log?');">
+                                    <form 
+                                        method="POST" 
+                                        action="{{ route('families.vehicles.service-logs.destroy', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}" 
+                                        class="inline"
+                                        data-confirm="Are you sure you want to delete this service log?"
+                                        data-confirm-title="Delete Service Log"
+                                        data-confirm-variant="danger"
+                                    >
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>

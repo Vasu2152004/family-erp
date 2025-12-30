@@ -25,8 +25,37 @@
                             <x-button variant="primary" size="md">Add Member</x-button>
                         </a>
                     @endcan
+                    @php
+                        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                            ->where('user_id', Auth::id())
+                            ->first();
+                        $isOwner = $userRole && $userRole->role === 'OWNER';
+                    @endphp
+                    @unless($isOwner)
+                        <x-form 
+                            method="POST" 
+                            action="{{ route('families.leave', $family) }}" 
+                            class="inline"
+                            data-confirm="Are you sure you want to leave this family? This action cannot be undone."
+                            data-confirm-title="Leave Family"
+                            data-confirm-variant="primary"
+                        >
+                            @csrf
+                            <x-button type="submit" variant="outline" size="md">
+                                Leave Family
+                            </x-button>
+                        </x-form>
+                    @endunless
                 </div>
             </div>
+
+            @if($errors->has('family'))
+                <div class="mb-6">
+                    <x-alert type="error" dismissible class="animate-fade-in">
+                        {{ $errors->first('family') }}
+                    </x-alert>
+                </div>
+            @endif
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">

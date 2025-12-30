@@ -28,7 +28,14 @@
                         </a>
                     @endcan
                     @can('delete', $medicine)
-                        <x-form method="POST" action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" onsubmit="return confirm('Delete this medicine?');" class="inline-flex">
+                        <x-form 
+                            method="POST" 
+                            action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" 
+                            class="inline-flex"
+                            data-confirm="Delete this medicine?"
+                            data-confirm-title="Delete Medicine"
+                            data-confirm-variant="danger"
+                        >
                             @csrf
                             @method('DELETE')
                             <x-button variant="ghost" size="md" class="text-red-600 hover:text-red-700">Delete</x-button>
@@ -249,7 +256,13 @@
                                 </x-form>
                             @endcan
                             @can('update', $medicine)
-                                <x-form method="POST" action="{{ route('families.medicines.intake-reminders.destroy', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                <x-form 
+                                    method="POST" 
+                                    action="{{ route('families.medicines.intake-reminders.destroy', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" 
+                                    data-confirm="Are you sure?"
+                                    data-confirm-title="Delete Reminder"
+                                    data-confirm-variant="danger"
+                                >
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
@@ -355,7 +368,7 @@
                 const daysCheckboxes = form.querySelectorAll('input[name="days_of_week[]"]:checked');
                 if (daysCheckboxes.length === 0) {
                     event.preventDefault();
-                    alert('Please select at least one day of the week for weekly reminders.');
+                    showAlert('Please select at least one day of the week for weekly reminders.', 'warning');
                     return false;
                 }
             } else {

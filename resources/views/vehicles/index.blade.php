@@ -143,21 +143,28 @@
     </div>
 
     <!-- Delete Vehicle Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
-            <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Delete Vehicle</h3>
+    <div id="deleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] max-w-md w-full p-6 animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-[var(--color-text-primary)]">Delete Vehicle</h3>
+                <button type="button" onclick="closeDeleteModal()" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors" aria-label="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
             
-            <form method="POST" id="deleteForm">
+            <form method="POST" id="deleteForm" class="space-y-4">
                 @csrf
                 @method('DELETE')
                 
-                <div class="mb-4">
+                <div>
                     <p class="text-[var(--color-text-secondary)] mb-4">
-                        Are you sure you want to delete <strong id="vehicleName"></strong> (<span id="vehicleReg"></span>)?
+                        Are you sure you want to delete <strong id="vehicleName" class="text-[var(--color-text-primary)]"></strong> (<span id="vehicleReg" class="text-[var(--color-text-primary)]"></span>)?
                     </p>
                     
                     <label class="flex items-center gap-2 cursor-pointer mb-4">
-                        <input type="checkbox" name="is_sold" id="is_sold" value="1" onchange="toggleSaleFields()" class="rounded border-[var(--color-border-primary)]">
+                        <input type="checkbox" name="is_sold" id="is_sold" value="1" onchange="toggleSaleFields()" class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
                         <span class="text-sm text-[var(--color-text-primary)]">Vehicle is sold</span>
                     </label>
                     
@@ -188,15 +195,15 @@
                     </div>
                 </div>
                 
-                <div class="flex gap-3 justify-end">
-                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors">
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors font-medium">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors">
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium">
                         Delete Vehicle
                     </button>
                 </div>
-            </x-form>
+            </form>
         </div>
     </div>
 

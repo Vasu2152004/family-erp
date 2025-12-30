@@ -34,7 +34,22 @@ class FamilyMemberRequestService
 
             if ($existingMember) {
                 throw ValidationException::withMessages([
-                    'user_id' => ['This user is already a member of this family.'],
+                    'email' => ['This user is already a member of this family.'],
+                ]);
+            }
+
+            // Check if user is already a member of ANY other family
+            $existingMemberInOtherFamily = FamilyMember::where('user_id', $requestedUserId)
+                ->where('family_id', '!=', $familyId)
+                ->first();
+
+            if ($existingMemberInOtherFamily) {
+                // Get the family name for better error message
+                $existingFamily = $existingMemberInOtherFamily->family;
+                $familyName = $existingFamily ? $existingFamily->name : 'another family';
+                
+                throw ValidationException::withMessages([
+                    'email' => ["This user is already a member of {$familyName}. A user can only be part of one family at a time. The user must leave their current family before joining a new one."],
                 ]);
             }
 
@@ -46,7 +61,7 @@ class FamilyMemberRequestService
 
             if ($existingRequest) {
                 throw ValidationException::withMessages([
-                    'user_id' => ['A pending request already exists for this user in this family.'],
+                    'email' => ['A pending request already exists for this user in this family.'],
                 ]);
             }
 
@@ -95,7 +110,7 @@ class FamilyMemberRequestService
                 ]);
             }
 
-            // Check if user is already a member
+            // Check if user is already a member of this specific family
             $existingMember = FamilyMember::where('family_id', $request->family_id)
                 ->where('user_id', $userId)
                 ->first();
@@ -109,6 +124,21 @@ class FamilyMemberRequestService
                 
                 throw ValidationException::withMessages([
                     'request' => ['You are already a member of this family.'],
+                ]);
+            }
+
+            // Check if user is already a member of ANY other family
+            $existingMemberInOtherFamily = FamilyMember::where('user_id', $userId)
+                ->where('family_id', '!=', $request->family_id)
+                ->first();
+
+            if ($existingMemberInOtherFamily) {
+                // Get the family name for better error message
+                $existingFamily = $existingMemberInOtherFamily->family;
+                $familyName = $existingFamily ? $existingFamily->name : 'another family';
+                
+                throw ValidationException::withMessages([
+                    'request' => ["You are already a member of {$familyName}. A user can only be part of one family at a time. Please leave your current family before joining a new one."],
                 ]);
             }
 

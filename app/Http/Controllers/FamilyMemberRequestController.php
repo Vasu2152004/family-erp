@@ -44,6 +44,15 @@ class FamilyMemberRequestController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->route('family-member-requests.index')
                 ->withErrors($e->errors());
+        } catch (\Exception $e) {
+            // Catch database constraint violations and other exceptions
+            if (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'unique')) {
+                return redirect()->route('family-member-requests.index')
+                    ->withErrors(['request' => ['You are already a member of another family. A user can only be part of one family at a time. Please leave your current family before joining a new one.']]);
+            }
+            
+            return redirect()->route('family-member-requests.index')
+                ->withErrors(['request' => ['An error occurred while processing the request. Please try again.']]);
         }
     }
 

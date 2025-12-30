@@ -44,7 +44,8 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
+            // Increment rate limiter with 1 minute decay
+            RateLimiter::hit($this->throttleKey(), 60);
 
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
@@ -61,7 +62,12 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        // Rate limit: 10 attempts per minute (email+IP based, more secure than IP-only)
+        // This is better than route middleware because it's per-email, not per-IP
+        $maxAttempts = 10;
+        $decayMinutes = 1;
+        
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), $maxAttempts)) {
             return;
         }
 

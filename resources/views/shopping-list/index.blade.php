@@ -21,7 +21,14 @@
                         </x-form>
                     @endcan
                     @if($purchasedItems->count() > 0)
-                        <x-form method="DELETE" action="{{ route('shopping-list.clear-purchased', ['family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to clear all purchased items?');">
+                        <x-form 
+                            method="DELETE" 
+                            action="{{ route('shopping-list.clear-purchased', ['family_id' => $family->id]) }}" 
+                            class="inline"
+                            data-confirm="Are you sure you want to clear all purchased items?"
+                            data-confirm-title="Clear Purchased Items"
+                            data-confirm-variant="danger"
+                        >
                             <x-button type="submit" variant="outline" size="md">Clear Purchased</x-button>
                         </x-form>
                     @endif
@@ -123,7 +130,14 @@
                                         <a href="#" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Edit</a>
                                     @endcan
                                     @can('delete', $item)
-                                        <x-form method="DELETE" action="{{ route('shopping-list.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" class="inline" onsubmit="return confirm('Are you sure you want to remove this item?');">
+                                        <x-form 
+                                            method="DELETE" 
+                                            action="{{ route('shopping-list.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" 
+                                            class="inline"
+                                            data-confirm="Are you sure you want to remove this item?"
+                                            data-confirm-title="Remove Item"
+                                            data-confirm-variant="danger"
+                                        >
                                             <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remove</button>
                                         </x-form>
                                     @endcan

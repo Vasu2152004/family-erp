@@ -196,10 +196,25 @@
                         <x-button variant="primary" size="md">Edit</x-button>
                     </a>
                 @endcan
+                @can('delete', $investment)
+                    <x-form 
+                        method="POST" 
+                        action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" 
+                        class="inline"
+                        data-confirm="Are you sure you want to delete this investment? This action cannot be undone."
+                        data-confirm-title="Delete Investment"
+                        data-confirm-variant="danger"
+                    >
+                        @csrf
+                        @method('DELETE')
+                        <x-button variant="danger" size="md">Delete</x-button>
+                    </x-form>
+                @endcan
             </div>
         </div>
     </div>
 </x-app-layout>
+
 
 
 

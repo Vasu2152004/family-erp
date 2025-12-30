@@ -36,7 +36,13 @@
             </x-form>
 
             <div class="mt-4 pt-4 border-t border-[var(--color-border-primary)]">
-                <x-form method="POST" action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" onsubmit="return confirm('Are you sure you want to delete this investment? This action cannot be undone.');">
+                <x-form 
+                    method="POST" 
+                    action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" 
+                    data-confirm="Are you sure you want to delete this investment? This action cannot be undone."
+                    data-confirm-title="Delete Investment"
+                    data-confirm-variant="danger"
+                >
                     @csrf
                     @method('DELETE')
                     <input type="hidden" name="family_id" value="{{ $family->id }}">

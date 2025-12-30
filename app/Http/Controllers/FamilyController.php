@@ -256,4 +256,42 @@ class FamilyController extends Controller
         return redirect()->route('families.index')
             ->with('success', 'Family deleted successfully.');
     }
+
+    /**
+     * Leave the family (remove user from family).
+     */
+    public function leave(Family $family): RedirectResponse
+    {
+        $this->authorize('view', $family);
+
+        $user = Auth::user();
+        
+        // Check if user is the owner
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->first();
+        
+        if ($userRole && $userRole->role === 'OWNER') {
+            return redirect()->route('families.show', $family)
+                ->withErrors(['family' => ['You cannot leave the family as you are the owner. Please transfer ownership to another member first or delete the family.']]);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($family, $user) {
+            // Remove family member record
+            \App\Models\FamilyMember::where('family_id', $family->id)
+                ->where('user_id', $user->id)
+                ->delete();
+
+            // Remove family user roles
+            \App\Models\FamilyUserRole::where('family_id', $family->id)
+                ->where('user_id', $user->id)
+                ->delete();
+
+            // Clear cache
+            \Illuminate\Support\Facades\Cache::forget("user_role_{$user->id}_{$family->id}");
+        });
+
+        return redirect()->route('families.index')
+            ->with('success', 'You have successfully left the family.');
+    }
 }

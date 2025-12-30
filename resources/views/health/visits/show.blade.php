@@ -213,7 +213,13 @@
                                 <button onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.toggle('hidden')" class="text-[var(--color-primary)] hover:underline text-sm">Edit</button>
                             @endcan
                             @can('delete', $prescription)
-                                <x-form method="POST" action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                <x-form 
+                                    method="POST" 
+                                    action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" 
+                                    data-confirm="Are you sure?"
+                                    data-confirm-title="Delete Prescription"
+                                    data-confirm-variant="danger"
+                                >
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
@@ -363,7 +369,13 @@
                                         <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
                                     @endcan
                                     @can('delete', $reminder)
-                                        <x-form method="POST" action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" onsubmit="return confirm('Are you sure?')">
+                                        <x-form 
+                                            method="POST" 
+                                            action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" 
+                                            data-confirm="Are you sure?"
+                                            data-confirm-title="Delete Reminder"
+                                            data-confirm-variant="danger"
+                                        >
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>

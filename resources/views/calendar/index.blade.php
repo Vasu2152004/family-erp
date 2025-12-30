@@ -77,7 +77,13 @@
                                     <td class="px-4 py-3 text-right text-sm">
                                         <div class="flex justify-end gap-3">
                                             <a href="{{ route('families.calendar.edit', ['family' => $family->id, 'event' => $event->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">Edit</a>
-                                            <x-form method="POST" action="{{ route('families.calendar.destroy', ['family' => $family->id, 'event' => $event->id]) }}" onsubmit="return confirm('Delete this event?');">
+                                            <x-form 
+                                                method="POST" 
+                                                action="{{ route('families.calendar.destroy', ['family' => $family->id, 'event' => $event->id]) }}" 
+                                                data-confirm="Delete this event?"
+                                                data-confirm-title="Delete Event"
+                                                data-confirm-variant="danger"
+                                            >
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>

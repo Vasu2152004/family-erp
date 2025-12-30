@@ -142,7 +142,13 @@
                             </button>
                             
                             @can('delete', $document)
-                                <x-form method="POST" action="{{ route('families.documents.destroy', ['family' => $family->id, 'document' => $document]) }}" onsubmit="return confirm('Delete this document?');">
+                                <x-form 
+                                    method="POST" 
+                                    action="{{ route('families.documents.destroy', ['family' => $family->id, 'document' => $document]) }}" 
+                                    data-confirm="Delete this document?"
+                                    data-confirm-title="Delete Document"
+                                    data-confirm-variant="danger"
+                                >
                                     @csrf
                                     @method('DELETE')
                                     <x-button type="submit" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>

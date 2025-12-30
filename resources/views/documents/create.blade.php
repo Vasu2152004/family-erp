@@ -193,11 +193,11 @@
                         updateExpiryFieldVisibility();
                         closeModal();
                     } else {
-                        alert(result.message || 'Failed to create document type');
+                        showAlert(result.message || 'Failed to create document type', 'error');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    showAlert('An error occurred. Please try again.', 'error');
                 }
             });
 
