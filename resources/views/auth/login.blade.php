@@ -30,7 +30,7 @@
             />
             <div class="flex items-center justify-between mb-1.5 mt-1">
                
-                <x-link href="{{ route('forgot-password') }}" variant="primary" class="text-sm">
+                <x-link href="{{ route('forgot-password') }}" variant="primary" class="text-sm" data-in-form="true">
                     Forgot password?
                 </x-link>
             </div>
@@ -54,7 +54,7 @@
     <x-slot name="footer">
         <p class="text-sm text-[var(--color-text-secondary)]">
             Don't have an account?
-            <x-link href="{{ route('register') }}" variant="primary" class="ml-1">
+            <x-link href="{{ route('register') }}" variant="primary" class="ml-1" useJsNav="true">
                 Create one now
             </x-link>
         </p>

@@ -4,7 +4,7 @@
 ])
 
 @php
-    $baseClasses = 'block text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2';
+    $baseClasses = 'block text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-1.5';
     $classes = $baseClasses;
 @endphp
 

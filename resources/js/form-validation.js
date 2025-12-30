@@ -25,10 +25,20 @@ class FormValidation {
         // Get all inputs, textareas, and selects
         this.fields = this.form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
         
+        // Check if we're on an auth page
+        const isAuthPage = document.body && document.body.classList.contains('min-h-screen');
+        
         // Add event listeners
         this.fields.forEach(field => {
-            // Real-time validation on blur
-            field.addEventListener('blur', () => this.validateField(field));
+            // Real-time validation on blur - but skip if link is being clicked
+            field.addEventListener('blur', (e) => {
+                // On auth pages, check if a link was just clicked
+                if (isAuthPage && window._linkClicked) {
+                    window._linkClicked = false;
+                    return; // Skip validation
+                }
+                this.validateField(field);
+            });
             
             // Clear error on input (for better UX)
             field.addEventListener('input', () => this.clearFieldError(field));
@@ -40,11 +50,80 @@ class FormValidation {
             });
         });
 
-        // Form submission validation
+        // Prevent links from triggering form validation on auth pages
+        if (isAuthPage && !window._authLinkHandlerAdded) {
+            window._authLinkHandlerAdded = true;
+            
+            // Handle link clicks - set flag before blur fires
+            document.addEventListener('mousedown', (e) => {
+                const link = e.target.closest('a[useJsNav="true"], a[href*="login"], a[href*="register"]');
+                if (link && (link.closest('[data-auth-form]') || link.closest('.max-w-md'))) {
+                    // Set flag immediately on mousedown (before blur)
+                    window._linkClicked = true;
+                    // Clear any validation messages
+                    document.querySelectorAll('form').forEach(form => {
+                        const fields = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
+                        fields.forEach(field => {
+                            const fieldName = field.name || field.id;
+                            const errorContainer = field.parentElement.querySelector(`[data-field-error="${fieldName}"]`);
+                            if (errorContainer) errorContainer.remove();
+                            const successContainer = field.parentElement.querySelector(`[data-field-success="${fieldName}"]`);
+                            if (successContainer) successContainer.remove();
+                            field.classList.remove('border-[var(--color-error)]', 'focus:ring-[var(--color-error)]', 'focus:border-[var(--color-error)]', 'border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+                        });
+                    });
+                }
+            }, true); // Capture phase - runs before blur
+        }
+
+        // Form submission validation - only validate on actual form button submission
         this.form.addEventListener('submit', (e) => {
+            // Check if submit was triggered by a link (shouldn't happen, but safety check)
+            const submitter = e.submitter;
+            if (submitter && (submitter.tagName === 'A' || submitter.closest('a'))) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+            
+            // Get submit button before validation
+            const submitButton = this.form.querySelector('button[type="submit"]');
+            
+            // Only validate on actual form button submission
             if (!this.validateForm()) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Mark form as NOT submitting (validation failed)
+                this.form.removeAttribute('data-submitting');
+                
+                // Cancel any pending button text change from auth.js
+                if (submitButton) {
+                    const timeoutId = submitButton.getAttribute('data-timeout-id');
+                    if (timeoutId) {
+                        clearTimeout(parseInt(timeoutId));
+                        submitButton.removeAttribute('data-timeout-id');
+                    }
+                    
+                    // Ensure button is enabled and restore text
+                    submitButton.disabled = false;
+                    const originalText = submitButton.getAttribute('data-original-text');
+                    if (originalText) {
+                        submitButton.textContent = originalText;
+                    } else {
+                        // Try to restore based on common patterns
+                        const currentText = submitButton.textContent;
+                        if (currentText.includes('Signing')) {
+                            submitButton.textContent = 'Sign In';
+                        } else if (currentText.includes('Creating')) {
+                            submitButton.textContent = 'Create Account';
+                        } else if (currentText.includes('Resetting')) {
+                            submitButton.textContent = 'Reset Password';
+                        } else if (currentText.includes('Processing')) {
+                            submitButton.textContent = 'Submit';
+                        }
+                    }
+                }
                 
                 // Focus on first invalid field
                 const firstInvalid = this.form.querySelector(':invalid');
@@ -52,8 +131,9 @@ class FormValidation {
                     firstInvalid.focus();
                     firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
+                return false;
             }
-        });
+        }, true); // Use capture phase to run BEFORE auth.js
     }
 
     validateField(field) {
@@ -68,10 +148,7 @@ class FormValidation {
             this.showFieldError(field, field.validationMessage);
             return false;
         } else {
-            // Optional: Show success state for certain fields
-            if (field.type === 'email' && field.value) {
-                this.showFieldSuccess(field, 'Email format is valid');
-            }
+            // Success validation - no success messages shown
             return true;
         }
     }

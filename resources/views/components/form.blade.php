@@ -28,7 +28,8 @@
     @endif
     
     {{ $slot }}
-</x-form>
+</form>
+
 
 
 

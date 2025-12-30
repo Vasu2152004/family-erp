@@ -86,6 +86,25 @@
     animation: shake 0.5s ease-in-out;
 }
 
+/* Custom Scrollbar for Auth Forms */
+.overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+    border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: var(--color-border-primary);
+    border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary);
+}
+
 /* Smooth Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;

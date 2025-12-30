@@ -1,5 +1,5 @@
 <x-auth-layout title="Create Account" subtitle="Sign up to get started">
-    <x-form method="POST" action="{{ route('register') }}" id="register-form">
+    <x-form method="POST" action="{{ route('register') }}" id="register-form" class="space-y-4">
         <x-form-field label="Full Name" labelFor="name" :required="true" :error="$errors->has('name')">
             <x-input
                 type="text"
@@ -60,7 +60,7 @@
     <x-slot name="footer">
         <p class="text-sm text-[var(--color-text-secondary)]">
             Already have an account?
-            <x-link href="{{ route('login') }}" variant="primary">
+            <x-link href="{{ route('login') }}" variant="primary" useJsNav="true">
                 Sign in
             </x-link>
         </p>

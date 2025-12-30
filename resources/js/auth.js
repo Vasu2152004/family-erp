@@ -63,21 +63,37 @@ function initFormFeedback() {
     const forms = document.querySelectorAll('form[id$="-form"]');
     
     forms.forEach(form => {
+        // Store original button state on page load
+        const submitButton = form.querySelector('button[type="submit"]');
+        if (submitButton && !submitButton.getAttribute('data-original-text')) {
+            submitButton.setAttribute('data-original-text', submitButton.textContent.trim());
+        }
+        
+        // Only change button AFTER form actually submits (validation passed)
+        // Listen for the actual submit event AFTER validation
         form.addEventListener('submit', function(e) {
+            // This only runs if form wasn't prevented by validation
             const submitButton = form.querySelector('button[type="submit"]');
             
             if (submitButton) {
-                // Disable button to prevent double submission
+                // Store original text if not already stored
+                if (!submitButton.getAttribute('data-original-text')) {
+                    submitButton.setAttribute('data-original-text', submitButton.textContent.trim());
+                }
+                
+                const originalText = submitButton.getAttribute('data-original-text') || submitButton.textContent.trim();
+                
+                // Change button immediately since validation passed
                 submitButton.disabled = true;
-                submitButton.textContent = submitButton.textContent.includes('Sign') 
+                submitButton.textContent = originalText.includes('Sign') 
                     ? 'Signing in...' 
-                    : submitButton.textContent.includes('Create') 
+                    : originalText.includes('Create') 
                         ? 'Creating...' 
-                        : submitButton.textContent.includes('Reset')
+                        : originalText.includes('Reset')
                             ? 'Resetting...'
                             : 'Processing...';
             }
-        });
+        }, false); // Use bubble phase - only runs if validation didn't prevent
     });
     
     // Clear validation errors on input

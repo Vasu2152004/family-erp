@@ -1,6 +1,7 @@
 @props([
     'href' => '#',
     'variant' => 'primary',
+    'useJsNav' => false, // For auth links to bypass form validation
 ])
 
 @php
@@ -10,9 +11,19 @@
     ];
     
     $classes = 'font-semibold transition-colors ' . ($variantClasses[$variant] ?? $variantClasses['primary']);
+    
+    // Auto-detect if we're in auth layout and link is in footer
+    $isAuthPage = request()->routeIs('login', 'register', 'forgot-password');
+    $useJsNav = $useJsNav || ($isAuthPage && !$attributes->has('data-in-form'));
 @endphp
 
-<a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
+<a 
+    href="{{ $href }}" 
+    @if($useJsNav)
+        onclick="event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation(); window.location.href = '{{ $href }}'; return false;"
+    @endif
+    {{ $attributes->merge(['class' => $classes]) }}
+>
     {{ $slot }}
 </a>
 

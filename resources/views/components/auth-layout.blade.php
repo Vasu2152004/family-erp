@@ -16,7 +16,7 @@
     <!-- Styles / Scripts -->
     <x-asset-loader />
 </head>
-<body class="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+<body class="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8 relative overflow-y-auto">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-32 -right-32 w-72 h-72 bg-gradient-to-br from-blue-200/40 to-indigo-200/30 rounded-full blur-3xl"></div>
@@ -27,31 +27,31 @@
     <!-- Grid Pattern Overlay -->
     <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmOWZhZmIiIGZpbGwtb3BhY2l0eT0iMC40Ij48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIxLjUiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
 
-    <div class="max-w-md w-full space-y-8 relative z-10">
+    <div class="max-w-md w-full space-y-4 relative z-10 my-auto">
         <!-- Logo and Title -->
-        <div class="text-center transform transition-all duration-300 hover:scale-[1.01]">
-            <div class="inline-flex items-center justify-center w-18 h-18 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-2xl shadow-md mb-4">
+        <div class="text-center transform transition-all duration-300 hover:scale-[1.01] flex-shrink-0">
+            <div class="inline-flex items-center justify-center w-18 h-18 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-2xl shadow-md mb-2">
                 <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                 </svg>
             </div>
-            <h1 class="text-4xl font-bold text-[var(--color-text-primary)]">
+            <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">
                 {{ config('app.name', 'Family ERP') }}
             </h1>
             @if(isset($subtitle))
-                <p class="mt-3 text-sm text-[var(--color-text-secondary)] font-medium">
+                <p class="mt-1.5 text-sm text-[var(--color-text-secondary)] font-medium">
                     {{ $subtitle }}
                 </p>
             @endif
         </div>
 
         <!-- Card with Glassmorphism Effect -->
-        <div class="bg-[var(--color-bg-secondary)] rounded-2xl shadow-lg border border-[var(--color-border-primary)] p-8">
+        <div class="bg-[var(--color-bg-secondary)] rounded-2xl shadow-lg border border-[var(--color-border-primary)] p-6" data-auth-form>
             {{ $slot }}
         </div>
 
         @if(isset($footer))
-            <div class="text-center">
+            <div class="text-center flex-shrink-0" data-auth-form>
                 <div class="bg-[var(--color-bg-secondary)] rounded-xl px-6 py-4 border border-[var(--color-border-primary)] shadow-sm">
                     {{ $footer }}
                 </div>

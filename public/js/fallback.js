@@ -119,6 +119,11 @@
                 const submitButton = form.querySelector('button[type="submit"]');
                 
                 if (submitButton) {
+                    // Store original text before changing it
+                    if (!submitButton.getAttribute('data-original-text')) {
+                        submitButton.setAttribute('data-original-text', submitButton.textContent.trim());
+                    }
+                    
                     // Disable button to prevent double submission
                     submitButton.disabled = true;
                     const originalText = submitButton.textContent || submitButton.innerText;
@@ -154,14 +159,46 @@
      */
     function initFormValidation() {
         const forms = document.querySelectorAll('form.needs-validation, form[data-validate]');
+        const isAuthPage = document.body && document.body.classList.contains('min-h-screen');
+        
+        // Prevent links from triggering validation on auth pages
+        if (isAuthPage && !window._authLinkHandlerAdded) {
+            window._authLinkHandlerAdded = true;
+            
+            // Handle link clicks - set flag before blur fires
+            document.addEventListener('mousedown', function(e) {
+                const link = e.target.closest('a[useJsNav="true"], a[href*="login"], a[href*="register"]');
+                if (link && (link.closest('[data-auth-form]') || link.closest('.max-w-md'))) {
+                    // Set flag immediately on mousedown (before blur)
+                    window._linkClicked = true;
+                    // Clear any validation messages
+                    document.querySelectorAll('form').forEach(function(form) {
+                        const fields = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
+                        fields.forEach(function(field) {
+                            const fieldName = field.name || field.id;
+                            const errorContainer = field.parentElement.querySelector('[data-field-error="' + fieldName + '"]');
+                            if (errorContainer) errorContainer.remove();
+                            const successContainer = field.parentElement.querySelector('[data-field-success="' + fieldName + '"]');
+                            if (successContainer) successContainer.remove();
+                            field.classList.remove('border-[var(--color-error)]', 'focus:ring-[var(--color-error)]', 'focus:border-[var(--color-error)]', 'border-green-500', 'focus:ring-green-500', 'focus:border-green-500');
+                        });
+                    });
+                }
+            }, true); // Capture phase - runs before blur
+        }
         
         forms.forEach(form => {
             form.setAttribute('novalidate', 'novalidate');
             const fields = form.querySelectorAll('input:not([type="hidden"]):not([type="submit"]):not([type="button"]), textarea, select');
             
             fields.forEach(field => {
-                // Real-time validation on blur
-                field.addEventListener('blur', function() {
+                // Real-time validation on blur - but skip if link is being clicked
+                field.addEventListener('blur', function(e) {
+                    // On auth pages, check if a link was just clicked
+                    if (isAuthPage && window._linkClicked) {
+                        window._linkClicked = false;
+                        return; // Skip validation
+                    }
                     validateField(this);
                 });
                 
@@ -177,8 +214,33 @@
                 });
             });
             
-            // Form submission validation
+            // Prevent links from triggering form validation
+            const linkClickHandler = function(e) {
+                const link = e.target.closest('a');
+                if (link) {
+                    const isRelatedToForm = form.contains(link) || 
+                                           link.closest('[data-auth-form]') ||
+                                           link.closest('.max-w-md');
+                    if (isRelatedToForm) {
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return true;
+                    }
+                }
+            };
+            
+            // Add listener in capture phase to catch before form validation
+            document.addEventListener('click', linkClickHandler, true);
+            
+            // Form submission validation - only on actual form submission
             form.addEventListener('submit', function(e) {
+                const submitter = e.submitter;
+                if (submitter && (submitter.tagName === 'A' || submitter.closest('a'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+                
                 let isValid = true;
                 fields.forEach(field => {
                     if (!validateField(field)) {
