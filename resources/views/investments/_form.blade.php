@@ -58,8 +58,8 @@
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-            <x-label for="amount" required>Investment Amount</x-label>
+        <div id="amount_field">
+            <x-label for="amount" id="amount_label">Investment Amount</x-label>
             <x-input
                 type="number"
                 name="amount"
@@ -68,7 +68,6 @@
                 step="0.01"
                 min="0"
                 placeholder="0.00"
-                required
                 class="mt-1"
             />
             <x-error-message field="amount" />
@@ -216,16 +215,53 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function toggleFields() {
         const type = investmentType.value;
-        if (type === 'RD' || type === 'SIP') {
+        const amountField = document.getElementById('amount_field');
+        const amountInput = document.getElementById('amount');
+        const amountLabel = document.getElementById('amount_label');
+        
+        if (type === 'SIP') {
+            // For SIP, hide amount field and make it optional
+            amountField.style.display = 'none';
+            amountInput.removeAttribute('required');
+            amountInput.value = ''; // Clear value
+            if (amountLabel) {
+                amountLabel.classList.remove('required');
+                amountLabel.querySelector('span')?.remove(); // Remove required asterisk if exists
+            }
+            monthlyPremiumField.style.display = 'block';
+        } else if (type === 'RD') {
+            // For RD, show both but monthly premium is primary
+            amountField.style.display = 'block';
+            amountInput.setAttribute('required', 'required');
+            if (amountLabel && !amountLabel.querySelector('.required-indicator')) {
+                const span = document.createElement('span');
+                span.className = 'text-red-500 ml-1';
+                span.textContent = '*';
+                span.classList.add('required-indicator');
+                amountLabel.appendChild(span);
+            }
             monthlyPremiumField.style.display = 'block';
         } else {
+            // For other types, show amount and hide monthly premium
+            amountField.style.display = 'block';
+            amountInput.setAttribute('required', 'required');
+            if (amountLabel && !amountLabel.querySelector('.required-indicator')) {
+                const span = document.createElement('span');
+                span.className = 'text-red-500 ml-1';
+                span.textContent = '*';
+                span.classList.add('required-indicator');
+                amountLabel.appendChild(span);
+            }
             monthlyPremiumField.style.display = 'none';
         }
         
         if (type === 'FD' || type === 'RD' || type === 'SIP') {
             interestFields.style.display = 'grid';
-        } else {
+        } else if (type === 'OTHER') {
+            // For OTHER type, hide interest fields (no interest)
             interestFields.style.display = 'none';
+        } else {
+            interestFields.style.display = 'grid';
         }
     }
     
@@ -248,8 +284,26 @@ document.addEventListener('DOMContentLoaded', function() {
     investmentType.addEventListener('change', toggleFields);
     familyMemberId.addEventListener('change', toggleHiddenField);
     
-    toggleFields(); // Initial call
-    toggleHiddenField(); // Initial call
+    // Initial call to set up fields based on current selection
+    toggleFields();
+    toggleHiddenField();
+    
+    // Also handle form submission to ensure amount is not required for SIP
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const type = investmentType.value;
+            const amountInput = document.getElementById('amount');
+            
+            // If SIP is selected, ensure amount is not required
+            if (type === 'SIP') {
+                amountInput.removeAttribute('required');
+                if (!amountInput.value) {
+                    amountInput.value = '0'; // Set to 0 if empty
+                }
+            }
+        });
+    }
 });
 </script>
 

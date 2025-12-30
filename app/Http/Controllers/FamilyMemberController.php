@@ -32,12 +32,35 @@ class FamilyMemberController extends Controller
     {
         $this->authorize('view', $family);
 
+        $family->load([
+            'members' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'roles.user',
+        ]);
+
+        // Get owner(s) to include in member list
+        $owners = $family->roles()
+            ->where('role', 'OWNER')
+            ->with('user')
+            ->get()
+            ->map(function ($role) {
+                return (object) [
+                    'id' => 'owner_' . $role->user_id,
+                    'first_name' => $role->user->name ?? 'Owner',
+                    'last_name' => '',
+                    'relation' => 'Owner',
+                    'is_deceased' => false,
+                    'is_owner' => true,
+                    'user' => $role->user,
+                    'created_at' => $role->created_at,
+                ];
+            });
+
         $members = FamilyMember::where('family_id', $family->id)
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('family-members.index', compact('family', 'members'));
+        return view('family-members.index', compact('family', 'members', 'owners'));
     }
 
     /**
@@ -194,7 +217,7 @@ class FamilyMemberController extends Controller
         $this->authorize('manageFamily', $family);
         $member->delete();
 
-        return redirect()->route('families.members.index', $family)
+        return redirect()->route('families.show', $family)
             ->with('success', 'Family member deleted successfully.');
     }
 

@@ -210,19 +210,22 @@
                         </div>
                         <div class="flex gap-2">
                             @can('update', $prescription)
-                                <button onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.toggle('hidden')" class="text-[var(--color-primary)] hover:underline text-sm">Edit</button>
+                                <button onclick="document.getElementById('edit-prescription-{{ $prescription->id }}').classList.toggle('hidden')">
+                                    <x-button variant="outline" size="sm">Edit</x-button>
+                                </button>
                             @endcan
                             @can('delete', $prescription)
                                 <x-form 
                                     method="POST" 
                                     action="{{ route('families.health.visits.prescriptions.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id]) }}" 
+                                    class="inline"
                                     data-confirm="Are you sure?"
                                     data-confirm-title="Delete Prescription"
                                     data-confirm-variant="danger"
                                 >
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
+                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                 </x-form>
                             @endcan
                         </div>
@@ -366,19 +369,22 @@
                                 </div>
                                 <div class="flex gap-2">
                                     @can('update', $reminder)
-                                        <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
+                                        <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')">
+                                            <x-button variant="outline" size="sm" class="text-xs">Edit</x-button>
+                                        </button>
                                     @endcan
                                     @can('delete', $reminder)
                                         <x-form 
                                             method="POST" 
                                             action="{{ route('families.health.visits.prescriptions.reminders.destroy', ['family' => $family->id, 'visit' => $visit->id, 'prescription' => $prescription->id, 'reminder' => $reminder->id]) }}" 
+                                            class="inline"
                                             data-confirm="Are you sure?"
                                             data-confirm-title="Delete Reminder"
                                             data-confirm-variant="danger"
                                         >
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+                                            <x-button type="submit" variant="danger-outline" size="sm" class="text-xs">Delete</x-button>
                                         </x-form>
                                     @endcan
                                 </div>

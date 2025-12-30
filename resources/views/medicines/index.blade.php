@@ -150,7 +150,7 @@
                                                 >
                                                     @csrf
                                                     @method('DELETE')
-                                                    <x-button variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
+                                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
                                             @endcan
                                         </div>

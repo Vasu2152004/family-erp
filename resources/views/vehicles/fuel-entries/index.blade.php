@@ -48,7 +48,9 @@
                                     @endif
                                 </div>
                                 <div class="flex gap-2">
-                                    <a href="{{ route('families.vehicles.fuel-entries.edit', ['family' => $family->id, 'vehicle' => $vehicle->id, 'fuelEntry' => $entry->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">Edit</a>
+                                    <a href="{{ route('families.vehicles.fuel-entries.edit', ['family' => $family->id, 'vehicle' => $vehicle->id, 'fuelEntry' => $entry->id]) }}">
+                                        <x-button variant="outline" size="sm">Edit</x-button>
+                                    </a>
                                 </div>
                             </div>
                         </div>

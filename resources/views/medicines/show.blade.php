@@ -38,7 +38,7 @@
                         >
                             @csrf
                             @method('DELETE')
-                            <x-button variant="ghost" size="md" class="text-red-600 hover:text-red-700">Delete</x-button>
+                            <x-button type="submit" variant="danger-outline" size="md">Delete</x-button>
                         </x-form>
                     @endcan
                     <a href="{{ route('families.medicines.index', ['family' => $family->id]) }}">
@@ -246,26 +246,29 @@
                         </div>
                         <div class="flex gap-2">
                             @can('update', $medicine)
-                                <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')" class="text-xs text-[var(--color-primary)] hover:underline">Edit</button>
+                                <button onclick="document.getElementById('edit-reminder-{{ $reminder->id }}').classList.toggle('hidden')">
+                                    <x-button variant="outline" size="sm" class="text-xs">Edit</x-button>
+                                </button>
                                 <x-form method="POST" action="{{ route('families.medicines.intake-reminders.toggle', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}">
                                     @csrf
                                     @method('PATCH')
-                                    <button type="submit" class="text-xs text-[var(--color-primary)] hover:underline">
+                                    <x-button type="submit" variant="outline" size="sm" class="text-xs">
                                         {{ $reminder->status === 'active' ? 'Pause' : 'Activate' }}
-                                    </button>
+                                    </x-button>
                                 </x-form>
                             @endcan
                             @can('update', $medicine)
                                 <x-form 
                                     method="POST" 
                                     action="{{ route('families.medicines.intake-reminders.destroy', ['family' => $family->id, 'medicine' => $medicine->id, 'reminder' => $reminder->id]) }}" 
+                                    class="inline"
                                     data-confirm="Are you sure?"
                                     data-confirm-title="Delete Reminder"
                                     data-confirm-variant="danger"
                                 >
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-xs text-red-600 hover:underline">Delete</button>
+                                    <x-button type="submit" variant="danger-outline" size="sm" class="text-xs">Delete</x-button>
                                 </x-form>
                             @endcan
                         </div>

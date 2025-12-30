@@ -115,11 +115,19 @@ class ShoppingListController extends Controller
 
         $validated = $request->validate([
             'inventory_item_id' => ['nullable', 'exists:inventory_items,id'],
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['required_without:inventory_item_id', 'string', 'max:255'],
             'qty' => ['required', 'numeric', 'min:0.01'],
             'unit' => ['required', 'in:piece,kg,liter,gram,ml,pack,box,bottle,other'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        // If inventory_item_id is provided, get the name from inventory item
+        if (isset($validated['inventory_item_id']) && empty($validated['name'])) {
+            $inventoryItem = InventoryItem::find($validated['inventory_item_id']);
+            if ($inventoryItem) {
+                $validated['name'] = $inventoryItem->name;
+            }
+        }
 
         $this->shoppingListService->addItem(
             array_merge($validated, ['added_by' => Auth::id()]),

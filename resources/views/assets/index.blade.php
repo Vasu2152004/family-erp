@@ -113,27 +113,25 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
                                             @can('view', $asset)
-                                                <a href="{{ route('assets.show', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    View
+                                                <a href="{{ route('assets.show', ['asset' => $asset->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">View</x-button>
                                                 </a>
                                             @endcan
                                             @can('update', $asset)
-                                                <a href="{{ route('assets.edit', ['asset' => $asset->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    Edit
+                                                <a href="{{ route('assets.edit', ['asset' => $asset->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
                                             @endcan
                                             @can('delete', $asset)
                                                 <x-form 
-                                                    method="POST" 
+                                                    method="DELETE" 
                                                     action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" 
                                                     class="inline"
                                                     data-confirm="Delete this asset?"
                                                     data-confirm-title="Delete Asset"
                                                     data-confirm-variant="danger"
                                                 >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
                                             @endcan
                                         </div>

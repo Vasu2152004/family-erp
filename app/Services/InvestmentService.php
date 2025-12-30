@@ -65,8 +65,8 @@ class InvestmentService
                 return $amount;
 
             case 'SIP': // Systematic Investment Plan
-                // Similar to RD but typically with market-linked returns
-                if ($monthlyPremium) {
+                // SIP only uses monthly premium and interest rate, NOT amount
+                if ($monthlyPremium && $interestRate) {
                     $monthlyRate = $interestRate / 12 / 100;
                     $n = (int) $months;
                     if ($n > 0) {
@@ -74,10 +74,8 @@ class InvestmentService
                         return $futureValue;
                     }
                 }
-                // If no monthly premium, use simple compound interest
-                $monthlyRate = $interestRate / 12 / 100;
-                $n = (int) $months;
-                return $amount * pow(1 + $monthlyRate, $n);
+                // If no monthly premium or interest rate, return 0 (shouldn't happen for valid SIP)
+                return 0;
 
             default:
                 // For other types, use simple interest if we have the data
@@ -104,25 +102,34 @@ class InvestmentService
             
             // Calculate current_value if start_date and interest_rate are provided
             $calculatedValue = null;
+            $investmentType = $data['investment_type'] ?? 'OTHER';
             if (isset($data['start_date']) && isset($data['interest_rate']) && !isset($data['current_value'])) {
+                // For SIP, use 0 as amount since it's not used in calculation
+                $amountForCalculation = ($investmentType === 'SIP') ? 0 : (float) ($data['amount'] ?? 0);
                 $calculatedValue = $this->calculateCurrentValue(
-                    (float) ($data['amount'] ?? 0),
+                    $amountForCalculation,
                     $data['start_date'] ?? null,
                     $data['interest_rate'] !== null ? (float) $data['interest_rate'] : null,
                     $data['interest_period'] ?? null,
                     $data['monthly_premium'] !== null ? (float) $data['monthly_premium'] : null,
-                    $data['investment_type'] ?? 'OTHER'
+                    $investmentType
                 );
             }
 
+            // Handle amount: for SIP, it's not required, so use 0 or empty value
+            $amount = 0;
+            if ($investmentType !== 'SIP') {
+                $amount = isset($data['amount']) && $data['amount'] !== '' ? (float) $data['amount'] : 0;
+            }
+            
             $investment = Investment::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
                 'family_member_id' => $data['family_member_id'] ?? null,
-                'investment_type' => $data['investment_type'] ?? 'OTHER',
+                'investment_type' => $investmentType,
                 'name' => $data['name'],
                 'description' => $data['description'] ?? null,
-                'amount' => $data['amount'] ?? 0,
+                'amount' => $amount,
                 'start_date' => $data['start_date'] ?? null,
                 'interest_rate' => $data['interest_rate'] ?? null,
                 'interest_period' => $data['interest_period'] ?? null,
@@ -180,8 +187,10 @@ class InvestmentService
             $investmentType = $data['investment_type'] ?? $investment->investment_type;
 
             if ($startDate && $interestRate && !isset($data['current_value'])) {
+                // For SIP, use 0 as amount since it's not used in calculation
+                $amountForCalculation = ($investmentType === 'SIP') ? 0 : (float) $amount;
                 $calculatedValue = $this->calculateCurrentValue(
-                    (float) $amount,
+                    $amountForCalculation,
                     $startDate instanceof \Carbon\Carbon ? $startDate->format('Y-m-d') : (string) $startDate,
                     $interestRate !== null ? (float) $interestRate : null,
                     $interestPeriod,
@@ -196,7 +205,7 @@ class InvestmentService
                 'investment_type' => $investmentType,
                 'name' => $data['name'] ?? $investment->name,
                 'description' => $data['description'] ?? $investment->description,
-                'amount' => $amount,
+                'amount' => ($investmentType === 'SIP') ? 0 : $amount,
                 'updated_by' => auth()->id(),
             ];
 

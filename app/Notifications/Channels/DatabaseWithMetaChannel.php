@@ -17,8 +17,11 @@ class DatabaseWithMetaChannel
 
         $data = is_array($data) ? $data : [];
 
+        // Use the type from data array if available, otherwise use the class name
+        $type = $data['type'] ?? get_class($notification);
+
         $payload = [
-            'type' => get_class($notification),
+            'type' => $type,
             'data' => $data,
             'read_at' => null,
             'user_id' => $notifiable->id ?? null,

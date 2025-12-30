@@ -3,10 +3,11 @@ let investmentChartInstances = {
     typeDistribution: null,
     profitLossTrend: null,
     ownerDistribution: null,
-    countByType: null
+    countByType: null,
+    valueTrend: null
 };
 
-function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData) {
+function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData) {
     if (typeof ApexCharts === 'undefined') {
         console.error('ApexCharts is not loaded');
         return;
@@ -17,6 +18,7 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
     profitLossTrendData = profitLossTrendData || [];
     ownerDistributionData = ownerDistributionData || [];
     countByTypeData = countByTypeData || [];
+    valueTrendData = valueTrendData || [];
 
     // Get theme colors from CSS variables
     const styles = getComputedStyle(document.documentElement);
@@ -196,6 +198,126 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
 
         investmentChartInstances.countByType = new ApexCharts(countByTypeChartEl, countByTypeOptions);
         investmentChartInstances.countByType.render();
+    }
+
+    // Investment Value Trend Chart (Line Chart)
+    const valueTrendChartEl = document.getElementById('investmentValueTrendChart');
+    if (valueTrendChartEl && valueTrendData.length > 0) {
+        // Sort by month to ensure chronological order
+        const sortedData = [...valueTrendData].sort((a, b) => a.month.localeCompare(b.month));
+        
+        const valueTrendOptions = {
+            series: [{
+                name: 'Total Value',
+                data: sortedData.map(item => parseFloat(item.total_value) || 0)
+            }],
+            chart: {
+                type: 'line',
+                height: 400,
+                fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif',
+                toolbar: {
+                    show: true,
+                    tools: {
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
+                    }
+                },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800
+                }
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 3,
+                colors: [colors.primary]
+            },
+            markers: {
+                size: 5,
+                colors: [colors.primary],
+                strokeColors: colors.bgSecondary,
+                strokeWidth: 2,
+                hover: {
+                    size: 7
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: sortedData.map(item => {
+                    // Format month as "MMM YYYY" (e.g., "Jan 2024")
+                    const [year, month] = item.month.split('-');
+                    const date = new Date(parseInt(year), parseInt(month) - 1);
+                    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                }),
+                labels: {
+                    style: {
+                        colors: colors.textSecondary,
+                        fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif'
+                    },
+                    rotate: sortedData.length > 6 ? -45 : 0,
+                    rotateAlways: sortedData.length > 6
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: function(value) {
+                        return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+                    },
+                    style: {
+                        colors: colors.textSecondary,
+                        fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif'
+                    }
+                }
+            },
+            tooltip: {
+                theme: 'light',
+                style: {
+                    fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif'
+                },
+                y: {
+                    formatter: function(value) {
+                        return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    }
+                }
+            },
+            grid: {
+                borderColor: colors.borderPrimary,
+                strokeDashArray: 4,
+                xaxis: {
+                    lines: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    lines: {
+                        show: true
+                    }
+                }
+            },
+            colors: [colors.primary],
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shade: 'light',
+                    type: 'vertical',
+                    shadeIntensity: 0.3,
+                    gradientToColors: [colors.secondary],
+                    inverseColors: false,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.2,
+                    stops: [0, 100]
+                }
+            }
+        };
+
+        investmentChartInstances.valueTrend = new ApexCharts(valueTrendChartEl, valueTrendOptions);
+        investmentChartInstances.valueTrend.render();
     }
 
     // Profit/Loss Trend Chart (Column Chart - better for showing profit vs loss)

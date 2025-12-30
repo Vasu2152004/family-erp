@@ -71,8 +71,8 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
                                             @can('update', $account)
-                                                <a href="{{ route('finance.accounts.edit', ['account' => $account->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    Edit
+                                                <a href="{{ route('finance.accounts.edit', ['account' => $account->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
                                             @endcan
                                             @can('delete', $account)
@@ -86,7 +86,7 @@
                                                 >
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
                                             @endcan
                                         </div>

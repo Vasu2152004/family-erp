@@ -15,8 +15,7 @@
                     </p>
                 </div>
                 @if($notifications->count() > 0 && Auth::user()->unreadNotifications()->count() > 0)
-                    <form action="{{ route('notifications.read-all') }}" method="POST">
-                        @csrf
+                    <x-form method="POST" action="{{ route('notifications.read-all') }}">
                         <x-button type="submit" variant="secondary" size="md">Mark All as Read</x-button>
                     </x-form>
                 @endif
@@ -83,30 +82,27 @@
                                                         View Asset →
                                                     </a>
                                                 @endif
+                                                @if($isInvestmentUnlockRequest && isset($notification->data['request_id']) && !$notification->read_at)
+                                                    @php
+                                                        $unlockRequest = \App\Models\InvestmentUnlockRequest::find($notification->data['request_id']);
+                                                    @endphp
+                                                    @if($unlockRequest && $unlockRequest->status === 'pending')
+                                                        <div class="flex gap-2 mt-3">
+                                                            <x-form method="POST" action="{{ route('investment-unlock-requests.approve', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}">
+                                                                <x-button type="submit" variant="primary" size="sm">Approve</x-button>
+                                                            </x-form>
+                                                            <x-form method="POST" action="{{ route('investment-unlock-requests.reject', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}">
+                                                                <x-button type="submit" variant="outline" size="sm">Reject</x-button>
+                                                            </x-form>
+                                                        </div>
+                                                    @endif
+                                                @endif
                                             @endif
                                         @endif
                                     </div>
-                                    @if($isInvestmentUnlockRequest && isset($notification->data['request_id']) && !$notification->read_at)
-                                        @php
-                                            $unlockRequest = \App\Models\InvestmentUnlockRequest::find($notification->data['request_id']);
-                                        @endphp
-                                        @if($unlockRequest && $unlockRequest->status === 'pending')
-                                            <div class="flex gap-2 mt-3">
-                                                <form action="{{ route('investment-unlock-requests.approve', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
-                                                    @csrf
-                                                    <x-button type="submit" variant="primary" size="sm">Approve</x-button>
-                                                </x-form>
-                                                <form action="{{ route('investment-unlock-requests.reject', ['unlockRequest' => $unlockRequest->id, 'family_id' => $family->id]) }}" method="POST">
-                                                    @csrf
-                                                    <x-button type="submit" variant="outline" size="sm">Reject</x-button>
-                                                </x-form>
-                                            </div>
-                                        @endif
-                                    @endif
                                 </div>
                                 @if(!$notification->read_at)
-                                    <form action="{{ route('notifications.read', $notification) }}" method="POST" class="ml-4">
-                                        @csrf
+                                    <x-form method="POST" action="{{ route('notifications.read', $notification) }}" class="ml-4">
                                         <x-button type="submit" variant="outline" size="sm">Mark as Read</x-button>
                                     </x-form>
                                 @endif
@@ -131,5 +127,3 @@
         @endif
     </div>
 </x-app-layout>
-
-

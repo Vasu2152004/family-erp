@@ -38,8 +38,10 @@
                                     @endif
                                 </div>
                                 <div class="flex gap-2">
-                                    <a href="{{ route('families.vehicles.service-logs.edit', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">Edit</a>
-                                    <form 
+                                    <a href="{{ route('families.vehicles.service-logs.edit', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}">
+                                        <x-button variant="outline" size="sm">Edit</x-button>
+                                    </a>
+                                    <x-form 
                                         method="POST" 
                                         action="{{ route('families.vehicles.service-logs.destroy', ['family' => $family->id, 'vehicle' => $vehicle->id, 'serviceLog' => $log->id]) }}" 
                                         class="inline"
@@ -49,7 +51,7 @@
                                     >
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
+                                        <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                     </x-form>
                                 </div>
                             </div>

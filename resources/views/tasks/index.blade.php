@@ -64,7 +64,7 @@
                         <x-button type="submit" variant="primary" size="md">Apply Filters</x-button>
                         <a href="{{ route('families.tasks.index', ['family' => $family->id]) }}" class="px-4 py-2 rounded-xl border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-surface-alt)] transition-colors">Reset</a>
                     </div>
-                </x-form>
+                </form>
             </div>
 
             @if($tasks->count() > 0)
@@ -107,7 +107,7 @@
                                     </svg>
                                     @can('delete', $task)
                                         <x-form 
-                                            method="POST" 
+                                            method="DELETE" 
                                             action="{{ route('families.tasks.destroy', ['family' => $family->id, 'task' => $task->id]) }}" 
                                             class="inline"
                                             data-confirm="Are you sure you want to delete this task?"
@@ -115,13 +115,11 @@
                                             data-confirm-variant="danger"
                                             onclick="event.stopPropagation();"
                                         >
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm" onclick="event.stopPropagation();" title="Delete Task">
+                                            <x-button type="submit" variant="danger-outline" size="sm" onclick="event.stopPropagation();" title="Delete Task">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                 </svg>
-                                            </button>
+                                            </x-button>
                                         </x-form>
                                     @endcan
                                 </div>

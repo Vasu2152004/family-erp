@@ -46,22 +46,20 @@
                             </div>
                             <div class="flex gap-2 mt-4">
                                 @can('update', $category)
-                                    <a href="{{ route('inventory.categories.edit', ['category' => $category->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">
-                                        Edit
+                                    <a href="{{ route('inventory.categories.edit', ['category' => $category->id, 'family_id' => $family->id]) }}">
+                                        <x-button variant="outline" size="sm">Edit</x-button>
                                     </a>
                                 @endcan
                                 @can('delete', $category)
                                     <x-form 
-                                        method="POST" 
+                                        method="DELETE" 
                                         action="{{ route('inventory.categories.destroy', ['category' => $category->id, 'family_id' => $family->id]) }}" 
                                         class="inline"
                                         data-confirm="Are you sure you want to delete this category?"
                                         data-confirm-title="Delete Category"
                                         data-confirm-variant="danger"
                                     >
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                        <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                     </x-form>
                                 @endcan
                             </div>

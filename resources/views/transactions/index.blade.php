@@ -68,7 +68,7 @@
                         <x-button type="button" variant="outline" size="sm">Clear</x-button>
                     </a>
                 </div>
-            </x-form>
+            </form>
         </div>
 
         <!-- Transactions List -->
@@ -142,22 +142,21 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
                                             @can('update', $transaction)
-                                                <a href="{{ route('finance.transactions.edit', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    Edit
+                                                <a href="{{ route('finance.transactions.edit', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
                                             @endcan
                                             @can('delete', $transaction)
-                                                <form 
+                                                <x-form 
                                                     action="{{ route('finance.transactions.destroy', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" 
-                                                    method="POST" 
+                                                    method="DELETE" 
                                                     class="inline"
                                                     data-confirm="Are you sure you want to delete this transaction?"
                                                     data-confirm-title="Delete Transaction"
                                                     data-confirm-variant="danger"
                                                 >
                                                     @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
                                             @endcan
                                         </div>

@@ -32,6 +32,7 @@ class DoctorVisit extends Model
         'notes',
         'follow_up_at',
         'next_visit_date',
+        'reminder_sent_at',
         'created_by',
         'updated_by',
     ];
@@ -43,6 +44,7 @@ class DoctorVisit extends Model
             'visit_time' => 'datetime:H:i',
             'follow_up_at' => 'date',
             'next_visit_date' => 'date',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 

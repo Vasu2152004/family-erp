@@ -33,7 +33,7 @@
                     <x-button type="submit" variant="secondary" size="md">Filter</x-button>
                     <a href="{{ route('families.calendar.index', ['family' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Reset</a>
                 </div>
-            </x-form>
+            </form>
 
             @if($events->count() > 0)
                 <div class="overflow-x-auto">
@@ -75,18 +75,21 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 text-right text-sm">
-                                        <div class="flex justify-end gap-3">
-                                            <a href="{{ route('families.calendar.edit', ['family' => $family->id, 'event' => $event->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">Edit</a>
+                                        <div class="flex justify-end gap-2">
+                                            <a href="{{ route('families.calendar.edit', ['family' => $family->id, 'event' => $event->id]) }}">
+                                                <x-button variant="outline" size="sm">Edit</x-button>
+                                            </a>
                                             <x-form 
                                                 method="POST" 
                                                 action="{{ route('families.calendar.destroy', ['family' => $family->id, 'event' => $event->id]) }}" 
+                                                class="inline"
                                                 data-confirm="Delete this event?"
                                                 data-confirm-title="Delete Event"
                                                 data-confirm-variant="danger"
                                             >
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>
+                                                <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                             </x-form>
                                         </div>
                                     </td>

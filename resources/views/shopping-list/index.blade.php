@@ -7,6 +7,28 @@
         ]" />
 
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
+            @if(session('success'))
+                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
+                    {{ session('success') }}
+                </x-alert>
+            @endif
+
+            @if(session('error'))
+                <x-alert type="error" dismissible class="mb-6 animate-fade-in">
+                    {{ session('error') }}
+                </x-alert>
+            @endif
+
+            @if($errors->any())
+                <div class="mb-6 space-y-2">
+                    @foreach($errors->all() as $error)
+                        <x-alert type="error" dismissible class="animate-fade-in">
+                            {{ $error }}
+                        </x-alert>
+                    @endforeach
+                </div>
+            @endif
+
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Shopping List</h1>
@@ -76,7 +98,7 @@
                                 <select name="inventory_item_id" id="inventory_item_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                                     <option value="">Manual Entry</option>
                                     @foreach($inventoryItems as $invItem)
-                                        <option value="{{ $invItem->id }}">{{ $invItem->name }} ({{ number_format($invItem->qty, 2) }} {{ $invItem->unit }})</option>
+                                        <option value="{{ $invItem->id }}" data-name="{{ $invItem->name }}" data-unit="{{ $invItem->unit }}">{{ $invItem->name }} ({{ number_format($invItem->qty, 2) }} {{ $invItem->unit }})</option>
                                     @endforeach
                                 </select>
                                 <x-error-message field="inventory_item_id" />
@@ -122,12 +144,14 @@
                                 </div>
                                 <div class="flex gap-2">
                                     @can('markPurchased', $item)
-                                        <button type="button" onclick="openPurchaseModal({{ $item->id }}, '{{ addslashes($item->name) }}')" class="px-3 py-1.5 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-dark)] transition-colors text-sm font-medium">
+                                        <button type="button" onclick="openPurchaseModal({{ $item->id }}, '{{ addslashes($item->name) }}')" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--color-primary)] text-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] hover:border-[var(--color-primary-dark)] focus:ring-[var(--color-primary)] shadow-sm">
                                             Mark Purchased
                                         </button>
                                     @endcan
                                     @can('update', $item)
-                                        <a href="#" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] text-sm">Edit</a>
+                                        <a href="#">
+                                            <x-button variant="outline" size="sm">Edit</x-button>
+                                        </a>
                                     @endcan
                                     @can('delete', $item)
                                         <x-form 
@@ -138,7 +162,7 @@
                                             data-confirm-title="Remove Item"
                                             data-confirm-variant="danger"
                                         >
-                                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Remove</button>
+                                            <x-button type="submit" variant="danger-outline" size="sm">Remove</x-button>
                                         </x-form>
                                     @endcan
                                 </div>
@@ -205,8 +229,10 @@
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
             <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Mark as Purchased</h3>
             
-            <x-form method="PATCH" id="purchaseForm" class="space-y-4">
-                <input type="hidden" name="family_id" value="{{ $family->id }}">
+            <form method="POST" id="purchaseForm" class="space-y-4" data-validate="false" novalidate>
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="family_id" id="purchase_family_id" value="{{ $family->id }}">
                 
                 <div>
                     <p class="text-[var(--color-text-secondary)] mb-4">
@@ -247,30 +273,273 @@
                         Mark Purchased
                     </button>
                 </div>
-            </x-form>
+            </form>
         </div>
     </div>
 
     @push('scripts')
         <script>
-            function openPurchaseModal(itemId, itemName) {
-                document.getElementById('purchaseModal').classList.remove('hidden');
-                document.getElementById('purchaseModal').classList.add('flex');
+            // Handle inventory item selection
+            document.addEventListener('DOMContentLoaded', function() {
+                const inventorySelect = document.getElementById('inventory_item_id');
+                const nameInput = document.getElementById('name');
+                const unitSelect = document.getElementById('unit');
+                
+                if (inventorySelect && nameInput && unitSelect) {
+                    inventorySelect.addEventListener('change', function() {
+                        const selectedOption = this.options[this.selectedIndex];
+                        
+                        if (selectedOption.value) {
+                            // Inventory item selected - auto-fill and make readonly
+                            const itemName = selectedOption.getAttribute('data-name');
+                            const itemUnit = selectedOption.getAttribute('data-unit');
+                            
+                            if (itemName) {
+                                nameInput.value = itemName;
+                                nameInput.readOnly = true;
+                                nameInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                                // Remove required attribute since value is set
+                                nameInput.removeAttribute('required');
+                            }
+                            
+                            if (itemUnit) {
+                                // Set unit if it matches one of the options
+                                const unitOption = Array.from(unitSelect.options).find(opt => opt.value === itemUnit);
+                                if (unitOption) {
+                                    unitSelect.value = itemUnit;
+                                }
+                            }
+                        } else {
+                            // Manual entry - enable name field
+                            nameInput.readOnly = false;
+                            nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                            // Re-add required attribute for manual entry
+                            nameInput.setAttribute('required', 'required');
+                            if (!nameInput.value) {
+                                nameInput.value = '';
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Make function globally accessible
+            window.openPurchaseModal = function(itemId, itemName) {
+                console.log('=== openPurchaseModal called ===');
+                console.log('Item ID:', itemId);
+                console.log('Item Name:', itemName);
+                
+                const modal = document.getElementById('purchaseModal');
+                const form = document.getElementById('purchaseForm');
+                
+                if (!modal) {
+                    console.error('Purchase modal not found!');
+                    if (typeof showAlert === 'function') {
+                        showAlert('Purchase modal not found. Please refresh the page.', 'error');
+                    } else {
+                        alert('Purchase modal not found. Please refresh the page.');
+                    }
+                    return;
+                }
+                
+                if (!form) {
+                    console.error('Purchase form not found!');
+                    if (typeof showAlert === 'function') {
+                        showAlert('Purchase form not found. Please refresh the page.', 'error');
+                    } else {
+                        alert('Purchase form not found. Please refresh the page.');
+                    }
+                    return;
+                }
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
                 document.getElementById('purchaseItemName').textContent = itemName;
-                const baseUrl = '{{ route("shopping-list.mark-purchased", ["item" => 0, "family_id" => $family->id]) }}';
-                document.getElementById('purchaseForm').action = baseUrl.replace('/0/', '/' + itemId + '/');
+                
+                // Set form action correctly
+                // Route: /shopping-list/{item}/purchased
+                const familyId = {{ $family->id }};
+                form.action = `/shopping-list/${itemId}/purchased`;
+                
+                // Ensure family_id is in the form
+                let familyIdInput = form.querySelector('input[name="family_id"]');
+                if (!familyIdInput) {
+                    familyIdInput = document.createElement('input');
+                    familyIdInput.type = 'hidden';
+                    familyIdInput.name = 'family_id';
+                    familyIdInput.value = familyId;
+                    form.appendChild(familyIdInput);
+                } else {
+                    familyIdInput.value = familyId;
+                }
+                
+                // Ensure form has correct method
+                let methodInput = form.querySelector('input[name="_method"]');
+                if (!methodInput) {
+                    methodInput = document.createElement('input');
+                    methodInput.type = 'hidden';
+                    methodInput.name = '_method';
+                    methodInput.value = 'PATCH';
+                    form.insertBefore(methodInput, form.firstChild);
+                } else {
+                    methodInput.value = 'PATCH';
+                }
+                
+                // Ensure CSRF token exists
+                let csrfInput = form.querySelector('input[name="_token"]');
+                if (!csrfInput) {
+                    csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}';
+                    form.insertBefore(csrfInput, form.firstChild);
+                }
+                
+                // Reset form fields
+                const amountInput = form.querySelector('#amount');
+                const budgetSelect = form.querySelector('#budget_id');
+                if (amountInput) amountInput.value = '';
+                if (budgetSelect) budgetSelect.value = '';
+                
+                console.log('Purchase modal opened for item:', itemId);
+                console.log('Form action:', form.action);
+                console.log('Form method:', methodInput?.value);
+                console.log('Family ID:', familyIdInput?.value);
             }
             
+            // Handle form submission using fetch to ensure it works
+            document.addEventListener('DOMContentLoaded', function() {
+                const purchaseForm = document.getElementById('purchaseForm');
+                if (purchaseForm) {
+                    purchaseForm.addEventListener('submit', async function(e) {
+                        e.preventDefault(); // Prevent default form submission
+                        
+                        const submitBtn = this.querySelector('button[type="submit"]');
+                        const originalText = submitBtn ? submitBtn.textContent : 'Mark Purchased';
+                        
+                        // Show loading state
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.textContent = 'Processing...';
+                        }
+                        
+                        try {
+                            // Get form data
+                            const formData = new FormData(this);
+                            
+                            // Get CSRF token
+                            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                                             this.querySelector('input[name="_token"]')?.value;
+                            
+                            // Get the action URL
+                            const actionUrl = this.action;
+                            
+                            if (!actionUrl || actionUrl === '' || actionUrl === window.location.pathname) {
+                                console.error('Invalid form action URL:', actionUrl);
+                                throw new Error('Form action URL is not set correctly');
+                            }
+                            
+                            console.log('=== Form Submission ===');
+                            console.log('Action URL:', actionUrl);
+                            console.log('Form data:', Object.fromEntries(formData.entries()));
+                            console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
+                            
+                            // Submit using fetch
+                            const response = await fetch(actionUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': csrfToken,
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                },
+                                body: formData
+                            });
+                            
+                            console.log('Response status:', response.status);
+                            console.log('Response ok:', response.ok);
+                            
+                            if (response.ok) {
+                                // Success - reload page to show updated list
+                                const result = await response.json().catch(() => null);
+                                console.log('Success response:', result);
+                                window.location.reload();
+                            } else {
+                                // Handle error
+                                let errorMessage = 'Failed to mark item as purchased';
+                                try {
+                                    const errorData = await response.json();
+                                    errorMessage = errorData.message || errorData.error || errorMessage;
+                                    console.error('Error response:', errorData);
+                                } catch (e) {
+                                    const text = await response.text();
+                                    console.error('Error response text:', text);
+                                }
+                                
+                                // Use window.showAlert if available, otherwise alert
+                                if (typeof window.showAlert === 'function') {
+                                    window.showAlert(errorMessage, 'error');
+                                } else if (typeof showAlert === 'function') {
+                                    showAlert(errorMessage, 'error');
+                                } else {
+                                    alert(errorMessage);
+                                }
+                                
+                                // Re-enable button
+                                if (submitBtn) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = originalText;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('=== Form Submission Error ===');
+                            console.error('Error:', error);
+                            console.error('Error message:', error.message);
+                            console.error('Error stack:', error.stack);
+                            
+                            const errorMessage = 'An error occurred while marking the item as purchased. Please try again.';
+                            
+                            // Use window.showAlert if available, otherwise alert
+                            if (typeof window.showAlert === 'function') {
+                                window.showAlert(errorMessage, 'error');
+                            } else if (typeof showAlert === 'function') {
+                                showAlert(errorMessage, 'error');
+                            } else {
+                                alert(errorMessage);
+                            }
+                            
+                            // Re-enable button
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = originalText;
+                            }
+                        }
+                    });
+                }
+            });
+            
             function closePurchaseModal() {
-                document.getElementById('purchaseModal').classList.add('hidden');
-                document.getElementById('purchaseModal').classList.remove('flex');
-                document.getElementById('purchaseForm').reset();
+                const modal = document.getElementById('purchaseModal');
+                const form = document.getElementById('purchaseForm');
+                
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                
+                if (form) {
+                    form.reset();
+                }
             }
             
             // Close modal on outside click
-            document.getElementById('purchaseModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closePurchaseModal();
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('purchaseModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closePurchaseModal();
+                        }
+                    });
                 }
             });
         </script>

@@ -66,7 +66,9 @@
                                     @endif
                                 </p>
                             </div>
-                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}">
+                                <x-button variant="outline" size="sm">View</x-button>
+                            </a>
                         </div>
                     </div>
                 @empty
@@ -96,7 +98,9 @@
                                     @endif
                                 </p>
                             </div>
-                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                            <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $visit->id]) }}">
+                                <x-button variant="outline" size="sm">View</x-button>
+                            </a>
                         </div>
                     </div>
                 @empty
@@ -127,7 +131,9 @@
                                 @endif
                             </p>
                         </div>
-                        <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $prescription->doctorVisit->id]) }}" class="text-[var(--color-primary)] hover:underline text-sm">View</a>
+                        <a href="{{ route('families.health.visits.show', ['family' => $family->id, 'visit' => $prescription->doctorVisit->id]) }}">
+                            <x-button variant="outline" size="sm">View</x-button>
+                        </a>
                     </div>
                 </div>
             @empty

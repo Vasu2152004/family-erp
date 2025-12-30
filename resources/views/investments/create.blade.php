@@ -15,6 +15,22 @@
                 </p>
             </div>
 
+            @if($errors->any())
+                <div class="mb-6 space-y-2">
+                    @foreach($errors->all() as $error)
+                        <x-alert type="error" dismissible class="animate-fade-in">
+                            {{ $error }}
+                        </x-alert>
+                    @endforeach
+                </div>
+            @endif
+
+            @if(session('success'))
+                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
+                    {{ session('success') }}
+                </x-alert>
+            @endif
+
             <x-form method="POST" action="{{ route('investments.store', ['family_id' => $family->id]) }}" class="space-y-6">
                 @csrf
                 <input type="hidden" name="family_id" value="{{ $family->id }}">
@@ -35,6 +51,7 @@
         </div>
     </div>
 </x-app-layout>
+
 
 
 

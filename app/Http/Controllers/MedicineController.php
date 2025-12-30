@@ -260,3 +260,4 @@ class MedicineController extends Controller
 
 
 
+

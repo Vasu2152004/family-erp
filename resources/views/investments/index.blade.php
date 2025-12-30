@@ -95,7 +95,11 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
-                                        {{ str_replace('_', ' ', $investment->investment_type) }}
+                                        @if($investment->is_hidden)
+                                            <span class="text-[var(--color-text-secondary)]">Hidden</span>
+                                        @else
+                                            {{ str_replace('_', ' ', $investment->investment_type) }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-secondary)]">
                                         {{ $investment->owner_name ?? 'N/A' }}
@@ -104,10 +108,18 @@
                                         {{ $investment->createdBy?->name ?? 'N/A' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
-                                        ₹{{ number_format($investment->amount, 2) }}
+                                        @if($investment->is_hidden)
+                                            <span class="text-[var(--color-text-secondary)]">Hidden</span>
+                                        @else
+                                            ₹{{ number_format($investment->amount, 2) }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-[var(--color-text-primary)]">
-                                        {{ $investment->current_value ? '₹' . number_format($investment->current_value, 2) : 'N/A' }}
+                                        @if($investment->is_hidden)
+                                            <span class="text-[var(--color-text-secondary)]">Hidden</span>
+                                        @else
+                                            {{ $investment->current_value ? '₹' . number_format($investment->current_value, 2) : 'N/A' }}
+                                        @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         @if($investment->is_hidden)
@@ -119,27 +131,25 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
                                             @can('view', $investment)
-                                                <a href="{{ route('investments.show', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    View
+                                                <a href="{{ route('investments.show', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">View</x-button>
                                                 </a>
                                             @endcan
                                             @can('update', $investment)
-                                                <a href="{{ route('investments.edit', ['investment' => $investment->id, 'family_id' => $family->id]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    Edit
+                                                <a href="{{ route('investments.edit', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
+                                                    <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
                                             @endcan
                                             @can('delete', $investment)
                                                 <x-form 
-                                                    method="POST" 
+                                                    method="DELETE" 
                                                     action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" 
                                                     class="inline"
                                                     data-confirm="Are you sure you want to delete this investment? This action cannot be undone."
                                                     data-confirm-title="Delete Investment"
                                                     data-confirm-variant="danger"
                                                 >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm">Delete</button>
+                                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
                                             @endcan
                                         </div>
@@ -169,58 +179,65 @@
 
         <!-- Charts Section - Moved to bottom after the list -->
         @if($investments->count() > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Investment Type Distribution Chart (Donut) -->
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Type Distribution</h2>
-                    @if(count($typeDistributionData) > 0)
-                        <div id="investmentTypeDistributionChart" style="min-height: 400px;"></div>
-                    @else
-                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
-                            <p>No visible investments available for chart visualization.</p>
-                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
-                        </div>
-                    @endif
-                </div>
+            @php
+                $hasTypeDistribution = count($typeDistributionData ?? []) > 0;
+                $hasOwnerDistribution = count($ownerDistributionData ?? []) > 0;
+                $hasCountByType = count($countByTypeData ?? []) > 0;
+                $hasValueTrend = count($valueTrendData ?? []) > 0;
+                $hasProfitLoss = count($profitLossTrendData ?? []) > 0;
+                $distributionChartsCount = ($hasTypeDistribution ? 1 : 0) + ($hasOwnerDistribution ? 1 : 0) + ($hasCountByType ? 1 : 0) + ($hasValueTrend ? 1 : 0);
+            @endphp
+            
+            @if($hasTypeDistribution || $hasOwnerDistribution || $hasCountByType || $hasValueTrend || $hasProfitLoss)
+                <!-- Distribution Charts (2-column grid) -->
+                @if($distributionChartsCount > 0)
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Investment Type Distribution Chart (Donut) -->
+                        @if($hasTypeDistribution)
+                            <div class="card">
+                                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Type Distribution</h2>
+                                <div id="investmentTypeDistributionChart" style="min-height: 400px;"></div>
+                            </div>
+                        @endif
 
-                <!-- Owner-wise Distribution Chart (Donut) -->
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
-                    @if(count($ownerDistributionData) > 0)
-                        <div id="investmentOwnerDistributionChart" style="min-height: 400px;"></div>
-                    @else
-                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
-                            <p>No visible investments available for chart visualization.</p>
-                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
-                        </div>
-                    @endif
-                </div>
+                        <!-- Owner-wise Distribution Chart (Donut) -->
+                        @if($hasOwnerDistribution)
+                            <div class="card">
+                                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
+                                <div id="investmentOwnerDistributionChart" style="min-height: 400px;"></div>
+                            </div>
+                        @endif
 
-                <!-- Investment Count by Type Chart (Bar) -->
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Count by Type</h2>
-                    @if(count($countByTypeData) > 0)
-                        <div id="investmentCountByTypeChart" style="min-height: 400px;"></div>
-                    @else
-                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
-                            <p>No visible investments available for chart visualization.</p>
-                            <p class="text-sm mt-2">Hidden investments are excluded from charts.</p>
-                        </div>
-                    @endif
-                </div>
+                        <!-- Investment Count by Type Chart (Bar) -->
+                        @if($hasCountByType)
+                            <div class="card">
+                                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Count by Type</h2>
+                                <div id="investmentCountByTypeChart" style="min-height: 400px;"></div>
+                            </div>
+                        @endif
 
-                <!-- Profit/Loss Trend Chart (Column) -->
-                @if(count($profitLossTrendData) > 0)
-                    <div class="card lg:col-span-2">
+                        <!-- Investment Value Trend Chart (Line) -->
+                        @if($hasValueTrend)
+                            <div class="card">
+                                <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Value Trend</h2>
+                                <div id="investmentValueTrendChart" style="min-height: 400px;"></div>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                <!-- Profit/Loss Trend Chart (Full width) -->
+                @if($hasProfitLoss)
+                    <div class="card">
                         <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Profit/Loss Trend</h2>
                         <div id="investmentProfitLossTrendChart" style="min-height: 400px;"></div>
                     </div>
                 @endif
-            </div>
+            @endif
         @endif
     </div>
 
-    @if($investments->count() > 0 && (count($typeDistributionData ?? []) > 0 || count($profitLossTrendData ?? []) > 0 || count($ownerDistributionData ?? []) > 0 || count($countByTypeData ?? []) > 0))
+    @if($investments->count() > 0 && (count($typeDistributionData ?? []) > 0 || count($profitLossTrendData ?? []) > 0 || count($ownerDistributionData ?? []) > 0 || count($countByTypeData ?? []) > 0 || count($valueTrendData ?? []) > 0))
         @push('scripts')
             <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
             <script src="{{ asset('js/investment-charts.js') }}"></script>
@@ -234,15 +251,17 @@
                     const ownerDistributionData = @json($ownerDistributionData ?? []);
                     // Count by Type Data
                     const countByTypeData = @json($countByTypeData ?? []);
+                    // Value Trend Data
+                    const valueTrendData = @json($valueTrendData ?? []);
                     
                     // Initialize charts once ApexCharts is loaded
                     if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
-                        initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData);
+                        initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData);
                     } else {
                         // Wait for ApexCharts to load
                         window.addEventListener('load', function() {
                             if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
-                                initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData);
+                                initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData);
                             } else {
                                 console.error('ApexCharts or initInvestmentCharts function not available');
                             }

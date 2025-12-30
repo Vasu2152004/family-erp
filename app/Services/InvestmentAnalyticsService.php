@@ -105,16 +105,16 @@ class InvestmentAnalyticsService
                 return $amount;
 
             case 'SIP': // Systematic Investment Plan
-                if ($monthlyPremium) {
+                // SIP only uses monthly premium and interest rate, NOT amount
+                if ($monthlyPremium && $interestRate) {
                     $monthlyRate = $interestRate / 12 / 100;
                     $n = (int) $months;
                     if ($n > 0) {
                         return $monthlyPremium * ((pow(1 + $monthlyRate, $n) - 1) / $monthlyRate);
                     }
                 }
-                $monthlyRate = $interestRate / 12 / 100;
-                $n = (int) $months;
-                return $amount * pow(1 + $monthlyRate, $n);
+                // If no monthly premium or interest rate, return 0
+                return 0;
 
             default:
                 // For other types, use simple interest based on interest_period

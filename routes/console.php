@@ -30,4 +30,7 @@ Schedule::command('medicines:send-expiry-reminders')->dailyAt(TimezoneService::c
 Schedule::command('medicines:send-intake-reminders')->everyFiveMinutes();
 // Medicine reminders every 5 minutes (health module)
 Schedule::command('health:send-medicine-reminders')->everyFiveMinutes();
+// Doctor visit reminders daily at 8 AM IST (02:30 UTC)
+// IST is UTC+5:30, so 08:00 IST = 02:30 UTC
+Schedule::command('health:send-doctor-visit-reminders')->dailyAt(TimezoneService::convertScheduledTimeIstToUtc('08:00'));
 

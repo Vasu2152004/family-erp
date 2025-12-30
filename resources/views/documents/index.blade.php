@@ -151,7 +151,7 @@
                                 >
                                     @csrf
                                     @method('DELETE')
-                                    <x-button type="submit" variant="ghost" size="sm" class="text-red-600 hover:text-red-700">Delete</x-button>
+                                    <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                 </x-form>
                             @endcan
                         </div>
@@ -179,7 +179,7 @@
 
     <form id="document-download-form" method="POST" class="hidden">
         @csrf
-    </x-form>
+    </form>
 
     <!-- Password Modal -->
     <div id="password-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" style="display: none;">

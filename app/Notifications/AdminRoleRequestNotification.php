@@ -71,20 +71,38 @@ class AdminRoleRequestNotification extends Notification implements ShouldQueue
     }
 
     /**
+     * Get the database representation of the notification.
+     *
+     * @return array<string, mixed>
+     */
+    public function toDatabase(object $notifiable): array
+    {
+        // Ensure relationships are loaded
+        $this->request->loadMissing(['user', 'family']);
+        
+        $requestingUser = $this->request->user;
+        $family = $this->request->family;
+
+        return [
+            'type' => 'admin_role_request',
+            'title' => 'Admin Role Request',
+            'message' => "{$requestingUser->name} has requested admin role for {$family->name}. This is request #{$this->request->request_count} of 3.",
+            'request_id' => $this->request->id,
+            'family_id' => $this->request->family_id,
+            'family_name' => $family->name,
+            'requesting_user_id' => $this->request->user_id,
+            'requesting_user_name' => $requestingUser->name,
+            'request_count' => $this->request->request_count,
+        ];
+    }
+
+    /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'admin_role_request',
-            'request_id' => $this->request->id,
-            'family_id' => $this->request->family_id,
-            'family_name' => $this->request->family->name,
-            'requesting_user_id' => $this->request->user_id,
-            'requesting_user_name' => $this->request->user->name,
-            'request_count' => $this->request->request_count,
-        ];
+        return $this->toDatabase($notifiable);
     }
 }

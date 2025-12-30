@@ -189,15 +189,13 @@
                 @endcan
                 @can('delete', $asset)
                     <x-form 
-                        method="POST" 
+                        method="DELETE" 
                         action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" 
                         class="inline"
                         data-confirm="Delete this asset?"
                         data-confirm-title="Delete Asset"
                         data-confirm-variant="danger"
                     >
-                        @csrf
-                        @method('DELETE')
                         <x-button variant="danger" size="md">Delete</x-button>
                     </x-form>
                 @endcan

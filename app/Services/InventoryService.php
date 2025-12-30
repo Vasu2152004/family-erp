@@ -18,15 +18,47 @@ class InventoryService
     public function createCategory(array $data, int $tenantId, int $familyId): InventoryCategory
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId) {
-            return InventoryCategory::create([
-                'tenant_id' => $tenantId,
-                'family_id' => $familyId,
-                'name' => $data['name'],
-                'description' => $data['description'] ?? null,
-                'icon' => $data['icon'] ?? null,
-                'color' => $data['color'] ?? null,
-                'created_by' => $data['created_by'] ?? auth()->id(),
-            ]);
+            // IMPORTANT: Only check for duplicates within this specific family
+            // Each family is completely isolated - same name can exist in different families
+            $categoryName = trim($data['name']);
+            
+            // Double-check: ensure we're only checking within this family
+            $existingCategory = InventoryCategory::where('family_id', $familyId)
+                ->where('name', $categoryName)
+                ->first();
+            
+            if ($existingCategory) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'name' => ['A category with this name already exists for this family.'],
+                ]);
+            }
+            
+            try {
+                return InventoryCategory::create([
+                    'tenant_id' => $tenantId,
+                    'family_id' => $familyId, // Explicitly set family_id to ensure isolation
+                    'name' => $categoryName,
+                    'description' => $data['description'] ?? null,
+                    'icon' => $data['icon'] ?? null,
+                    'color' => $data['color'] ?? null,
+                    'created_by' => $data['created_by'] ?? auth()->id(),
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                // If we still get a duplicate entry error, it means there was a race condition
+                // Check again and throw validation exception
+                if ($e->getCode() == 23000 && (str_contains($e->getMessage(), 'Duplicate entry') || str_contains($e->getMessage(), 'unique'))) {
+                    $exists = InventoryCategory::where('family_id', $familyId)
+                        ->where('name', $categoryName)
+                        ->exists();
+                    
+                    if ($exists) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'name' => ['A category with this name already exists for this family.'],
+                        ]);
+                    }
+                }
+                throw $e;
+            }
         });
     }
 
@@ -37,8 +69,26 @@ class InventoryService
     {
         return DB::transaction(function () use ($categoryId, $data) {
             $category = InventoryCategory::findOrFail($categoryId);
+            
+            // IMPORTANT: Only check for duplicates within this specific family
+            // Each family is completely isolated - same name can exist in different families
+            if (isset($data['name']) && trim($data['name']) !== $category->name) {
+                $newName = trim($data['name']);
+                $existingCategory = InventoryCategory::where('family_id', $category->family_id)
+                    ->where('id', '!=', $categoryId)
+                    ->where('name', $newName)
+                    ->first();
+                
+                if ($existingCategory) {
+                    throw new \Illuminate\Validation\ValidationException(
+                        validator([], []),
+                        ['name' => ['A category with this name already exists for this family.']]
+                    );
+                }
+            }
+            
             $category->update([
-                'name' => $data['name'] ?? $category->name,
+                'name' => isset($data['name']) ? trim($data['name']) : $category->name,
                 'description' => $data['description'] ?? $category->description,
                 'icon' => $data['icon'] ?? $category->icon,
                 'color' => $data['color'] ?? $category->color,

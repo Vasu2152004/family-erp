@@ -104,6 +104,7 @@ class InvestmentController extends Controller
         $profitLossTrendData = $this->analyticsService->getProfitLossTrend($family->id);
         $ownerDistributionData = $this->analyticsService->getOwnerWiseDistribution($family->id);
         $countByTypeData = $this->analyticsService->getInvestmentCountByType($family->id);
+        $valueTrendData = $this->analyticsService->getInvestmentValueTrend($family->id);
 
         return view('investments.index', compact(
             'family',
@@ -112,7 +113,8 @@ class InvestmentController extends Controller
             'typeDistributionData',
             'profitLossTrendData',
             'ownerDistributionData',
-            'countByTypeData'
+            'countByTypeData',
+            'valueTrendData'
         ));
     }
 
@@ -156,9 +158,9 @@ class InvestmentController extends Controller
             'investment_type' => ['required', 'in:FD,RD,SIP,MUTUAL_FUND,STOCK,CRYPTO,OTHER'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required_unless:investment_type,SIP', 'numeric', 'min:0'],
             'start_date' => ['nullable', 'date'],
-            'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'interest_rate' => ['nullable', 'exclude_if:investment_type,OTHER', 'numeric', 'min:0', 'max:100'],
             'interest_period' => ['nullable', 'in:YEARLY,MONTHLY,QUARTERLY'],
             'monthly_premium' => ['nullable', 'numeric', 'min:0'],
             'current_value' => ['nullable', 'numeric', 'min:0'],
@@ -279,9 +281,9 @@ class InvestmentController extends Controller
             'investment_type' => ['required', 'in:FD,RD,SIP,MUTUAL_FUND,STOCK,CRYPTO,OTHER'],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'amount' => ['required', 'numeric', 'min:0'],
+            'amount' => ['required_unless:investment_type,SIP', 'numeric', 'min:0'],
             'start_date' => ['nullable', 'date'],
-            'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'interest_rate' => ['nullable', 'exclude_if:investment_type,OTHER', 'numeric', 'min:0', 'max:100'],
             'interest_period' => ['nullable', 'in:YEARLY,MONTHLY,QUARTERLY'],
             'monthly_premium' => ['nullable', 'numeric', 'min:0'],
             'current_value' => ['nullable', 'numeric', 'min:0'],

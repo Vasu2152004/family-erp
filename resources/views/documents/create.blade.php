@@ -121,7 +121,7 @@
                     <button type="button" id="cancel-modal-btn" class="px-4 py-2 rounded-lg border border-[var(--color-border-primary)] text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)]">Cancel</button>
                     <x-button type="submit" variant="primary" size="md">Add Type</x-button>
                 </div>
-            </x-form>
+            </form>
         </div>
     </div>
 

@@ -152,9 +152,6 @@
                             'families.transactions.*',
                             'families.budgets.*',
                             'families.finance-analytics.*',
-                            'finance.assets.*',
-                            'finance.investments.*',
-                            'finance.investment-unlock-requests.*',
                         ],
                         [
                             'finance*',
@@ -162,9 +159,6 @@
                             'families/*/transactions*',
                             'families/*/budgets*',
                             'families/*/finance-analytics*',
-                            'finance/assets*',
-                            'finance/investments*',
-                            'finance/investment-unlock-requests*',
                         ]
                     );
                 @endphp
@@ -175,6 +169,48 @@
                     <span class="font-medium">Finance</span>
                 </a>
             </li>
+
+            @if($activeFamily)
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
+                                'assets.*',
+                            ],
+                            [
+                                'assets*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('assets.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <span class="font-medium">Assets</span>
+                    </a>
+                </li>
+
+                <li>
+                    @php
+                        $isActive = $match(
+                            [
+                                'investments.*',
+                                'investment-unlock-requests.*',
+                            ],
+                            [
+                                'investments*',
+                                'investment-unlock-requests*',
+                            ]
+                        );
+                    @endphp
+                    <a href="{{ route('investments.index', ['family_id' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        <span class="font-medium">Investments</span>
+                    </a>
+                </li>
+            @endif
 
             @if($activeFamily)
                 <li>

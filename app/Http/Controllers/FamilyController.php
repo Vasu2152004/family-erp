@@ -33,11 +33,20 @@ class FamilyController extends Controller
         // Merge and get unique family IDs
         $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
         
-        // Get families by IDs
+        // Get families by IDs with counts
         $families = Family::whereIn('id', $familyIds)
             ->withCount(['members', 'roles'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+
+        // Add owner count to each family (owners are in roles table)
+        $families->getCollection()->transform(function ($family) {
+            $ownerCount = \App\Models\FamilyUserRole::where('family_id', $family->id)
+                ->where('role', 'OWNER')
+                ->count();
+            $family->members_count = $family->members_count + $ownerCount;
+            return $family;
+        });
 
         // Check if user is already part of any family
         $hasFamily = $familyIds->isNotEmpty();
@@ -143,6 +152,24 @@ class FamilyController extends Controller
             'roles.user',
         ]);
 
+        // Get owner(s) to include in member count and list
+        $owners = $family->roles()
+            ->where('role', 'OWNER')
+            ->with('user')
+            ->get()
+            ->map(function ($role) {
+                return (object) [
+                    'id' => 'owner_' . $role->user_id,
+                    'first_name' => $role->user->name ?? 'Owner',
+                    'last_name' => '',
+                    'relation' => 'Owner',
+                    'is_deceased' => false,
+                    'is_owner' => true,
+                    'user' => $role->user,
+                    'created_at' => $role->created_at,
+                ];
+            });
+
         // Get pending family member requests for this family (where current user is the requested user)
         $pendingMemberRequests = \App\Models\FamilyMemberRequest::where('family_id', $family->id)
             ->where('requested_user_id', Auth::id())
@@ -174,7 +201,7 @@ class FamilyController extends Controller
                 ->get();
         }
 
-        return view('families.show', compact('family', 'pendingMemberRequests', 'pendingAdminRequests', 'adminRequestsToReview', 'isOwnerOrAdmin'));
+        return view('families.show', compact('family', 'pendingMemberRequests', 'pendingAdminRequests', 'adminRequestsToReview', 'isOwnerOrAdmin', 'owners'));
     }
     
     /**
