@@ -59,24 +59,26 @@
 
         <!-- Main Content -->
         <main class="p-4 sm:p-6 lg:p-8 bg-[var(--color-bg-primary)] min-h-screen">
-            <!-- Flash Messages -->
-            @if(session('success'))
-                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
-                    {{ session('success') }}
-                </x-alert>
-            @endif
+            <!-- Flash Messages - Fixed at Top Right -->
+            <div class="fixed top-20 right-4 z-40 space-y-2 w-full max-w-md sm:max-w-lg pointer-events-none">
+                @if(session('success'))
+                    <x-alert type="success" dismissible class="animate-fade-in pointer-events-auto shadow-lg">
+                        {{ session('success') }}
+                    </x-alert>
+                @endif
 
-            @if(session('info'))
-                <x-alert type="info" dismissible class="mb-6 animate-fade-in">
-                    {{ session('info') }}
-                </x-alert>
-            @endif
+                @if(session('info'))
+                    <x-alert type="info" dismissible class="animate-fade-in pointer-events-auto shadow-lg">
+                        {{ session('info') }}
+                    </x-alert>
+                @endif
 
-            @if(session('error'))
-                <x-alert type="error" dismissible class="mb-6 animate-fade-in">
-                    {{ session('error') }}
-                </x-alert>
-            @endif
+                @if(session('error'))
+                    <x-alert type="error" dismissible class="animate-fade-in pointer-events-auto shadow-lg">
+                        {{ session('error') }}
+                    </x-alert>
+                @endif
+            </div>
 
             {{ $slot }}
         </main>
@@ -86,6 +88,28 @@
     <div id="custom-alerts-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-md w-full"></div>
     
     @stack('scripts')
+    
+    <!-- Auto-dismiss flash messages after 5 seconds -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all flash message alerts in the fixed container
+            const flashContainer = document.querySelector('.fixed.top-20.right-4');
+            if (flashContainer) {
+                const alerts = flashContainer.querySelectorAll('[role="alert"]');
+                alerts.forEach(function(alert) {
+                    // Add fade-out animation class
+                    setTimeout(function() {
+                        alert.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-10px)';
+                        setTimeout(function() {
+                            alert.remove();
+                        }, 300);
+                    }, 5000); // 5 seconds
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 

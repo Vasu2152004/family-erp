@@ -11,6 +11,7 @@ use App\Models\InventoryItem;
 use App\Models\Budget;
 use App\Models\FamilyMember;
 use App\Services\ShoppingListService;
+use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,7 +22,8 @@ class ShoppingListController extends Controller
     use HasFamilyContext;
 
     public function __construct(
-        private ShoppingListService $shoppingListService
+        private ShoppingListService $shoppingListService,
+        private InventoryService $inventoryService
     ) {
     }
 
@@ -66,30 +68,32 @@ class ShoppingListController extends Controller
             ->limit(100)
             ->get();
 
-        // Get budgets for current user (personal budgets + family budgets)
+        // Get budgets for current user (personal budgets + family budgets) - optimize with single query
         $currentMonth = now()->month;
         $currentYear = now()->year;
-        $currentUserMember = FamilyMember::where('family_id', $family->id)
+        
+        // Cache user role and member for this request
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
             ->where('user_id', Auth::id())
+            ->select('role')
             ->first();
+        $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
 
         $budgetsQuery = Budget::where('family_id', $family->id)
             ->where('month', $currentMonth)
             ->where('year', $currentYear)
             ->where('is_active', true)
-            ->with(['category']);
-
-        // Get user role
-        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
-            ->first();
-        $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
+            ->with(['category:id,name']);
 
         if ($isAdminOrOwner) {
             // OWNER/ADMIN can see all budgets
             $budgets = $budgetsQuery->get();
         } else {
             // MEMBER can see family budgets + their own personal budgets
+            $currentUserMember = FamilyMember::where('family_id', $family->id)
+                ->where('user_id', Auth::id())
+                ->select('id')
+                ->first();
             $budgets = $budgetsQuery->where(function ($q) use ($currentUserMember) {
                 $q->whereNull('family_member_id') // Family budgets
                     ->orWhere('family_member_id', $currentUserMember?->id); // Their personal budgets
@@ -262,10 +266,23 @@ class ShoppingListController extends Controller
 
         $this->authorize('create', [ShoppingListItem::class, $family]);
 
+        // Get low stock items first to provide better feedback
+        $lowStockItems = $this->inventoryService->checkLowStock($family->id);
+        $lowStockCount = $lowStockItems->count();
+        
         $addedItems = $this->shoppingListService->autoAddLowStockItems($family->id);
+        $addedCount = $addedItems->count();
 
-        return redirect()->route('shopping-list.index', ['family_id' => $family->id])
-            ->with('success', $addedItems->count() . ' low stock items added to shopping list.');
+        if ($addedCount > 0) {
+            return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                ->with('success', $addedCount . ' low stock item' . ($addedCount > 1 ? 's' : '') . ' added to shopping list.');
+        } elseif ($lowStockCount > 0) {
+            return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                ->with('info', $lowStockCount . ' low stock item' . ($lowStockCount > 1 ? 's were' : ' was') . ' found, but ' . ($lowStockCount > 1 ? 'they are' : 'it is') . ' already in your shopping list.');
+        } else {
+            return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                ->with('info', 'No low stock items found. Make sure you have set a minimum quantity (min_qty > 0) for inventory items to enable low stock detection.');
+        }
     }
 
     /**

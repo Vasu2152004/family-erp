@@ -199,6 +199,7 @@ class InventoryService
     public function checkLowStock(int $familyId): Collection
     {
         return InventoryItem::where('family_id', $familyId)
+            ->where('min_qty', '>', 0) // Only check items with min_qty set (greater than 0)
             ->withSum('batches', 'qty')
             ->with(['category', 'createdBy'])
             ->get()

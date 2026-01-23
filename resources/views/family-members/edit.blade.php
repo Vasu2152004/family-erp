@@ -16,29 +16,11 @@
                 </p>
             </div>
 
-        <x-form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6" enctype="multipart/form-data">
+        <x-form method="POST" action="{{ route('families.members.update', [$family, $member]) }}" class="space-y-6">
             @csrf
             @method('PUT')
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <x-label for="avatar">Profile Photo</x-label>
-                    <input
-                        type="file"
-                        name="avatar"
-                        id="avatar"
-                        accept="image/*"
-                        class="mt-1 block w-full text-sm text-[var(--color-text-primary)] file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:bg-[var(--color-surface)] file:text-[var(--color-text-primary)] hover:file:bg-[var(--color-surface-alt)]"
-                    />
-                    <x-error-message field="avatar" />
-                    @if($member->avatar_url)
-                        <div class="mt-3 flex items-center gap-3">
-                            <img src="{{ $member->avatar_url }}" alt="Avatar preview" class="w-14 h-14 rounded-full object-cover border border-[var(--color-border-primary)]">
-                            <p class="text-sm text-[var(--color-text-secondary)]">Current photo</p>
-                        </div>
-                    @endif
-                </div>
-
                 <div>
                     <x-label for="first_name" required>First Name</x-label>
                     <x-input

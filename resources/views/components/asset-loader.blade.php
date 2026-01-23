@@ -12,8 +12,9 @@ $viteAssetsAvailable = file_exists(public_path('build/manifest.json')) || file_e
     <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin>
     <link rel="dns-prefetch" href="https://cdn.tailwindcss.com">
     
-    {{-- Load Critical CSS from external file --}}
-    <link rel="stylesheet" href="{{ asset('css/critical.css') }}">
+    {{-- Load Critical CSS from external file with preload --}}
+    <link rel="preload" href="{{ asset('css/critical.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ asset('css/critical.css') }}"></noscript>
     
     {{-- Load Tailwind CDN asynchronously --}}
     <script>
@@ -21,6 +22,7 @@ $viteAssetsAvailable = file_exists(public_path('build/manifest.json')) || file_e
             var script = document.createElement('script');
             script.src = 'https://cdn.tailwindcss.com';
             script.defer = true;
+            script.async = true;
             script.onload = function() {
                 // Load Tailwind config after CDN loads
                 var configScript = document.createElement('script');
@@ -32,9 +34,9 @@ $viteAssetsAvailable = file_exists(public_path('build/manifest.json')) || file_e
         })();
     </script>
     
-    {{-- Load Fallback JavaScript from external files --}}
-    <script src="{{ asset('js/fallback.js') }}" defer></script>
+    {{-- Load Fallback JavaScript from external files with defer --}}
+    <script src="{{ asset('js/fallback.js') }}" defer async></script>
     {{-- Documents interactions (downloads/password modal) --}}
-    <script src="{{ asset('js/documents.js') }}" defer></script>
+    <script src="{{ asset('js/documents.js') }}" defer async></script>
 @endif
 

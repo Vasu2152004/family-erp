@@ -13,11 +13,6 @@
                 </p>
             </div>
 
-            @if(session('success'))
-                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
-                    {{ session('success') }}
-                </x-alert>
-            @endif
 
             @if($errors->any())
                 <div class="mb-6 space-y-2">

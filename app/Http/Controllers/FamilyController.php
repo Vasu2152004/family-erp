@@ -152,10 +152,16 @@ class FamilyController extends Controller
             'roles.user',
         ]);
 
-        // Get owner(s) to include in member count and list
+        // Optimize: Load all data in parallel with eager loading
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+
+        // Get owner(s) to include in member count and list - use already loaded roles
         $owners = $family->roles()
             ->where('role', 'OWNER')
-            ->with('user')
+            ->with('user:id,name')
             ->get()
             ->map(function ($role) {
                 return (object) [
@@ -174,7 +180,7 @@ class FamilyController extends Controller
         $pendingMemberRequests = \App\Models\FamilyMemberRequest::where('family_id', $family->id)
             ->where('requested_user_id', Auth::id())
             ->where('status', 'pending')
-            ->with(['family', 'requestedBy'])
+            ->with(['family:id,name', 'requestedBy:id,name'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -186,17 +192,12 @@ class FamilyController extends Controller
 
         // Get admin role requests that need admin/owner attention (for admins/owners only)
         $adminRequestsToReview = collect();
-        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
-            ->first();
-        $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
-        
         if ($isOwnerOrAdmin) {
             // Get all pending admin role requests for this family (excluding current user's own requests)
             $adminRequestsToReview = \App\Models\AdminRoleRequest::where('family_id', $family->id)
                 ->where('user_id', '!=', Auth::id())
                 ->where('status', 'pending')
-                ->with('user')
+                ->with('user:id,name')
                 ->orderBy('created_at', 'desc')
                 ->get();
         }

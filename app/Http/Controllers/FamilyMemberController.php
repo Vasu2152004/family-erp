@@ -164,7 +164,6 @@ class FamilyMemberController extends Controller
             'relation' => ['required', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
             'is_deceased' => ['sometimes', 'boolean'],
             'date_of_death' => ['nullable', 'date', 'required_if:is_deceased,true'],
         ]));

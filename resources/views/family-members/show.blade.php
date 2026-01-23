@@ -12,11 +12,7 @@
             <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 rounded-full overflow-hidden border border-[var(--color-border-primary)] shadow-md bg-[var(--color-surface-alt)] flex items-center justify-center text-lg font-semibold text-[var(--color-text-primary)]">
-                        @if($member->avatar_url)
-                            <img src="{{ $member->avatar_url }}" alt="{{ $member->first_name }} avatar" class="w-full h-full object-cover">
-                        @else
-                            {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name, 0, 1)) }}
-                        @endif
+                        {{ strtoupper(substr($member->first_name, 0, 1)) }}{{ strtoupper(substr($member->last_name, 0, 1)) }}
                     </div>
                     <div>
                         <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">{{ $member->first_name }} {{ $member->last_name }}</h1>

@@ -199,17 +199,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             Route::post('{item}/usage', [\App\Http\Controllers\InventoryItemController::class, 'logUsage'])->name('log-usage');
         });
 
-        // Shopping List
-        Route::prefix('shopping-list')->name('shopping-list.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\ShoppingListController::class, 'index'])->name('index');
-            Route::post('/', [\App\Http\Controllers\ShoppingListController::class, 'store'])->name('store');
-            Route::patch('{item}', [\App\Http\Controllers\ShoppingListController::class, 'update'])->name('update');
-            Route::delete('{item}', [\App\Http\Controllers\ShoppingListController::class, 'destroy'])->name('destroy');
-            Route::patch('{item}/purchased', [\App\Http\Controllers\ShoppingListController::class, 'markPurchased'])->name('mark-purchased');
-            Route::patch('{item}/pending', [\App\Http\Controllers\ShoppingListController::class, 'markPending'])->name('mark-pending');
-            Route::post('auto-add-low-stock', [\App\Http\Controllers\ShoppingListController::class, 'autoAddLowStock'])->name('auto-add-low-stock');
-            Route::delete('purchased/clear', [\App\Http\Controllers\ShoppingListController::class, 'clearPurchased'])->name('clear-purchased');
-        });
+        // Shopping List routes removed - using standalone routes below
 
         // Calendar
         Route::prefix('calendar')->name('calendar.')->group(function () {

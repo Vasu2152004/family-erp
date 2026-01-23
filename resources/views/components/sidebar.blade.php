@@ -27,11 +27,7 @@
     <div class="px-6 py-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
         <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div class="w-10 h-10 rounded-full overflow-hidden border border-[var(--color-border-primary)] shadow-sm flex items-center justify-center bg-[var(--color-primary)]/10">
-                @if(Auth::user()->avatar_url)
-                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="w-full h-full object-cover">
-                @else
-                    <span class="text-[var(--color-primary)] font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
-                @endif
+                <span class="text-[var(--color-primary)] font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
             </div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">{{ Auth::user()->name }}</p>
@@ -119,7 +115,7 @@
                     $isActive = (
                         (str_starts_with($currentRoute, 'families.') && 
                          !str_starts_with($currentRoute, 'families.inventory.') &&
-                         !str_starts_with($currentRoute, 'families.shopping-list.') &&
+                         !str_starts_with($currentRoute, 'shopping-list.') &&
                          !str_starts_with($currentRoute, 'families.calendar.') &&
                          !str_starts_with($currentRoute, 'families.transactions.') &&
                          !str_starts_with($currentRoute, 'families.budgets.') &&
@@ -361,15 +357,13 @@
                         $isActive = $match(
                             [
                                 'shopping-list.*',
-                                'families.shopping-list.*',
                             ],
                             [
                                 'shopping-list*',
-                                'families/*/shopping-list*',
                             ]
                         );
                     @endphp
-                    <a href="{{ route('families.shopping-list.index', ['family' => $activeFamily->id]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
+                    <a href="{{ route('shopping-list.index', ['family_id' => $activeFamily->id ?? null]) }}" class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 {{ $isActive ? $activeClasses : $inactiveClasses }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                         </svg>

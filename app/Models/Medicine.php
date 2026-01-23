@@ -140,3 +140,10 @@ class Medicine extends Model
 
 
 
+
+
+
+
+
+
+

@@ -5,17 +5,33 @@
 
     @php
         $user = Auth::user();
-        $familiesCount = \App\Models\FamilyUserRole::where('user_id', $user->id)
-            ->pluck('family_id')
-            ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
-            ->unique()
-            ->count();
-        $pendingRequestsCount = \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
-            ->where('status', 'pending')
-            ->count();
         
-        // Get unread notifications, especially budget alerts
-        $unreadNotifications = $user->unreadNotifications()->orderBy('created_at', 'desc')->get();
+        // Cache expensive queries for 5 minutes
+        $cacheKey = 'dashboard_data_' . $user->id;
+        $dashboardData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($user) {
+            $familyIds = \App\Models\FamilyUserRole::where('user_id', $user->id)
+                ->pluck('family_id')
+                ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
+                ->unique();
+            
+            return [
+                'familiesCount' => $familyIds->count(),
+                'pendingRequestsCount' => \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
+                    ->where('status', 'pending')
+                    ->count(),
+                'familyIds' => $familyIds->values()->all(),
+            ];
+        });
+        
+        $familiesCount = $dashboardData['familiesCount'];
+        $pendingRequestsCount = $dashboardData['pendingRequestsCount'];
+        $familyIds = collect($dashboardData['familyIds']);
+        
+        // Get unread notifications, especially budget alerts (limit to 10 for performance)
+        $unreadNotifications = $user->unreadNotifications()
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
         $budgetAlerts = $unreadNotifications->filter(function($notification) {
             return in_array($notification->type, ['budget_alert', 'budget_exceeded']);
         });
@@ -23,24 +39,20 @@
             return !in_array($notification->type, ['budget_alert', 'budget_exceeded']);
         });
         
-        // Get vehicle expiry alerts
-        $familyIds = \App\Models\FamilyUserRole::where('user_id', $user->id)
-            ->pluck('family_id')
-            ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
-            ->unique();
+        // Get vehicle expiry alerts (optimized query)
         $expiringVehicles = \App\Models\Vehicle::whereIn('family_id', $familyIds)
             ->where('tenant_id', $user->tenant_id)
             ->where(function($query) {
-                $query->where('rc_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30))
-                    ->orWhere('insurance_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30))
-                    ->orWhere('puc_expiry_date', '<=', \Carbon\Carbon::today()->addDays(30));
+                $today = \Carbon\Carbon::today();
+                $future = $today->copy()->addDays(30);
+                $query->where(function($q) use ($today, $future) {
+                    $q->whereBetween('rc_expiry_date', [$today, $future])
+                        ->orWhereBetween('insurance_expiry_date', [$today, $future])
+                        ->orWhereBetween('puc_expiry_date', [$today, $future]);
+                });
             })
-            ->where(function($query) {
-                $query->where('rc_expiry_date', '>=', \Carbon\Carbon::today())
-                    ->orWhere('insurance_expiry_date', '>=', \Carbon\Carbon::today())
-                    ->orWhere('puc_expiry_date', '>=', \Carbon\Carbon::today());
-            })
-            ->with('family')
+            ->with('family:id,name')
+            ->limit(10)
             ->get();
     @endphp
 

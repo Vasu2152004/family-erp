@@ -7,18 +7,6 @@
         ]" />
 
         <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
-            @if(session('success'))
-                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
-                    {{ session('success') }}
-                </x-alert>
-            @endif
-
-            @if(session('error'))
-                <x-alert type="error" dismissible class="mb-6 animate-fade-in">
-                    {{ session('error') }}
-                </x-alert>
-            @endif
-
             @if($errors->any())
                 <div class="mb-6 space-y-2">
                     @foreach($errors->all() as $error)
@@ -225,9 +213,16 @@
     </div>
 
     <!-- Purchase Modal -->
-    <div id="purchaseModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full mx-4">
-            <h3 class="text-xl font-bold text-[var(--color-text-primary)] mb-4">Mark as Purchased</h3>
+    <div id="purchaseModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="purchase-modal-title">
+        <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-xl border border-[var(--color-border-primary)] p-6 max-w-md w-full animate-fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h3 id="purchase-modal-title" class="text-xl font-bold text-[var(--color-text-primary)]">Mark as Purchased</h3>
+                <button type="button" onclick="closePurchaseModal()" class="text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors" aria-label="Close">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
             
             <form method="POST" id="purchaseForm" class="space-y-4" data-validate="false" novalidate>
                 @csrf

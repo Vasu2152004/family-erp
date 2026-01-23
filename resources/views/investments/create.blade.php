@@ -25,11 +25,6 @@
                 </div>
             @endif
 
-            @if(session('success'))
-                <x-alert type="success" dismissible class="mb-6 animate-fade-in">
-                    {{ session('success') }}
-                </x-alert>
-            @endif
 
             <x-form method="POST" action="{{ route('investments.store', ['family_id' => $family->id]) }}" class="space-y-6">
                 @csrf

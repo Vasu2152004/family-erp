@@ -31,10 +31,6 @@ class FamilyMemberService
                 }
             }
 
-            $avatarPath = isset($data['avatar']) && $data['avatar'] instanceof UploadedFile
-                ? $this->storeAvatar($data['avatar'], $familyId)
-                : null;
-
             return FamilyMember::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
@@ -45,7 +41,6 @@ class FamilyMemberService
                 'relation' => $data['relation'],
                 'phone' => $data['phone'] ?? null,
                 'email' => $data['email'] ?? null,
-                'avatar_path' => $avatarPath,
                 'user_id' => $data['user_id'] ?? null,
                 'is_deceased' => $data['is_deceased'] ?? false,
                 'date_of_death' => $data['date_of_death'] ?? null,
@@ -75,10 +70,6 @@ class FamilyMemberService
                 }
             }
 
-            $avatarPath = isset($data['avatar']) && $data['avatar'] instanceof UploadedFile
-                ? $this->storeAvatar($data['avatar'], $member->family_id, $member->avatar_path)
-                : $member->avatar_path;
-
             $member->update([
                 'first_name' => $data['first_name'] ?? $member->first_name,
                 'last_name' => $data['last_name'] ?? $member->last_name,
@@ -87,7 +78,6 @@ class FamilyMemberService
                 'relation' => $data['relation'] ?? $member->relation,
                 'phone' => $data['phone'] ?? $member->phone,
                 'email' => $data['email'] ?? $member->email,
-                'avatar_path' => $avatarPath,
                 'is_deceased' => $data['is_deceased'] ?? $member->is_deceased,
                 'date_of_death' => $data['date_of_death'] ?? $member->date_of_death,
             ]);
@@ -124,16 +114,4 @@ class FamilyMemberService
         });
     }
 
-    private function storeAvatar(UploadedFile $file, int $familyId, ?string $previousPath = null): string
-    {
-        $disk = config('filesystems.default');
-        $directory = "family-members/{$familyId}/avatars";
-        $storedPath = $file->store($directory, $disk);
-
-        if ($previousPath) {
-            Storage::disk($disk)->delete($previousPath);
-        }
-
-        return $storedPath;
-    }
 }

@@ -289,7 +289,9 @@ class ShoppingListService
                     ->first();
 
                 if (!$existing) {
-                    $qtyNeeded = max(0, $inventoryItem->min_qty - $inventoryItem->qty);
+                    // Calculate total quantity including batches (use the same logic as checkLowStock)
+                    $totalQty = (float) $inventoryItem->qty + (float) ($inventoryItem->batches_sum_qty ?? 0);
+                    $qtyNeeded = max(0, (float) $inventoryItem->min_qty - $totalQty);
                     if ($qtyNeeded > 0) {
                         $shoppingItem = ShoppingListItem::create([
                             'tenant_id' => $family->tenant_id,
