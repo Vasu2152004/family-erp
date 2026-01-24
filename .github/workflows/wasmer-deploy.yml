@@ -24,6 +24,9 @@ jobs:
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
+      - name: Copy app.yaml to root
+        run: cp family_erp/app.yaml app.yaml
+
       - name: Deploy latest commit
         run: wasmer deploy --app-name family-erp
 
