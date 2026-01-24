@@ -1,0 +1,14 @@
+name: family-erp
+
+runtime: php
+
+entrypoint:
+  - bash
+  - start.sh
+
+ports:
+  - 8080
+
+env:
+  APP_ENV: production
+  APP_DEBUG: "false"
