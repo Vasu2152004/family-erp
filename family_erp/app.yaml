@@ -1,0 +1,5 @@
+kind: wasmer.io/App.v0
+name: family_erp
+owner: vasu2152004
+package: wasmer/hello@^0.1.3
+app_id: da_RvJI4t0UEpOd
