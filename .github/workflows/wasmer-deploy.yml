@@ -24,8 +24,11 @@ jobs:
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
-      - name: Copy app.yaml to root
-        run: cp family_erp/app.yaml app.yaml
+      - name: Copy app.yaml to root and remove app_id
+        run: |
+          cp family_erp/app.yaml app.yaml
+          # Remove app_id line since app already exists
+          sed -i '/^app_id:/d' app.yaml
 
       - name: Deploy latest commit
         run: wasmer deploy --app-name family-erp
