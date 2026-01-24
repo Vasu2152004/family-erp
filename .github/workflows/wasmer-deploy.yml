@@ -1,0 +1,35 @@
+name: Deploy to Wasmer
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Wasmer CLI
+        run: curl https://get.wasmer.io -sSfL | sh
+
+      - name: Add Wasmer to PATH
+        run: |
+          echo "$HOME/.wasmer/bin" >> $GITHUB_PATH
+          echo "$HOME/.wasmer/globals/wasm/bin" >> $GITHUB_PATH
+
+      - name: Login to Wasmer
+        run: wasmer auth login --token ${{ secrets.WASMER_TOKEN }}
+
+      - name: Deploy latest commit
+        run: wasmer deploy --app family-erp
+
+      # Optional: Run migrations after deployment
+      # Uncomment the following step if you want to run migrations explicitly
+      # Note: Migrations may also run automatically via composer post-install scripts
+      - name: Run database migrations
+        run: |
+          wasmer run --app family-erp -- php artisan migrate --force
