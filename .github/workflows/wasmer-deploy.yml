@@ -27,9 +27,16 @@ jobs:
       - name: Deploy latest commit
         run: wasmer deploy --app-name family-erp
 
+      - name: Install dependencies
+        run: wasmer run --app-name family-erp -- composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Cache dependencies
+        run: wasmer run --app-name family-erp -- php artisan optimize:clear
+
       # Optional: Run migrations after deployment
       # Uncomment the following step if you want to run migrations explicitly
       # Note: Migrations may also run automatically via composer post-install scripts
       - name: Run database migrations
         run: |
-          wasmer run --app-name family-erp -- php artisan migrate --force
+          wasmer run --app-name family-erp -- php artisan migrate --force & wait
+          wasmer run --app-name family-erp -- php artisan db:seed --force & wait
