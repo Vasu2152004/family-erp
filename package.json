@@ -3,9 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite",
-        "build:prod": "NODE_ENV=production vite build --mode production"
+        "build": "npx vite build",
+        "dev": "npx vite",
+        "build:prod": "NODE_ENV=production npx vite build --mode production"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
