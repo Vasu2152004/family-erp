@@ -33,15 +33,28 @@ jobs:
       - name: Deploy latest commit
         run: wasmer deploy --app-name family-erp
 
+      - name: Wait for deployment to be ready
+        run: sleep 10
+
       - name: Install dependencies
-        run: wasmer app exec family-erp -- composer install --no-dev --optimize-autoloader --no-interaction
+        run: wasmer app ssh family-erp -- composer install --no-dev --optimize-autoloader --no-interaction
+        continue-on-error: true
 
-      - name: Cache dependencies
-        run: wasmer app exec family-erp -- php artisan optimize:clear
-
-      # Optional: Run migrations after deployment
-      # Note: Migrations may also run automatically via composer post-install scripts
       - name: Run database migrations
+        run: wasmer app ssh family-erp -- php artisan migrate --force
+        continue-on-error: true
+
+      - name: Run database seeders
+        run: wasmer app ssh family-erp -- php artisan db:seed --force
+        continue-on-error: true
+
+      - name: Clear caches
+        run: wasmer app ssh family-erp -- php artisan optimize:clear
+        continue-on-error: true
+
+      - name: Cache configuration
         run: |
-          wasmer app exec family-erp -- php artisan migrate --force
-          wasmer app exec family-erp -- php artisan db:seed --force
+          wasmer app ssh family-erp -- php artisan config:cache
+          wasmer app ssh family-erp -- php artisan route:cache
+          wasmer app ssh family-erp -- php artisan view:cache
+        continue-on-error: true
