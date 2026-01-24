@@ -57,18 +57,3 @@ Route::get('/up', function () {
     
     return response()->json($status, $httpCode);
 })->name('health.check');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
