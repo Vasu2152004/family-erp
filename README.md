@@ -22,43 +22,8 @@ A comprehensive multi-tenant Family ERP (Enterprise Resource Planning) system bu
 - MySQL 8.0 or higher
 - Composer
 - Node.js and npm (for asset compilation)
-- Docker and Docker Compose (for containerized deployment)
 
 ## Installation
-
-### Using Docker (Recommended)
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd family-erp
-```
-
-2. Copy environment file:
-```bash
-cp .env.example .env
-```
-
-3. Generate application key:
-```bash
-docker compose exec app php artisan key:generate
-```
-
-4. Configure your `.env` file with database credentials and other settings.
-
-5. Run migrations:
-```bash
-docker compose exec app php artisan migrate
-```
-
-6. Start the containers:
-```bash
-docker compose up -d
-```
-
-The application will be available at `http://localhost:8899`
-
-### Manual Installation
 
 1. Clone the repository and install dependencies:
 ```bash
@@ -255,21 +220,6 @@ php artisan view:cache
 composer dump-autoload --optimize --classmap-authoritative
 ```
 
-3. **Using Docker Production**:
-```bash
-docker compose -f docker-compose.production.yml up -d
-```
-
-**Note:** The production docker-compose includes a queue worker service that automatically processes email notifications and other queued jobs. Ensure the queue service is running:
-
-```bash
-# Check queue worker status
-docker compose -f docker-compose.production.yml ps queue
-
-# View queue worker logs
-docker compose -f docker-compose.production.yml logs -f queue
-```
-
 ### Post-Deployment
 
 1. Verify health check: `curl http://your-domain.com/up`
@@ -366,35 +316,6 @@ sudo supervisorctl update
 sudo supervisorctl start family-erp-worker:*
 ```
 
-#### Docker Setup
-
-If using Docker, you can run queue workers in a separate container or as part of your application container. Add to your `docker-compose.yml`:
-
-```yaml
-queue:
-  build:
-    context: .
-    dockerfile: docker/Dockerfile
-  container_name: family_erp_queue
-  restart: unless-stopped
-  working_dir: /var/www/html
-  volumes:
-    - ./:/var/www/html
-  command: php artisan queue:work --sleep=3 --tries=3
-  networks:
-    - family_erp_network
-  depends_on:
-    - db
-  env_file:
-    - .env
-```
-
-Or run manually in the app container:
-
-```bash
-docker compose exec app php artisan queue:work
-```
-
 ## Project Structure
 
 ```
@@ -419,7 +340,6 @@ family-erp/
 │   ├── web.php               # Web routes
 │   ├── console.php           # Console routes
 │   └── health.php            # Health check routes
-├── docker/                   # Docker configuration
 ├── tests/                    # Test files
 └── public/                   # Public assets
 ```
