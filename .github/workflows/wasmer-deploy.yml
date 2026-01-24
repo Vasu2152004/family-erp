@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Wasmer CLI
@@ -24,10 +24,5 @@ jobs:
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
-      - name: Copy app.yaml to root and remove app_id
-        run: |
-          cp family_erp/app.yaml app.yaml
-          sed -i '/^app_id:/d' app.yaml
-
-      - name: Deploy latest commit
-        run: wasmer deploy --app-name family-erp --non-interactive
+      - name: Deploy app from repo source
+        run: wasmer deploy .
