@@ -25,11 +25,11 @@ jobs:
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
       - name: Deploy latest commit
-        run: wasmer deploy --app family-erp
+        run: wasmer deploy --app-name family-erp
 
       # Optional: Run migrations after deployment
       # Uncomment the following step if you want to run migrations explicitly
       # Note: Migrations may also run automatically via composer post-install scripts
       - name: Run database migrations
         run: |
-          wasmer run --app family-erp -- php artisan migrate --force
+          wasmer run --app-name family-erp -- php artisan migrate --force
