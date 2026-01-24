@@ -22,7 +22,7 @@ jobs:
           echo "$HOME/.wasmer/globals/wasm/bin" >> $GITHUB_PATH
 
       - name: Login to Wasmer
-        run: wasmer auth login --token ${{ secrets.WASMER_TOKEN }}
+        run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
       - name: Deploy latest commit
         run: wasmer deploy --app family-erp
