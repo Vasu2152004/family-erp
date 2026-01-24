@@ -1,0 +1,19 @@
+kind: wasmer.io/App.v0
+name: family-erp-git
+owner: vasu2152004
+
+runtime: php
+
+entrypoint:
+  command: php -S 0.0.0.0:8080 -t public
+
+build:
+  commands:
+    install: |
+      composer install --optimize-autoloader --no-interaction --no-dev
+      npm ci
+    build: |
+      npm run build
+
+scaling:
+  mode: single_concurrency
