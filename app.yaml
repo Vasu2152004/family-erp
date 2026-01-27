@@ -1,4 +1,4 @@
-kind: wasmer.io/App
+kind: wasmer.io/App.v1
 
 name: family-erp
 owner: vasu2152004
