@@ -17,8 +17,7 @@ spec:
     type: web
     runtime: php
 
-    source:
-      type: local
+    source: local
 
     command: |
       php artisan key:generate --force
