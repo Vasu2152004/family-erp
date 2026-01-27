@@ -1,19 +1,17 @@
 kind: wasmer.io/App
 
-
 name: family-erp
 owner: vasu2152004
+package: family-erp-package
 
 
 meta:
   name: family-erp
   owner: vasu2152004
 
-
 spec:
   name: family-erp
   owner: vasu2152004
-
   package: family-erp-package
 
   runtime: php
