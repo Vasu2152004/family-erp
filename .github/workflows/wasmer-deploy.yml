@@ -28,4 +28,4 @@ jobs:
         run: wasmer config set owner vasu2152004
 
       - name: Deploy app
-        run: wasmer deploy
+        run: wasmer deploy --owner vasu2152004 
