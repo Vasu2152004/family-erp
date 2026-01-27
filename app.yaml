@@ -4,34 +4,35 @@ meta:
   name: family-erp
   owner: vasu2152004
 
-name: family-erp
-owner: vasu2152004
+spec:
+  name: family-erp
+  owner: vasu2152004
 
-package: family-erp-package
+  package: family-erp-package
 
-runtime: php
+  runtime: php
 
-build:
-  steps:
-    - name: Install PHP dependencies
-      run: composer install --no-dev --optimize-autoloader
+  build:
+    steps:
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader
 
-    - name: Install Node dependencies
-      run: npm ci
+      - name: Install Node dependencies
+        run: npm ci
 
-    - name: Build frontend
-      run: npm run build
+      - name: Build frontend
+        run: npm run build
 
-run:
-  command: |
-    php artisan key:generate --force
-    php artisan migrate --force
-    php artisan db:seed --force
-    php artisan config:clear
-    php artisan route:clear
-    php artisan view:clear
-    php artisan serve --host=0.0.0.0 --port=8080
+  run:
+    command: |
+      php artisan key:generate --force
+      php artisan migrate --force
+      php artisan db:seed --force
+      php artisan config:clear
+      php artisan route:clear
+      php artisan view:clear
+      php artisan serve --host=0.0.0.0 --port=8080
 
-ports:
-  - port: 8080
-    protocol: http
+  ports:
+    - port: 8080
+      protocol: http
