@@ -1,4 +1,9 @@
 kind: wasmer.io/App
+
+meta:
+  name: family-erp
+  owner: vasu2152004
+
 name: family-erp
 owner: vasu2152004
 
