@@ -4,7 +4,6 @@ name: family-erp
 owner: vasu2152004
 package: family-erp-package
 
-
 meta:
   name: family-erp
   owner: vasu2152004
@@ -14,7 +13,17 @@ spec:
   owner: vasu2152004
   package: family-erp-package
 
-  runtime: php
+  workload:
+    type: web
+    runtime: php
+    command: |
+      php artisan key:generate --force
+      php artisan migrate --force
+      php artisan db:seed --force
+      php artisan config:clear
+      php artisan route:clear
+      php artisan view:clear
+      php artisan serve --host=0.0.0.0 --port=8080
 
   build:
     steps:
@@ -26,16 +35,6 @@ spec:
 
       - name: Build frontend
         run: npm run build
-
-  run:
-    command: |
-      php artisan key:generate --force
-      php artisan migrate --force
-      php artisan db:seed --force
-      php artisan config:clear
-      php artisan route:clear
-      php artisan view:clear
-      php artisan serve --host=0.0.0.0 --port=8080
 
   ports:
     - port: 8080
