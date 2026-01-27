@@ -1,19 +1,30 @@
-kind: wasmer.io/App.v0
-name: family-erp-git
+kind: wasmer.io/App
+name: family-erp
 owner: vasu2152004
 
 runtime: php
 
-entrypoint:
-  command: php -S 0.0.0.0:8080 -t public
-
 build:
-  commands:
-    install: |
-      composer install --optimize-autoloader --no-interaction --no-dev
-      npm ci
-    build: |
-      npm run build
+  steps:
+    - name: Install PHP dependencies
+      run: composer install --no-dev --optimize-autoloader
 
-scaling:
-  mode: single_concurrency
+    - name: Install Node dependencies
+      run: npm ci
+
+    - name: Build frontend
+      run: npm run build
+
+run:
+  command: |
+    php artisan key:generate --force
+    php artisan migrate --force
+    php artisan db:seed --force
+    php artisan config:clear
+    php artisan route:clear
+    php artisan view:clear
+    php artisan serve --host=0.0.0.0 --port=8080
+
+ports:
+  - port: 8080
+    protocol: http
