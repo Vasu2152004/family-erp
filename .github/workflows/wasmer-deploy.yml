@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Wasmer CLI
@@ -23,6 +23,9 @@ jobs:
 
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
+
+      - name: Set Wasmer owner (VERY IMPORTANT)
+        run: wasmer config set owner vasu2152004
 
       - name: Deploy app
         run: wasmer deploy
