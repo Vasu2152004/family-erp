@@ -24,8 +24,5 @@ jobs:
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
-      - name: Set Wasmer owner (VERY IMPORTANT)
-        run: wasmer config set owner vasu2152004
-
-      - name: Deploy app
-        run: wasmer deploy --owner vasu2152004 
+      - name: Deploy app (OWNER PASSED HERE)
+        run: wasmer deploy --owner vasu2152004
