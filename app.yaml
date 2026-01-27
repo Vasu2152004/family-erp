@@ -2,6 +2,8 @@ kind: wasmer.io/App
 name: family-erp
 owner: vasu2152004
 
+package: family-erp-package
+
 runtime: php
 
 build:
