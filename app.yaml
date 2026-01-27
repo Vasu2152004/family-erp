@@ -1,22 +1,21 @@
 kind: wasmer.io/App.v1
 
 name: family-erp
-owner: vasu2152004
+owner: apps
 package: family-erp-package
 
 meta:
   name: family-erp
-  owner: vasu2152004
+  owner: apps
 
 spec:
   name: family-erp
-  owner: vasu2152004
+  owner: apps
   package: family-erp-package
 
   workload:
     type: web
     runtime: php
-
     source: local
 
     command: |
