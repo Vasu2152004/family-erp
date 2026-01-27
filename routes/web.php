@@ -405,3 +405,23 @@ Route::get('/ssl-debug', function () {
         'pdo_driver' => DB::connection()->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME),
     ];
 });
+
+
+
+Route::get('/pdo-test', function () {
+    try {
+        $pdo = new PDO(
+            "mysql:host=".env('DB_HOST').";port=".env('DB_PORT').";dbname=".env('DB_DATABASE'),
+            env('DB_USERNAME'),
+            env('DB_PASSWORD'),
+            [
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true,
+            ]
+        );
+
+        return 'PDO CONNECTED SUCCESSFULLY';
+    } catch (Exception $e) {
+        return $e->getMessage();
+    }
+});
