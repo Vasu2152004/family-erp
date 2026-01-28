@@ -32,4 +32,4 @@ jobs:
         
 
       - name: Deploy App
-        run: wasmer deploy --owner vasu2152004 --no-confirm
+        run: wasmer deploy --owner vasu2152004
