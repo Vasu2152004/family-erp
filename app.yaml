@@ -1,4 +1,4 @@
-kind: wasmer.io/App.v1
+kind: wasmer.io/App.v0
 
 # Top-level fields for the CLI context
 name: family-erp
