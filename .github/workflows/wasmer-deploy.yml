@@ -23,6 +23,9 @@ jobs:
 
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
+      
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader
         
       - name: Publish Package
         run: wasmer publish --no-confirm

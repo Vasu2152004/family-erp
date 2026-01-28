@@ -15,6 +15,7 @@ description = "Laravel Family ERP"
 "/app/resources" = "resources"
 "/app/bootstrap" = "bootstrap"
 "/app/database" = "database"
+"/app/vendor" = "vendor"
 
 [[command]]
 name = "run"

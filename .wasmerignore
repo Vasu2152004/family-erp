@@ -1,6 +1,6 @@
 # Exclude unnecessary files and directories from Wasmer deployment
 node_modules/
-vendor/
+# vendor/ - Commented out: vendor directory is required for Laravel to run
 .git/
 .github/
 storage/logs/
