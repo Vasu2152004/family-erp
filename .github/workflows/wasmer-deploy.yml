@@ -24,5 +24,5 @@ jobs:
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
 
-      - name: Deploy app (OWNER PASSED HERE)
-        run: wasmer deploy --owner apps
+      - name: Deploy app
+        run: wasmer deploy --owner vasu2152004
