@@ -27,11 +27,34 @@ jobs:
       - name: Install PHP dependencies
         run: composer install --no-dev --optimize-autoloader --no-scripts
         
+      - name: Bump version
+        run: |
+          # Read current version from wasmer.toml
+          CURRENT_VERSION=$(grep '^version = ' wasmer.toml | cut -d'"' -f2)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Extract major, minor, patch
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Increment patch version
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+          
+          # Update wasmer.toml
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" wasmer.toml
+          else
+            sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" wasmer.toml
+          fi
+          
+          echo "Updated wasmer.toml to version $NEW_VERSION"
+        
       - name: Publish Package
         run: |
           for i in {1..3}; do
             echo "Publish attempt $i of 3"
-            if wasmer publish --non-interactive --bump; then
+            if wasmer publish --non-interactive; then
               echo "Publish successful"
               exit 0
             else
