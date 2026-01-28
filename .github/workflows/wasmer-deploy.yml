@@ -28,7 +28,7 @@ jobs:
         run: composer install --no-dev --optimize-autoloader --no-scripts
         
       - name: Publish Package
-        run: wasmer publish --no-confirm
+        run: wasmer publish
         
 
       - name: Deploy App
