@@ -6,7 +6,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\DB;
+
 
 // Root route - redirect to dashboard (will redirect to login if not authenticated)
 Route::get('/', function () {
@@ -388,40 +388,4 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::post('auto-add-low-stock', [\App\Http\Controllers\ShoppingListController::class, 'autoAddLowStock'])->name('auto-add-low-stock');
         Route::delete('purchased/clear', [\App\Http\Controllers\ShoppingListController::class, 'clearPurchased'])->name('clear-purchased');
     });
-});
-
-
-
-
-
-
-
-
-Route::get('/ssl-debug', function () {
-    return [
-        'default_connection' => config('database.default'),
-        'ssl_ca' => env('MYSQL_ATTR_SSL_CA'),
-        'ca_exists' => file_exists(env('MYSQL_ATTR_SSL_CA')),
-        'pdo_driver' => DB::connection()->getPdo()->getAttribute(PDO::ATTR_DRIVER_NAME),
-    ];
-});
-
-
-
-Route::get('/pdo-test', function () {
-    try {
-        $pdo = new PDO(
-            "mysql:host=".env('DB_HOST').";port=".env('DB_PORT').";dbname=".env('DB_DATABASE'),
-            env('DB_USERNAME'),
-            env('DB_PASSWORD'),
-            [
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true,
-            ]
-        );
-
-        return 'PDO CONNECTED SUCCESSFULLY';
-    } catch (Exception $e) {
-        return $e->getMessage();
-    }
 });
