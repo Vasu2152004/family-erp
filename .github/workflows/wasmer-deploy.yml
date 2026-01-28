@@ -25,11 +25,11 @@ jobs:
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
       
       - name: Install PHP dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --no-dev --optimize-autoloader --no-scripts
         
       - name: Publish Package
         run: wasmer publish --no-confirm
         
-        
+
       - name: Deploy App
         run: wasmer deploy --owner vasu2152004 --no-confirm
