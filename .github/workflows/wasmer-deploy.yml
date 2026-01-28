@@ -30,5 +30,6 @@ jobs:
       - name: Publish Package
         run: wasmer publish --no-confirm
         
+        
       - name: Deploy App
         run: wasmer deploy --owner vasu2152004 --no-confirm
