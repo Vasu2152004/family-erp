@@ -8,6 +8,12 @@ meta:
 spec:
   build:
     steps:
+    - name: Configure Git
+      run: |
+        git config --global pull.rebase false
+        git config --global pull.ff only
+        git config pull.rebase false || true
+        git config pull.ff only || true
     - name: Install PHP dependencies
       run: composer install --no-dev --optimize-autoloader --no-scripts
     - name: Install Node dependencies
