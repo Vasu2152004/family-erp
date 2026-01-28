@@ -23,6 +23,9 @@ jobs:
 
       - name: Login to Wasmer
         run: wasmer auth login ${{ secrets.WASMER_TOKEN }}
-
-      - name: Deploy app
-        run: wasmer deploy --owner vasu2152004 --app-config app.yaml --no-confirm
+        
+      - name: Publish Package
+        run: wasmer publish --no-confirm
+        
+      - name: Deploy App
+        run: wasmer deploy --owner vasu2152004 --no-confirm

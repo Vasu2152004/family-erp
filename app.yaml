@@ -1,23 +1,26 @@
-kind: wasmer.io/App.v0
-
-# Top-level fields for the CLI context
 name: family-erp
 owner: vasu2152004
 package: vasu2152004/family-erp-package
-
+kind: wasmer.io/App.v0
 meta:
   name: family-erp
   owner: vasu2152004
-
 spec:
+  build:
+    steps:
+    - name: Install PHP dependencies
+      run: composer install --no-dev --optimize-autoloader
+    - name: Install Node dependencies
+      run: npm ci
+    - name: Build frontend
+      run: npm run build
   name: family-erp
   owner: vasu2152004
   package: vasu2152004/family-erp-package
-
+  ports:
+  - port: 8080
+    protocol: http
   workload:
-    type: web
-    runtime: php
-    source: local  # This tells Wasmer to use the files in your repo
     command: |
       php artisan key:generate --force
       php artisan migrate --force
@@ -26,16 +29,6 @@ spec:
       php artisan route:clear
       php artisan view:clear
       php artisan serve --host=0.0.0.0 --port=8080
-
-  build:
-    steps:
-      - name: Install PHP dependencies
-        run: composer install --no-dev --optimize-autoloader
-      - name: Install Node dependencies
-        run: npm ci
-      - name: Build frontend
-        run: npm run build
-
-  ports:
-    - port: 8080
-      protocol: http
+    runtime: php
+    source: local
+    type: web
