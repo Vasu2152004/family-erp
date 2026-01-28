@@ -42,34 +42,30 @@ spec:
       mkdir -p storage/logs
       mkdir -p bootstrap/cache
       
-      # Copy .env.example to .env if .env doesn't exist
+      # Create .env file with required Laravel configuration
       echo "Setting up .env file..."
-      if [ ! -f .env ]; then
-        cp .env.example .env 2>/dev/null || true
-      fi
-      
-      # Set environment variables in .env
-      echo "Configuring environment variables..."
-      sed -i 's|^APP_ENV=.*|APP_ENV=production|' .env || echo "APP_ENV=production" >> .env
-      sed -i 's|^APP_DEBUG=.*|APP_DEBUG=false|' .env || echo "APP_DEBUG=false" >> .env
-      sed -i 's|^DB_CONNECTION=.*|DB_CONNECTION=mysql|' .env || echo "DB_CONNECTION=mysql" >> .env
-      
-      # Update MySQL connection settings from environment variables if they exist
-      if [ -n "$DB_HOST" ]; then
-        sed -i "s|^DB_HOST=.*|DB_HOST=$DB_HOST|" .env || echo "DB_HOST=$DB_HOST" >> .env
-      fi
-      if [ -n "$DB_PORT" ]; then
-        sed -i "s|^DB_PORT=.*|DB_PORT=$DB_PORT|" .env || echo "DB_PORT=$DB_PORT" >> .env
-      fi
-      if [ -n "$DB_DATABASE" ]; then
-        sed -i "s|^DB_DATABASE=.*|DB_DATABASE=$DB_DATABASE|" .env || echo "DB_DATABASE=$DB_DATABASE" >> .env
-      fi
-      if [ -n "$DB_USERNAME" ]; then
-        sed -i "s|^DB_USERNAME=.*|DB_USERNAME=$DB_USERNAME|" .env || echo "DB_USERNAME=$DB_USERNAME" >> .env
-      fi
-      if [ -n "$DB_PASSWORD" ]; then
-        sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=$DB_PASSWORD|" .env || echo "DB_PASSWORD=$DB_PASSWORD" >> .env
-      fi
+      cat > .env << EOF
+APP_NAME=Family ERP
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=https://family-erp.wasmer.app
+
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+
+DB_CONNECTION=mysql
+DB_HOST=${DB_HOST:-127.0.0.1}
+DB_PORT=${DB_PORT:-3306}
+DB_DATABASE=${DB_DATABASE:-laravel}
+DB_USERNAME=${DB_USERNAME:-root}
+DB_PASSWORD=${DB_PASSWORD:-}
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+FILESYSTEM_DISK=local
+EOF
       
       # Generate application key if not set
       echo "Generating application key..."
