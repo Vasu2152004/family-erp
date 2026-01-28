@@ -33,20 +33,17 @@ jobs:
           CURRENT_VERSION=$(grep '^version = ' wasmer.toml | cut -d'"' -f2)
           echo "Current version: $CURRENT_VERSION"
           
-          # Extract major, minor, patch
+          # Extract major and minor
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
           
-          # Increment patch version
-          PATCH=$((PATCH + 1))
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "New version: $NEW_VERSION"
+          # Use GitHub Actions run number for unique versioning
+          # Format: 0.1.{RUN_NUMBER} (e.g., 0.1.123)
+          RUN_NUMBER=${{ github.run_number }}
+          NEW_VERSION="$MAJOR.$MINOR.$RUN_NUMBER"
+          echo "New version: $NEW_VERSION (using run number $RUN_NUMBER)"
           
           # Update wasmer.toml
-          if [[ "$OSTYPE" == "darwin"* ]]; then
-            sed -i '' "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" wasmer.toml
-          else
-            sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" wasmer.toml
-          fi
+          sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" wasmer.toml
           
           echo "Updated wasmer.toml to version $NEW_VERSION"
         
