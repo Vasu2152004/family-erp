@@ -1,6 +1,6 @@
 name: family-erp
 owner: vasu2152004
-package: vasu2152004/family-erp-package
+package: .
 kind: wasmer.io/App.v0
 meta:
   name: family-erp
@@ -16,7 +16,7 @@ spec:
       run: npm run build
   name: family-erp
   owner: vasu2152004
-  package: vasu2152004/family-erp-package
+  package: .
   ports:
   - port: 8080
     protocol: http
