@@ -25,16 +25,17 @@ spec:
       APP_NAME: "Family ERP"
       APP_ENV: "production"
       APP_DEBUG: "false"
-      APP_URL: "https://family-erp.wasmer.app"
+      APP_URL: "https://family-erp-test.wasmer.app"
       LOG_CHANNEL: "stack"
-      LOG_LEVEL: "error"
+      LOG_LEVEL: "debug"
       DB_CONNECTION: "mysql"
-      SESSION_DRIVER: "database"
-      CACHE_STORE: "database"
+      SESSION_DRIVER: "file"
+      CACHE_STORE: "file"
       QUEUE_CONNECTION: "database"
       FILESYSTEM_DISK: "local"
     command: |
-      # Create storage directories if they don't exist
+      cd /app
+      
       echo "Creating storage directories..."
       mkdir -p storage/framework/cache/data
       mkdir -p storage/framework/sessions
@@ -42,51 +43,49 @@ spec:
       mkdir -p storage/logs
       mkdir -p bootstrap/cache
       
-      # Create .env file with required Laravel configuration
-      echo "Setting up .env file..."
-      {
-        echo "APP_NAME=Family ERP"
-        echo "APP_ENV=production"
-        echo "APP_KEY="
-        echo "APP_DEBUG=false"
-        echo "APP_URL=https://family-erp.wasmer.app"
-        echo ""
-        echo "LOG_CHANNEL=stack"
-        echo "LOG_LEVEL=error"
-        echo ""
-        echo "DB_CONNECTION=mysql"
-        echo "DB_HOST=${DB_HOST:-127.0.0.1}"
-        echo "DB_PORT=${DB_PORT:-3306}"
-        echo "DB_DATABASE=${DB_DATABASE:-laravel}"
-        echo "DB_USERNAME=${DB_USERNAME:-root}"
-        echo "DB_PASSWORD=${DB_PASSWORD:-}"
-        echo ""
-        echo "SESSION_DRIVER=database"
-        echo "CACHE_STORE=database"
-        echo "QUEUE_CONNECTION=database"
-        echo "FILESYSTEM_DISK=local"
-      } > .env
+      echo "Setting up .env..."
+      if [ ! -f .env ]; then
+        echo "APP_NAME=Family ERP" >> .env
+        echo "APP_ENV=production" >> .env
+        echo "APP_KEY=" >> .env
+        echo "APP_DEBUG=false" >> .env
+        echo "APP_URL=https://family-erp-test.wasmer.app" >> .env
+        echo "LOG_CHANNEL=stack" >> .env
+        echo "LOG_LEVEL=debug" >> .env
+        echo "DB_CONNECTION=mysql" >> .env
+        echo "DB_HOST=${DB_HOST:-127.0.0.1}" >> .env
+        echo "DB_PORT=${DB_PORT:-3306}" >> .env
+        echo "DB_DATABASE=${DB_DATABASE:-laravel}" >> .env
+        echo "DB_USERNAME=${DB_USERNAME:-root}" >> .env
+        echo "DB_PASSWORD=${DB_PASSWORD:-}" >> .env
+        echo "SESSION_DRIVER=file" >> .env
+        echo "CACHE_STORE=file" >> .env
+        echo "QUEUE_CONNECTION=database" >> .env
+        echo "FILESYSTEM_DISK=local" >> .env
+      fi
       
-      # Generate application key if not set
       echo "Generating application key..."
-      php artisan key:generate --force 2>&1 || echo "Key generation failed, continuing..."
+      php artisan key:generate --force || true
       
-      # Run migrations
-      echo "Running migrations..."
-      php artisan migrate --force 2>&1 || echo "Migrations failed, continuing..."
+      if grep -q '^APP_KEY=base64:' .env 2>/dev/null; then
+        echo "APP_KEY set, optimizing..."
+        php artisan config:clear || true
+        php artisan config:cache || true
+        php artisan route:clear || true
+        php artisan route:cache || true
+        php artisan view:clear || true
+        php artisan view:cache || true
+        echo "Running migrations..."
+        php artisan migrate --force || true
+      else
+        echo "APP_KEY missing, clearing config only..."
+        php artisan config:clear || true
+        echo "Running migrations..."
+        php artisan migrate --force || true
+      fi
       
-      # Clear and cache config
-      echo "Caching configuration..."
-      php artisan config:clear 2>&1 || true
-      php artisan config:cache 2>&1 || true
-      php artisan route:clear 2>&1 || true
-      php artisan route:cache 2>&1 || true
-      php artisan view:clear 2>&1 || true
-      php artisan view:cache 2>&1 || true
-      
-      # Start the server
-      echo "Starting Laravel server..."
-      php artisan serve --host=0.0.0.0 --port=8080
+      echo "Starting server..."
+      exec php artisan serve --host=0.0.0.0 --port=8080
     runtime: php
     source: local
     type: web
