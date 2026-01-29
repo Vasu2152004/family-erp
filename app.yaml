@@ -1,6 +1,6 @@
 name: family-erp
 owner: vasu2152004
-package: vasu2152004/family-erp-package
+package: .
 kind: wasmer.io/App.v0
 meta:
   name: family-erp
@@ -9,14 +9,14 @@ spec:
   build:
     steps:
     - name: Install PHP dependencies
-      run: composer install --no-dev --optimize-autoloader --no-scripts
+      run: composer install --no-dev --optimize-autoloader
     - name: Install Node dependencies
       run: npm ci
     - name: Build frontend
       run: npm run build
   name: family-erp
   owner: vasu2152004
-  package: vasu2152004/family-erp-package
+  package: .
   ports:
   - port: 8080
     protocol: http
