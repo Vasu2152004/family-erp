@@ -27,7 +27,7 @@ spec:
       APP_DEBUG: "false"
       APP_URL: "https://family-erp-test.wasmer.app"
       LOG_CHANNEL: "stack"
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "error"
       DB_CONNECTION: "mysql"
       SESSION_DRIVER: "file"
       CACHE_STORE: "file"
@@ -35,56 +35,8 @@ spec:
       FILESYSTEM_DISK: "local"
     command: |
       cd /app
-      
-      echo "Creating storage directories..."
-      mkdir -p storage/framework/cache/data
-      mkdir -p storage/framework/sessions
-      mkdir -p storage/framework/views
-      mkdir -p storage/logs
-      mkdir -p bootstrap/cache
-      
-      echo "Setting up .env..."
-      if [ ! -f .env ]; then
-        echo "APP_NAME=Family ERP" >> .env
-        echo "APP_ENV=production" >> .env
-        echo "APP_KEY=" >> .env
-        echo "APP_DEBUG=false" >> .env
-        echo "APP_URL=https://family-erp-test.wasmer.app" >> .env
-        echo "LOG_CHANNEL=stack" >> .env
-        echo "LOG_LEVEL=debug" >> .env
-        echo "DB_CONNECTION=mysql" >> .env
-        echo "DB_HOST=${DB_HOST:-127.0.0.1}" >> .env
-        echo "DB_PORT=${DB_PORT:-3306}" >> .env
-        echo "DB_DATABASE=${DB_DATABASE:-laravel}" >> .env
-        echo "DB_USERNAME=${DB_USERNAME:-root}" >> .env
-        echo "DB_PASSWORD=${DB_PASSWORD:-}" >> .env
-        echo "SESSION_DRIVER=file" >> .env
-        echo "CACHE_STORE=file" >> .env
-        echo "QUEUE_CONNECTION=database" >> .env
-        echo "FILESYSTEM_DISK=local" >> .env
-      fi
-      
-      echo "Generating application key..."
-      php artisan key:generate --force || true
-      
-      if grep -q '^APP_KEY=base64:' .env 2>/dev/null; then
-        echo "APP_KEY set, optimizing..."
-        php artisan config:clear || true
-        php artisan config:cache || true
-        php artisan route:clear || true
-        php artisan route:cache || true
-        php artisan view:clear || true
-        php artisan view:cache || true
-        echo "Running migrations..."
-        php artisan migrate --force || true
-      else
-        echo "APP_KEY missing, clearing config only..."
-        php artisan config:clear || true
-        echo "Running migrations..."
-        php artisan migrate --force || true
-      fi
-      
-      echo "Starting server..."
+      mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+      php artisan migrate --force || true
       exec php artisan serve --host=0.0.0.0 --port=8080
     runtime: php
     source: local
