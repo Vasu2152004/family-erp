@@ -19,6 +19,7 @@ description = "Laravel Family ERP"
 "/app/storage" = "storage"
 "/app/artisan" = "artisan"
 "/app/.gitconfig" = ".gitconfig"
+"/app/ca.pem" = "ca.pem"
 
 [[command]]
 name = "run"

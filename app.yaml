@@ -33,60 +33,17 @@ spec:
       CACHE_STORE: "database"
       QUEUE_CONNECTION: "database"
       FILESYSTEM_DISK: "local"
+      MYSQL_ATTR_SSL_CA: "/app/ca.pem"
+      MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: "true"
     command: |
-      # Create storage directories if they don't exist
-      echo "Creating storage directories..."
-      mkdir -p storage/framework/cache/data
-      mkdir -p storage/framework/sessions
-      mkdir -p storage/framework/views
-      mkdir -p storage/logs
-      mkdir -p bootstrap/cache
-      
-      # Create .env file with required Laravel configuration
-      echo "Setting up .env file..."
-      {
-        echo "APP_NAME=Family ERP"
-        echo "APP_ENV=production"
-        echo "APP_KEY="
-        echo "APP_DEBUG=false"
-        echo "APP_URL=https://family-erp.wasmer.app"
-        echo ""
-        echo "LOG_CHANNEL=stack"
-        echo "LOG_LEVEL=error"
-        echo ""
-        echo "DB_CONNECTION=mysql"
-        echo "DB_HOST=${DB_HOST:-127.0.0.1}"
-        echo "DB_PORT=${DB_PORT:-3306}"
-        echo "DB_DATABASE=${DB_DATABASE:-laravel}"
-        echo "DB_USERNAME=${DB_USERNAME:-root}"
-        echo "DB_PASSWORD=${DB_PASSWORD:-}"
-        echo ""
-        echo "SESSION_DRIVER=database"
-        echo "CACHE_STORE=database"
-        echo "QUEUE_CONNECTION=database"
-        echo "FILESYSTEM_DISK=local"
-      } > .env
-      
-      # Generate application key if not set
-      echo "Generating application key..."
-      php artisan key:generate --force 2>&1 || echo "Key generation failed, continuing..."
-      
-      # Run migrations
+      cd /app
+      mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+      echo "Testing database connection..."
+      php artisan tinker --execute="DB::connection()->getPdo(); echo 'Database connected successfully';" || echo "Database connection failed"
       echo "Running migrations..."
-      php artisan migrate --force 2>&1 || echo "Migrations failed, continuing..."
-      
-      # Clear and cache config
-      echo "Caching configuration..."
-      php artisan config:clear 2>&1 || true
-      php artisan config:cache 2>&1 || true
-      php artisan route:clear 2>&1 || true
-      php artisan route:cache 2>&1 || true
-      php artisan view:clear 2>&1 || true
-      php artisan view:cache 2>&1 || true
-      
-      # Start the server
-      echo "Starting Laravel server..."
-      php artisan serve --host=0.0.0.0 --port=8080
+      php artisan migrate --force || true
+      echo "Starting server..."
+      exec php artisan serve --host=0.0.0.0 --port=8080
     runtime: php
     source: local
     type: web
