@@ -40,9 +40,9 @@ return [
         'vercel_blob' => [
             'driver' => 's3',
             'key' => env('BLOB_READ_WRITE_TOKEN'),
-            'secret' => '',
+            'secret' => 'unused',
             'region' => 'auto',
-            'bucket' => env('VERCEL_BLOB_STORE_ID'),
+            'bucket' => 'vercel-blob',
             'endpoint' => 'https://blob.vercel-storage.com',
             'use_path_style_endpoint' => true,
         ],
