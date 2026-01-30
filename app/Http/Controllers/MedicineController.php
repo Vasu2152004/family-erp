@@ -11,8 +11,10 @@ use App\Models\Medicine;
 use App\Models\FamilyMember;
 use App\Models\Prescription;
 use App\Services\MedicineService;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Carbon\Carbon;
@@ -244,13 +246,19 @@ class MedicineController extends Controller
     {
         $this->authorize('view', $medicine);
 
-        if (empty($medicine->prescription_file_path)) {
+        $path = BlobPathNormalizer::normalize($medicine->prescription_file_path);
+        if ($path === null || $path === '') {
+            Log::warning('Blob path empty after normalization', ['medicine_id' => $medicine->id]);
             abort(404, 'Prescription file not found.');
         }
 
-        $url = Storage::disk('vercel_blob')->temporaryUrl($medicine->prescription_file_path, now()->addMinutes(15));
-
-        return redirect($url);
+        try {
+            $url = Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(15));
+            return redirect($url);
+        } catch (\Throwable $e) {
+            Log::warning('Blob temporaryUrl failed', ['medicine_id' => $medicine->id, 'message' => $e->getMessage()]);
+            abort(404, 'Prescription file not found.');
+        }
     }
 }
 

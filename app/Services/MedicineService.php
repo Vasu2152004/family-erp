@@ -9,8 +9,10 @@ use App\Models\MedicineExpiryReminder;
 use App\Models\MedicineIntakeReminder;
 use App\Services\TimezoneService;
 use Carbon\CarbonImmutable;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -65,8 +67,13 @@ class MedicineService
             $attachmentData = [];
             if ($file) {
                 // Delete old file if exists
-                if ($medicine->prescription_file_path) {
-                    Storage::disk('vercel_blob')->delete($medicine->prescription_file_path);
+                $path = BlobPathNormalizer::normalize($medicine->prescription_file_path);
+                if ($path !== null && $path !== '') {
+                    try {
+                        Storage::disk('vercel_blob')->delete($path);
+                    } catch (\Throwable $e) {
+                        Log::warning('Blob delete failed in updateMedicine', ['medicine_id' => $medicine->id, 'message' => $e->getMessage()]);
+                    }
                 }
                 $attachmentData = $this->storePrescriptionFile($file, $medicine->tenant_id, $medicine->family_id);
             }
@@ -111,8 +118,13 @@ class MedicineService
     {
         DB::transaction(function () use ($medicine) {
             // Delete prescription file if exists
-            if ($medicine->prescription_file_path) {
-                Storage::disk('vercel_blob')->delete($medicine->prescription_file_path);
+            $path = BlobPathNormalizer::normalize($medicine->prescription_file_path);
+            if ($path !== null && $path !== '') {
+                try {
+                    Storage::disk('vercel_blob')->delete($path);
+                } catch (\Throwable $e) {
+                    Log::warning('Blob delete failed in deleteMedicine', ['medicine_id' => $medicine->id, 'message' => $e->getMessage()]);
+                }
             }
 
             // Delete all reminders

@@ -10,8 +10,10 @@ use App\Models\Family;
 use App\Models\DoctorVisit;
 use App\Models\Prescription;
 use App\Services\HealthService;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class PrescriptionController extends Controller
@@ -61,8 +63,13 @@ class PrescriptionController extends Controller
     {
         $this->authorize('delete', $prescription);
 
-        if ($prescription->file_path) {
-            Storage::disk('vercel_blob')->delete($prescription->file_path);
+        $path = BlobPathNormalizer::normalize($prescription->file_path);
+        if ($path !== null && $path !== '') {
+            try {
+                Storage::disk('vercel_blob')->delete($path);
+            } catch (\Throwable $e) {
+                Log::warning('Blob delete failed on prescription destroy', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
+            }
         }
 
         $prescription->delete();
@@ -75,12 +82,18 @@ class PrescriptionController extends Controller
     {
         $this->authorize('view', $prescription);
 
-        if (empty($prescription->file_path)) {
+        $path = BlobPathNormalizer::normalize($prescription->file_path);
+        if ($path === null || $path === '') {
+            Log::warning('Blob path empty after normalization', ['prescription_id' => $prescription->id]);
             abort(404, 'Prescription file not found.');
         }
 
-        $url = Storage::disk('vercel_blob')->temporaryUrl($prescription->file_path, now()->addMinutes(15));
-
-        return redirect($url);
+        try {
+            $url = Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(15));
+            return redirect($url);
+        } catch (\Throwable $e) {
+            Log::warning('Blob temporaryUrl failed', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
+            abort(404, 'Prescription file not found.');
+        }
     }
 }

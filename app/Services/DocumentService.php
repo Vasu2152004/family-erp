@@ -8,8 +8,10 @@ use App\Models\Document;
 use App\Models\Family;
 use App\Models\User;
 use App\Models\DocumentReminder;
+use App\Support\BlobPathNormalizer;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -74,7 +76,14 @@ class DocumentService
 
     public function delete(Document $document): void
     {
-        Storage::disk('vercel_blob')->delete($document->file_path);
+        $path = BlobPathNormalizer::normalize($document->file_path);
+        if ($path !== null && $path !== '') {
+            try {
+                Storage::disk('vercel_blob')->delete($path);
+            } catch (\Throwable $e) {
+                Log::warning('Blob delete failed on document delete', ['document_id' => $document->id, 'message' => $e->getMessage()]);
+            }
+        }
         $document->delete();
     }
 

@@ -12,8 +12,10 @@ use App\Models\Family;
 use App\Models\User;
 use App\Services\TimezoneService;
 use Carbon\Carbon;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -189,8 +191,13 @@ class HealthService
             // Handle file upload if provided
             if ($file) {
                 // Delete old file if exists
-                if ($prescription->file_path) {
-                    Storage::disk('vercel_blob')->delete($prescription->file_path);
+                $path = BlobPathNormalizer::normalize($prescription->file_path);
+                if ($path !== null && $path !== '') {
+                    try {
+                        Storage::disk('vercel_blob')->delete($path);
+                    } catch (\Throwable $e) {
+                        Log::warning('Blob delete failed in updatePrescription', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
+                    }
                 }
                 $attachmentData = $this->storeAttachment($file, $prescription->tenant_id, $prescription->family_id);
             } else {

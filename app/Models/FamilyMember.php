@@ -7,7 +7,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class FamilyMember extends Model
@@ -86,10 +88,16 @@ class FamilyMember extends Model
 
     public function getAvatarUrlAttribute(): ?string
     {
-        if (!$this->avatar_path) {
+        $path = BlobPathNormalizer::normalize($this->avatar_path);
+        if ($path === null || $path === '') {
             return null;
         }
 
-        return Storage::disk('vercel_blob')->temporaryUrl($this->avatar_path, now()->addMinutes(60));
+        try {
+            return Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(60));
+        } catch (\Throwable $e) {
+            Log::warning('Blob temporaryUrl failed for family member avatar', ['family_member_id' => $this->id, 'message' => $e->getMessage()]);
+            return null;
+        }
     }
 }

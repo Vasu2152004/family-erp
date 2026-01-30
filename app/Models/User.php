@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Support\BlobPathNormalizer;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable
@@ -126,10 +128,16 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        if (!$this->avatar_path) {
+        $path = BlobPathNormalizer::normalize($this->avatar_path);
+        if ($path === null || $path === '') {
             return null;
         }
 
-        return Storage::disk('vercel_blob')->temporaryUrl($this->avatar_path, now()->addMinutes(60));
+        try {
+            return Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(60));
+        } catch (\Throwable $e) {
+            Log::warning('Blob temporaryUrl failed for user avatar', ['user_id' => $this->id, 'message' => $e->getMessage()]);
+            return null;
+        }
     }
 }
