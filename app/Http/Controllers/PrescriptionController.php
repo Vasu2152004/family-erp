@@ -75,13 +75,12 @@ class PrescriptionController extends Controller
     {
         $this->authorize('view', $prescription);
 
-        if (!$prescription->file_path || !Storage::disk('vercel_blob')->exists($prescription->file_path)) {
+        if (empty($prescription->file_path)) {
             abort(404, 'Prescription file not found.');
         }
 
-        return Storage::disk('vercel_blob')->download(
-            $prescription->file_path,
-            $prescription->original_name ?? 'prescription.pdf'
-        );
+        $url = Storage::disk('vercel_blob')->temporaryUrl($prescription->file_path, now()->addMinutes(15));
+
+        return redirect($url);
     }
 }

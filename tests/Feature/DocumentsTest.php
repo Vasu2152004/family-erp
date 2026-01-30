@@ -64,7 +64,7 @@ class DocumentsTest extends TestCase
         $verify->assertOk();
 
         $downloadAfterVerification = $this->actingAs($admin)->post(route('families.documents.download', ['family' => $family->id, 'document' => $document]));
-        $downloadAfterVerification->assertOk();
+        $downloadAfterVerification->assertRedirect();
     }
 
     public function test_expiry_reminder_command_notifies_recipients(): void

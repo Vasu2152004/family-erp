@@ -90,6 +90,6 @@ class FamilyMember extends Model
             return null;
         }
 
-        return Storage::disk('vercel_blob')->url($this->avatar_path);
+        return Storage::disk('vercel_blob')->temporaryUrl($this->avatar_path, now()->addMinutes(60));
     }
 }

@@ -130,10 +130,6 @@ class User extends Authenticatable
             return null;
         }
 
-        if (Storage::disk('vercel_blob')->exists($this->avatar_path)) {
-            return Storage::disk('vercel_blob')->url($this->avatar_path);
-        }
-
-        return null;
+        return Storage::disk('vercel_blob')->temporaryUrl($this->avatar_path, now()->addMinutes(60));
     }
 }
