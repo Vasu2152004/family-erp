@@ -34,7 +34,7 @@ class DocumentsTest extends TestCase
 
     public function test_admin_can_upload_sensitive_document_and_download_after_password_verification(): void
     {
-        Storage::fake('local');
+        Storage::fake('vercel_blob');
         [$tenant, $family, $admin, $member] = $this->createFamilyContext();
 
         $file = UploadedFile::fake()->create('passport.pdf', 120, 'application/pdf');
@@ -53,7 +53,7 @@ class DocumentsTest extends TestCase
 
         $document = Document::first();
         $this->assertNotNull($document);
-        Storage::disk('local')->assertExists($document->file_path);
+        Storage::disk('vercel_blob')->assertExists($document->file_path);
 
         $download = $this->actingAs($admin)->postJson(route('families.documents.download', ['family' => $family->id, 'document' => $document]));
         $download->assertStatus(403);

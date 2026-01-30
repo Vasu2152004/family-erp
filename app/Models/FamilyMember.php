@@ -90,6 +90,6 @@ class FamilyMember extends Model
             return null;
         }
 
-        return Storage::disk(config('filesystems.default'))->url($this->avatar_path);
+        return Storage::disk('vercel_blob')->url($this->avatar_path);
     }
 }

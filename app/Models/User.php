@@ -130,25 +130,10 @@ class User extends Authenticatable
             return null;
         }
 
-        // Try public disk first (standard location for avatars)
-        if (Storage::disk('public')->exists($this->avatar_path)) {
-            return Storage::disk('public')->url($this->avatar_path);
+        if (Storage::disk('vercel_blob')->exists($this->avatar_path)) {
+            return Storage::disk('vercel_blob')->url($this->avatar_path);
         }
-        
-        // Fallback: check if file exists in local disk and move it to public
-        if (Storage::disk('local')->exists($this->avatar_path)) {
-            try {
-                $content = Storage::disk('local')->get($this->avatar_path);
-                $newPath = 'users/avatars/' . basename($this->avatar_path);
-                Storage::disk('public')->put($newPath, $content);
-                $this->update(['avatar_path' => $newPath]);
-                return Storage::disk('public')->url($newPath);
-            } catch (\Exception $e) {
-                // If move fails, return null
-                return null;
-            }
-        }
-        
+
         return null;
     }
 }

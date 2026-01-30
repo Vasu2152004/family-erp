@@ -18,7 +18,7 @@ class DocumentService
     public function store(User $user, Family $family, array $data, UploadedFile $file): Document
     {
         $path = $this->buildStoragePath($user->tenant_id, $family->id, $file);
-        Storage::disk('local')->putFileAs(dirname($path), $file, basename($path));
+        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
 
         // The password_hash mutator will automatically hash the password, so pass plain text
         $document = Document::create([
@@ -74,7 +74,7 @@ class DocumentService
 
     public function delete(Document $document): void
     {
-        Storage::disk('local')->delete($document->file_path);
+        Storage::disk('vercel_blob')->delete($document->file_path);
         $document->delete();
     }
 

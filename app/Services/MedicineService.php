@@ -66,7 +66,7 @@ class MedicineService
             if ($file) {
                 // Delete old file if exists
                 if ($medicine->prescription_file_path) {
-                    Storage::disk('local')->delete($medicine->prescription_file_path);
+                    Storage::disk('vercel_blob')->delete($medicine->prescription_file_path);
                 }
                 $attachmentData = $this->storePrescriptionFile($file, $medicine->tenant_id, $medicine->family_id);
             }
@@ -112,7 +112,7 @@ class MedicineService
         DB::transaction(function () use ($medicine) {
             // Delete prescription file if exists
             if ($medicine->prescription_file_path) {
-                Storage::disk('local')->delete($medicine->prescription_file_path);
+                Storage::disk('vercel_blob')->delete($medicine->prescription_file_path);
             }
 
             // Delete all reminders
@@ -245,7 +245,7 @@ class MedicineService
         $directory = "medicines/tenant-{$tenantId}/family-{$familyId}";
         $path = "{$directory}/{$hashed}.{$ext}";
 
-        Storage::disk('local')->putFileAs(dirname($path), $file, basename($path));
+        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
 
         return [
             'file_path' => $path,

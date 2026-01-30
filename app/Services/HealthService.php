@@ -190,7 +190,7 @@ class HealthService
             if ($file) {
                 // Delete old file if exists
                 if ($prescription->file_path) {
-                    Storage::disk('local')->delete($prescription->file_path);
+                    Storage::disk('vercel_blob')->delete($prescription->file_path);
                 }
                 $attachmentData = $this->storeAttachment($file, $prescription->tenant_id, $prescription->family_id);
             } else {
@@ -303,7 +303,7 @@ class HealthService
         $directory = "prescriptions/tenant-{$tenantId}/family-{$familyId}";
         $path = "{$directory}/{$hashed}.{$ext}";
 
-        Storage::disk('local')->putFileAs(dirname($path), $file, basename($path));
+        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
 
         return [
             'file_path' => $path,

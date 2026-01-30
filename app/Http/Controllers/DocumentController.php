@@ -214,13 +214,13 @@ class DocumentController extends Controller
                 ->with('error', 'Password required to download this document. Please use the download button to enter the password.');
         }
 
-        if (!Storage::disk('local')->exists($document->file_path)) {
+        if (!Storage::disk('vercel_blob')->exists($document->file_path)) {
             return redirect()
                 ->route('families.documents.index', ['family' => $family->id])
                 ->with('error', 'File not found.');
         }
 
-        return Storage::disk('local')->download($document->file_path, $document->original_name, [
+        return Storage::disk('vercel_blob')->download($document->file_path, $document->original_name, [
             'Content-Type' => $document->mime_type,
         ]);
     }

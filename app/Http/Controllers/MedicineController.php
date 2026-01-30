@@ -244,11 +244,11 @@ class MedicineController extends Controller
     {
         $this->authorize('view', $medicine);
 
-        if (!$medicine->prescription_file_path || !Storage::disk('local')->exists($medicine->prescription_file_path)) {
+        if (!$medicine->prescription_file_path || !Storage::disk('vercel_blob')->exists($medicine->prescription_file_path)) {
             abort(404, 'Prescription file not found.');
         }
 
-        return Storage::disk('local')->download(
+        return Storage::disk('vercel_blob')->download(
             $medicine->prescription_file_path,
             $medicine->prescription_original_name ?? 'prescription.pdf'
         );

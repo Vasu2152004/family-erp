@@ -62,7 +62,7 @@ class PrescriptionController extends Controller
         $this->authorize('delete', $prescription);
 
         if ($prescription->file_path) {
-            Storage::disk('local')->delete($prescription->file_path);
+            Storage::disk('vercel_blob')->delete($prescription->file_path);
         }
 
         $prescription->delete();
@@ -75,11 +75,11 @@ class PrescriptionController extends Controller
     {
         $this->authorize('view', $prescription);
 
-        if (!$prescription->file_path || !Storage::disk('local')->exists($prescription->file_path)) {
+        if (!$prescription->file_path || !Storage::disk('vercel_blob')->exists($prescription->file_path)) {
             abort(404, 'Prescription file not found.');
         }
 
-        return Storage::disk('local')->download(
+        return Storage::disk('vercel_blob')->download(
             $prescription->file_path,
             $prescription->original_name ?? 'prescription.pdf'
         );
