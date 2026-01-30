@@ -37,6 +37,7 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        // Vercel Blob: use VercelBlobService (HTTP API) for documents/prescriptions/medicines; disk kept for legacy avatar only
         'vercel_blob' => [
             'driver' => 's3',
             'key' => env('BLOB_READ_WRITE_TOKEN'),

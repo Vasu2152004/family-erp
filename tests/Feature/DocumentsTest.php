@@ -12,11 +12,12 @@ use App\Models\FamilyUserRole;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Notifications\DocumentExpiryReminder;
+use App\Services\VercelBlobService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 class DocumentsTest extends TestCase
@@ -34,7 +35,11 @@ class DocumentsTest extends TestCase
 
     public function test_admin_can_upload_sensitive_document_and_download_after_password_verification(): void
     {
-        Storage::fake('vercel_blob');
+        $fakeBlobUrl = 'https://example.public.blob.vercel-storage.com/documents/test/passport.pdf';
+        $this->mock(VercelBlobService::class, function (Mockery\MockInterface $mock) use ($fakeBlobUrl) {
+            $mock->shouldReceive('upload')->once()->andReturn($fakeBlobUrl);
+        });
+
         [$tenant, $family, $admin, $member] = $this->createFamilyContext();
 
         $file = UploadedFile::fake()->create('passport.pdf', 120, 'application/pdf');
@@ -53,7 +58,7 @@ class DocumentsTest extends TestCase
 
         $document = Document::first();
         $this->assertNotNull($document);
-        Storage::disk('vercel_blob')->assertExists($document->file_path);
+        $this->assertSame($fakeBlobUrl, $document->file_path);
 
         $download = $this->actingAs($admin)->postJson(route('families.documents.download', ['family' => $family->id, 'document' => $document]));
         $download->assertStatus(403);
@@ -64,7 +69,7 @@ class DocumentsTest extends TestCase
         $verify->assertOk();
 
         $downloadAfterVerification = $this->actingAs($admin)->post(route('families.documents.download', ['family' => $family->id, 'document' => $document]));
-        $downloadAfterVerification->assertRedirect();
+        $downloadAfterVerification->assertRedirect($fakeBlobUrl);
     }
 
     public function test_expiry_reminder_command_notifies_recipients(): void
@@ -82,7 +87,7 @@ class DocumentsTest extends TestCase
             'is_sensitive' => true,
             'password_hash' => 'secret',
             'original_name' => 'license.pdf',
-            'file_path' => 'documents/test/license.pdf',
+            'file_path' => 'https://example.public.blob.vercel-storage.com/documents/test/license.pdf',
             'mime_type' => 'application/pdf',
             'file_size' => 1024,
             'expires_at' => now()->addDays(5),

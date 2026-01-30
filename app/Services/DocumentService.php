@@ -8,19 +8,21 @@ use App\Models\Document;
 use App\Models\Family;
 use App\Models\User;
 use App\Models\DocumentReminder;
-use App\Support\BlobPathNormalizer;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class DocumentService
 {
+    public function __construct(
+        private readonly VercelBlobService $vercelBlob
+    ) {
+    }
+
     public function store(User $user, Family $family, array $data, UploadedFile $file): Document
     {
-        $path = $this->buildStoragePath($user->tenant_id, $family->id, $file);
-        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
+        $pathname = $this->buildStoragePath($user->tenant_id, $family->id, $file);
+        $url = $this->vercelBlob->upload($file, $pathname);
 
         // The password_hash mutator will automatically hash the password, so pass plain text
         $document = Document::create([
@@ -33,7 +35,7 @@ class DocumentService
             'is_sensitive' => (bool) ($data['is_sensitive'] ?? false),
             'password_hash' => ($data['is_sensitive'] ?? false) && !empty($data['password']) ? $data['password'] : null,
             'original_name' => $file->getClientOriginalName(),
-            'file_path' => $path,
+            'file_path' => $url,
             'mime_type' => $file->getClientMimeType(),
             'file_size' => $file->getSize(),
             'expires_at' => $data['expires_at'] ?? null,
@@ -76,13 +78,8 @@ class DocumentService
 
     public function delete(Document $document): void
     {
-        $path = BlobPathNormalizer::normalize($document->file_path);
-        if ($path !== null && $path !== '') {
-            try {
-                Storage::disk('vercel_blob')->delete($path);
-            } catch (\Throwable $e) {
-                Log::warning('Blob delete failed on document delete', ['document_id' => $document->id, 'message' => $e->getMessage()]);
-            }
+        if (!empty($document->file_path) && str_starts_with((string) $document->file_path, 'https://')) {
+            $this->vercelBlob->delete($document->file_path);
         }
         $document->delete();
     }

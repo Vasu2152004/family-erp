@@ -13,13 +13,10 @@ use App\Models\Family;
 use App\Models\FamilyMember;
 use App\Models\FamilyUserRole;
 use App\Services\DocumentService;
-use App\Support\BlobPathNormalizer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class DocumentController extends Controller
 {
@@ -216,23 +213,14 @@ class DocumentController extends Controller
                 ->with('error', 'Password required to download this document. Please use the download button to enter the password.');
         }
 
-        $path = BlobPathNormalizer::normalize($document->file_path);
-        if ($path === null || $path === '') {
-            Log::warning('Blob path empty after normalization', ['document_id' => $document->id]);
+        $url = $document->file_path;
+        if (empty($url) || !str_starts_with((string) $url, 'https://')) {
             return redirect()
                 ->route('families.documents.index', ['family' => $family->id])
                 ->with('error', 'File not found.');
         }
 
-        try {
-            $url = Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(15));
-            return redirect($url);
-        } catch (\Throwable $e) {
-            Log::warning('Blob temporaryUrl failed', ['document_id' => $document->id, 'message' => $e->getMessage()]);
-            return redirect()
-                ->route('families.documents.index', ['family' => $family->id])
-                ->with('error', 'File not found.');
-        }
+        return redirect($url);
     }
 
     private function ensureFamilyContext(Family $family, Document $document): void

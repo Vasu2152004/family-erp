@@ -9,15 +9,17 @@ use App\Models\MedicineExpiryReminder;
 use App\Models\MedicineIntakeReminder;
 use App\Services\TimezoneService;
 use Carbon\CarbonImmutable;
-use App\Support\BlobPathNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class MedicineService
 {
+    public function __construct(
+        private readonly VercelBlobService $vercelBlob
+    ) {
+    }
+
     /**
      * Create a medicine with prescription PDF.
      */
@@ -66,14 +68,9 @@ class MedicineService
         return DB::transaction(function () use ($medicine, $data, $userId, $file) {
             $attachmentData = [];
             if ($file) {
-                // Delete old file if exists
-                $path = BlobPathNormalizer::normalize($medicine->prescription_file_path);
-                if ($path !== null && $path !== '') {
-                    try {
-                        Storage::disk('vercel_blob')->delete($path);
-                    } catch (\Throwable $e) {
-                        Log::warning('Blob delete failed in updateMedicine', ['medicine_id' => $medicine->id, 'message' => $e->getMessage()]);
-                    }
+                // Delete old file if exists (stored as URL)
+                if (!empty($medicine->prescription_file_path) && str_starts_with((string) $medicine->prescription_file_path, 'https://')) {
+                    $this->vercelBlob->delete($medicine->prescription_file_path);
                 }
                 $attachmentData = $this->storePrescriptionFile($file, $medicine->tenant_id, $medicine->family_id);
             }
@@ -117,14 +114,9 @@ class MedicineService
     public function deleteMedicine(Medicine $medicine): void
     {
         DB::transaction(function () use ($medicine) {
-            // Delete prescription file if exists
-            $path = BlobPathNormalizer::normalize($medicine->prescription_file_path);
-            if ($path !== null && $path !== '') {
-                try {
-                    Storage::disk('vercel_blob')->delete($path);
-                } catch (\Throwable $e) {
-                    Log::warning('Blob delete failed in deleteMedicine', ['medicine_id' => $medicine->id, 'message' => $e->getMessage()]);
-                }
+            // Delete prescription file if exists (stored as URL)
+            if (!empty($medicine->prescription_file_path) && str_starts_with((string) $medicine->prescription_file_path, 'https://')) {
+                $this->vercelBlob->delete($medicine->prescription_file_path);
             }
 
             // Delete all reminders
@@ -254,13 +246,12 @@ class MedicineService
     {
         $ext = $file->getClientOriginalExtension();
         $hashed = Str::uuid()->toString();
-        $directory = "medicines/tenant-{$tenantId}/family-{$familyId}";
-        $path = "{$directory}/{$hashed}.{$ext}";
+        $pathname = "medicines/tenant-{$tenantId}/family-{$familyId}/{$hashed}.{$ext}";
 
-        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
+        $url = $this->vercelBlob->upload($file, $pathname);
 
         return [
-            'file_path' => $path,
+            'file_path' => $url,
             'original_name' => $file->getClientOriginalName(),
             'mime_type' => $file->getClientMimeType(),
             'file_size' => $file->getSize(),

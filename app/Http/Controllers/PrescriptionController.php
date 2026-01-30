@@ -10,16 +10,15 @@ use App\Models\Family;
 use App\Models\DoctorVisit;
 use App\Models\Prescription;
 use App\Services\HealthService;
-use App\Support\BlobPathNormalizer;
+use App\Services\VercelBlobService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class PrescriptionController extends Controller
 {
     public function __construct(
-        private readonly HealthService $healthService
+        private readonly HealthService $healthService,
+        private readonly VercelBlobService $vercelBlob
     ) {
     }
 
@@ -63,13 +62,8 @@ class PrescriptionController extends Controller
     {
         $this->authorize('delete', $prescription);
 
-        $path = BlobPathNormalizer::normalize($prescription->file_path);
-        if ($path !== null && $path !== '') {
-            try {
-                Storage::disk('vercel_blob')->delete($path);
-            } catch (\Throwable $e) {
-                Log::warning('Blob delete failed on prescription destroy', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
-            }
+        if (!empty($prescription->file_path) && str_starts_with((string) $prescription->file_path, 'https://')) {
+            $this->vercelBlob->delete($prescription->file_path);
         }
 
         $prescription->delete();
@@ -82,18 +76,11 @@ class PrescriptionController extends Controller
     {
         $this->authorize('view', $prescription);
 
-        $path = BlobPathNormalizer::normalize($prescription->file_path);
-        if ($path === null || $path === '') {
-            Log::warning('Blob path empty after normalization', ['prescription_id' => $prescription->id]);
+        $url = $prescription->file_path;
+        if (empty($url) || !str_starts_with((string) $url, 'https://')) {
             abort(404, 'Prescription file not found.');
         }
 
-        try {
-            $url = Storage::disk('vercel_blob')->temporaryUrl($path, now()->addMinutes(15));
-            return redirect($url);
-        } catch (\Throwable $e) {
-            Log::warning('Blob temporaryUrl failed', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
-            abort(404, 'Prescription file not found.');
-        }
+        return redirect($url);
     }
 }

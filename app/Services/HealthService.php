@@ -12,15 +12,17 @@ use App\Models\Family;
 use App\Models\User;
 use App\Services\TimezoneService;
 use Carbon\Carbon;
-use App\Support\BlobPathNormalizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class HealthService
 {
+    public function __construct(
+        private readonly VercelBlobService $vercelBlob
+    ) {
+    }
+
     /**
      * Create a medical record.
      */
@@ -190,14 +192,9 @@ class HealthService
         return DB::transaction(function () use ($prescription, $data, $userId, $file) {
             // Handle file upload if provided
             if ($file) {
-                // Delete old file if exists
-                $path = BlobPathNormalizer::normalize($prescription->file_path);
-                if ($path !== null && $path !== '') {
-                    try {
-                        Storage::disk('vercel_blob')->delete($path);
-                    } catch (\Throwable $e) {
-                        Log::warning('Blob delete failed in updatePrescription', ['prescription_id' => $prescription->id, 'message' => $e->getMessage()]);
-                    }
+                // Delete old file if exists (stored as URL)
+                if (!empty($prescription->file_path) && str_starts_with((string) $prescription->file_path, 'https://')) {
+                    $this->vercelBlob->delete($prescription->file_path);
                 }
                 $attachmentData = $this->storeAttachment($file, $prescription->tenant_id, $prescription->family_id);
             } else {
@@ -307,13 +304,12 @@ class HealthService
     {
         $ext = $file->getClientOriginalExtension();
         $hashed = Str::uuid()->toString();
-        $directory = "prescriptions/tenant-{$tenantId}/family-{$familyId}";
-        $path = "{$directory}/{$hashed}.{$ext}";
+        $pathname = "prescriptions/tenant-{$tenantId}/family-{$familyId}/{$hashed}.{$ext}";
 
-        Storage::disk('vercel_blob')->putFileAs(dirname($path), $file, basename($path));
+        $url = $this->vercelBlob->upload($file, $pathname);
 
         return [
-            'file_path' => $path,
+            'file_path' => $url,
             'original_name' => $file->getClientOriginalName(),
             'mime_type' => $file->getClientMimeType(),
             'file_size' => $file->getSize(),
