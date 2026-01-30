@@ -59,9 +59,6 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA', base_path('ca.pem')),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => filter_var(env('MYSQL_ATTR_SSL_VERIFY_SERVER_CERT', true), FILTER_VALIDATE_BOOLEAN),
-                PDO::MYSQL_ATTR_SSL_CIPHER => env('MYSQL_ATTR_SSL_CIPHER') ?: null,
             ]) : [],
         ],
 
