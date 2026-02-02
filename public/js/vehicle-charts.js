@@ -8,6 +8,15 @@ function initVehicleCharts(fuelConsumptionData) {
         console.error('ApexCharts is not loaded');
         return;
     }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
+    function safeRender(el, options, key) {
+        if (!nodeInDocument(el)) return;
+        try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
+            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+            var chart = new ApexCharts(el, options); vehicleChartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+        } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+    }
 
     // Ensure data arrays exist
     fuelConsumptionData = fuelConsumptionData || [];
@@ -42,7 +51,7 @@ function initVehicleCharts(fuelConsumptionData) {
 
     // Fuel Consumption Trends Chart (Area Chart)
     const fuelConsumptionChartEl = document.getElementById('fuelConsumptionChart');
-    if (fuelConsumptionChartEl && fuelConsumptionData.length > 0) {
+    if (nodeInDocument(fuelConsumptionChartEl) && fuelConsumptionData.length > 0) {
         const fuelConsumptionOptions = {
             series: [{
                 name: 'Fuel Consumption',
@@ -135,7 +144,6 @@ function initVehicleCharts(fuelConsumptionData) {
             }
         };
 
-        vehicleChartInstances.fuelConsumption = new ApexCharts(fuelConsumptionChartEl, fuelConsumptionOptions);
-        vehicleChartInstances.fuelConsumption.render();
+        safeRender(fuelConsumptionChartEl, fuelConsumptionOptions, 'fuelConsumption');
     }
 }

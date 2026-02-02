@@ -127,22 +127,25 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/budget-charts.js') }}"></script>
         <script>
-            (function() {
-                const budgetVsActualData = @json($budgetVsActualData ?? []);
+            document.addEventListener('DOMContentLoaded', function() {
+                var budgetVsActualData = @json($budgetVsActualData ?? []);
                 function run() {
                     if (typeof ApexCharts !== 'undefined' && typeof initBudgetCharts === 'function') {
-                        initBudgetCharts(budgetVsActualData);
-                        return true;
+                        var el = document.getElementById('budgetVsActualChart');
+                        if (el && document.body.contains(el)) return true;
                     }
                     return false;
                 }
-                if (run()) return;
-                var attempts = 0;
-                var t = setInterval(function() {
-                    if (run()) { clearInterval(t); return; }
-                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initBudgetCharts not loaded'); }
-                }, 150);
-            })();
+                function init() {
+                    if (run()) { setTimeout(function() { initBudgetCharts(budgetVsActualData); }, 250); return; }
+                    var attempts = 0;
+                    var t = setInterval(function() {
+                        if (run()) { clearInterval(t); setTimeout(function() { initBudgetCharts(budgetVsActualData); }, 250); return; }
+                        if (++attempts >= 50) clearInterval(t);
+                    }, 150);
+                }
+                setTimeout(init, 0);
+            });
         </script>
     @endpush
 </x-app-layout>

@@ -8,6 +8,15 @@ function initBudgetCharts(budgetVsActualData) {
         console.error('ApexCharts is not loaded');
         return;
     }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
+    function safeRender(el, options, key) {
+        if (!nodeInDocument(el)) return;
+        try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
+            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+            var chart = new ApexCharts(el, options); budgetChartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+        } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+    }
 
     // Ensure data arrays exist
     budgetVsActualData = budgetVsActualData || [];
@@ -42,7 +51,7 @@ function initBudgetCharts(budgetVsActualData) {
 
     // Budget vs Actual Spending Chart (Grouped Bar Chart)
     const budgetVsActualChartEl = document.getElementById('budgetVsActualChart');
-    if (budgetVsActualChartEl && budgetVsActualData.length > 0) {
+    if (nodeInDocument(budgetVsActualChartEl) && budgetVsActualData.length > 0) {
         // Determine if we should use horizontal bars (if many categories)
         const useHorizontal = budgetVsActualData.length > 6;
 
@@ -139,7 +148,6 @@ function initBudgetCharts(budgetVsActualData) {
             }
         };
 
-        budgetChartInstances.budgetVsActual = new ApexCharts(budgetVsActualChartEl, budgetVsActualOptions);
-        budgetChartInstances.budgetVsActual.render();
+        safeRender(budgetVsActualChartEl, budgetVsActualOptions, 'budgetVsActual');
     }
 }

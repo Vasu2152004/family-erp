@@ -203,21 +203,22 @@
                     function run() {
                         if (typeof ApexCharts !== 'undefined' && typeof initAssetCharts === 'function') {
                             var el = document.getElementById('assetTypeDistributionChart') || document.getElementById('assetOwnerDistributionChart');
-                            if (el && document.body.contains(el)) {
-                                requestAnimationFrame(function() {
-                                    initAssetCharts(typeDistributionData, [], ownerDistributionData, []);
-                                });
-                                return true;
-                            }
+                            if (el && document.body.contains(el)) return true;
                         }
                         return false;
                     }
-                    if (run()) return;
-                    var attempts = 0;
-                    var t = setInterval(function() {
-                        if (run()) { clearInterval(t); return; }
-                        if (++attempts >= 50) { clearInterval(t); }
-                    }, 150);
+                    function init() {
+                        if (run()) {
+                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 250);
+                            return;
+                        }
+                        var attempts = 0;
+                        var t = setInterval(function() {
+                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 250); return; }
+                            if (++attempts >= 50) clearInterval(t);
+                        }, 150);
+                    }
+                    setTimeout(init, 0);
                 });
             </script>
         @endpush

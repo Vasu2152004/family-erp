@@ -212,22 +212,25 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/vehicle-charts.js') }}"></script>
         <script>
-            (function() {
-                const fuelConsumptionData = @json($fuelConsumptionData ?? []);
+            document.addEventListener('DOMContentLoaded', function() {
+                var fuelConsumptionData = @json($fuelConsumptionData ?? []);
                 function run() {
                     if (typeof ApexCharts !== 'undefined' && typeof initVehicleCharts === 'function') {
-                        initVehicleCharts(fuelConsumptionData);
-                        return true;
+                        var el = document.getElementById('fuelConsumptionChart');
+                        if (el && document.body.contains(el)) return true;
                     }
                     return false;
                 }
-                if (run()) return;
-                var attempts = 0;
-                var t = setInterval(function() {
-                    if (run()) { clearInterval(t); return; }
-                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initVehicleCharts not loaded'); }
-                }, 150);
-            })();
+                function init() {
+                    if (run()) { setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 250); return; }
+                    var attempts = 0;
+                    var t = setInterval(function() {
+                        if (run()) { clearInterval(t); setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 250); return; }
+                        if (++attempts >= 50) clearInterval(t);
+                    }, 150);
+                }
+                setTimeout(init, 0);
+            });
 
             function openDeleteModal(vehicleId, vehicleName, vehicleReg) {
                 document.getElementById('deleteModal').classList.remove('hidden');

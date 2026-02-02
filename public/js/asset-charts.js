@@ -19,9 +19,15 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
     function safeRender(el, options, instanceKey) {
         if (!nodeInDocument(el)) return;
         try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) {
+                setTimeout(function() { safeRender(el, options, instanceKey); }, 150);
+                return;
+            }
+            if (!options.chart) options.chart = {};
+            options.chart.width = el.offsetWidth || options.chart.width;
             var chart = new ApexCharts(el, options);
             assetChartInstances[instanceKey] = chart;
-            chart.render();
+            setTimeout(function() { chart.render(); }, 50);
         } catch (e) {
             if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
         }

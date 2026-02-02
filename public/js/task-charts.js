@@ -8,6 +8,15 @@ function initTaskCharts(taskStatusData) {
         console.error('ApexCharts is not loaded');
         return;
     }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
+    function safeRender(el, options, key) {
+        if (!nodeInDocument(el)) return;
+        try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
+            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+            var chart = new ApexCharts(el, options); taskChartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+        } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+    }
 
     // Ensure data arrays exist
     taskStatusData = taskStatusData || [];
@@ -42,7 +51,7 @@ function initTaskCharts(taskStatusData) {
 
     // Task Status Distribution Chart (Donut Chart)
     const taskStatusChartEl = document.getElementById('taskStatusChart');
-    if (taskStatusChartEl && taskStatusData.length > 0) {
+    if (nodeInDocument(taskStatusChartEl) && taskStatusData.length > 0) {
         const total = taskStatusData.reduce((sum, item) => sum + item.count, 0);
 
         // Map status to colors
@@ -107,7 +116,6 @@ function initTaskCharts(taskStatusData) {
             }
         };
 
-        taskChartInstances.taskStatus = new ApexCharts(taskStatusChartEl, taskStatusOptions);
-        taskChartInstances.taskStatus.render();
+        safeRender(taskStatusChartEl, taskStatusOptions, 'taskStatus');
     }
 }

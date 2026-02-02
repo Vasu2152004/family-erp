@@ -12,6 +12,15 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
         console.error('ApexCharts is not loaded');
         return;
     }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
+    function safeRender(el, options, key) {
+        if (!nodeInDocument(el)) return;
+        try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
+            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+            var chart = new ApexCharts(el, options); investmentChartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+        } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+    }
 
     // Ensure data arrays exist
     typeDistributionData = typeDistributionData || [];
@@ -60,7 +69,7 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
 
     // Investment Type Distribution Chart (Donut Chart)
     const typeDistributionChartEl = document.getElementById('investmentTypeDistributionChart');
-    if (typeDistributionChartEl && typeDistributionData.length > 0) {
+    if (nodeInDocument(typeDistributionChartEl) && typeDistributionData.length > 0) {
         const total = typeDistributionData.reduce((sum, item) => sum + item.total_value, 0);
 
         const typeDistributionOptions = {
@@ -117,13 +126,12 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
             }
         };
 
-        investmentChartInstances.typeDistribution = new ApexCharts(typeDistributionChartEl, typeDistributionOptions);
-        investmentChartInstances.typeDistribution.render();
+        safeRender(typeDistributionChartEl, typeDistributionOptions, 'typeDistribution');
     }
 
     // Investment Count by Type Chart (Bar Chart)
     const countByTypeChartEl = document.getElementById('investmentCountByTypeChart');
-    if (countByTypeChartEl && countByTypeData.length > 0) {
+    if (nodeInDocument(countByTypeChartEl) && countByTypeData.length > 0) {
         const countByTypeOptions = {
             series: [{
                 name: 'Count',
@@ -196,13 +204,12 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
             colors: [colors.primary]
         };
 
-        investmentChartInstances.countByType = new ApexCharts(countByTypeChartEl, countByTypeOptions);
-        investmentChartInstances.countByType.render();
+        safeRender(countByTypeChartEl, countByTypeOptions, 'countByType');
     }
 
     // Investment Value Trend Chart (Line Chart)
     const valueTrendChartEl = document.getElementById('investmentValueTrendChart');
-    if (valueTrendChartEl && valueTrendData.length > 0) {
+    if (nodeInDocument(valueTrendChartEl) && valueTrendData.length > 0) {
         // Sort by month to ensure chronological order
         const sortedData = [...valueTrendData].sort((a, b) => a.month.localeCompare(b.month));
         
@@ -316,13 +323,12 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
             }
         };
 
-        investmentChartInstances.valueTrend = new ApexCharts(valueTrendChartEl, valueTrendOptions);
-        investmentChartInstances.valueTrend.render();
+        safeRender(valueTrendChartEl, valueTrendOptions, 'valueTrend');
     }
 
     // Profit/Loss Trend Chart (Column Chart - better for showing profit vs loss)
     const profitLossTrendChartEl = document.getElementById('investmentProfitLossTrendChart');
-    if (profitLossTrendChartEl && profitLossTrendData.length > 0) {
+    if (nodeInDocument(profitLossTrendChartEl) && profitLossTrendData.length > 0) {
         // Sort by month to ensure chronological order
         const sortedData = [...profitLossTrendData].sort((a, b) => a.month.localeCompare(b.month));
         
@@ -450,13 +456,12 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
             }
         };
 
-        investmentChartInstances.profitLossTrend = new ApexCharts(profitLossTrendChartEl, profitLossTrendOptions);
-        investmentChartInstances.profitLossTrend.render();
+        safeRender(profitLossTrendChartEl, profitLossTrendOptions, 'profitLossTrend');
     }
 
     // Owner-wise Distribution Chart (Donut Chart)
     const ownerDistributionChartEl = document.getElementById('investmentOwnerDistributionChart');
-    if (ownerDistributionChartEl && ownerDistributionData.length > 0) {
+    if (nodeInDocument(ownerDistributionChartEl) && ownerDistributionData.length > 0) {
         const total = ownerDistributionData.reduce((sum, item) => sum + item.total_value, 0);
 
         const ownerDistributionOptions = {
@@ -513,8 +518,7 @@ function initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDi
             }
         };
 
-        investmentChartInstances.ownerDistribution = new ApexCharts(ownerDistributionChartEl, ownerDistributionOptions);
-        investmentChartInstances.ownerDistribution.render();
+        safeRender(ownerDistributionChartEl, ownerDistributionOptions, 'ownerDistribution');
     }
 }
 

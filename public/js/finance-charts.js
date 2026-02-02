@@ -14,6 +14,15 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
         console.error('ApexCharts is not loaded');
         return;
     }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
+    function safeRender(el, options, key) {
+        if (!nodeInDocument(el)) return;
+        try {
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
+            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+            var chart = new ApexCharts(el, options); chartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+        } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+    }
 
     // Ensure data arrays exist
     monthlyData = monthlyData || [];
@@ -64,7 +73,7 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
 
     // Monthly Expenses & Income Chart (Area/Line Chart)
     const monthlyChartEl = document.getElementById('monthlyChart');
-    if (monthlyChartEl) {
+    if (nodeInDocument(monthlyChartEl)) {
         // Ensure we have data for all 12 months
         const currentYear = new Date().getFullYear();
         let chartData = monthlyData.length > 0 ? monthlyData : Array.from({length: 12}, (_, i) => ({
@@ -186,13 +195,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.monthly = new ApexCharts(monthlyChartEl, monthlyOptions);
-        chartInstances.monthly.render();
+        safeRender(monthlyChartEl, monthlyOptions, 'monthly');
     }
 
     // Member-wise Spending Chart (Doughnut Chart)
     const memberWiseChartEl = document.getElementById('memberWiseChart');
-    if (memberWiseChartEl && memberWiseData.length > 0) {
+    if (nodeInDocument(memberWiseChartEl) && memberWiseData.length > 0) {
         const total = memberWiseData.reduce((sum, item) => sum + item.amount, 0);
 
         const memberWiseOptions = {
@@ -250,13 +258,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.memberWise = new ApexCharts(memberWiseChartEl, memberWiseOptions);
-        chartInstances.memberWise.render();
+        safeRender(memberWiseChartEl, memberWiseOptions, 'memberWise');
     }
 
     // Category-wise Expenses Chart (Bar Chart)
     const categoryWiseChartEl = document.getElementById('categoryWiseChart');
-    if (categoryWiseChartEl && categoryWiseData.length > 0) {
+    if (nodeInDocument(categoryWiseChartEl) && categoryWiseData.length > 0) {
         const total = categoryWiseData.reduce((sum, item) => sum + item.amount, 0);
 
         const categoryWiseOptions = {
@@ -336,13 +343,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.categoryWise = new ApexCharts(categoryWiseChartEl, categoryWiseOptions);
-        chartInstances.categoryWise.render();
+        safeRender(categoryWiseChartEl, categoryWiseOptions, 'categoryWise');
     }
 
     // Savings Trend Chart (Line Chart)
     const savingsTrendChartEl = document.getElementById('savingsTrendChart');
-    if (savingsTrendChartEl && savingsTrendData.length > 0) {
+    if (nodeInDocument(savingsTrendChartEl) && savingsTrendData.length > 0) {
         const savingsOptions = {
             series: [{
                 name: 'Savings',
@@ -435,13 +441,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.savingsTrend = new ApexCharts(savingsTrendChartEl, savingsOptions);
-        chartInstances.savingsTrend.render();
+        safeRender(savingsTrendChartEl, savingsOptions, 'savingsTrend');
     }
 
     // Account Balance Trends Chart (Multi-line Chart)
     const accountBalanceTrendsChartEl = document.getElementById('accountBalanceTrendsChart');
-    if (accountBalanceTrendsChartEl && accountBalanceTrends.length > 0) {
+    if (nodeInDocument(accountBalanceTrendsChartEl) && accountBalanceTrends.length > 0) {
         const series = accountBalanceTrends.map(account => ({
             name: account.account_name,
             data: account.balances.map(b => b.balance)
@@ -533,13 +538,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.accountBalanceTrends = new ApexCharts(accountBalanceTrendsChartEl, accountBalanceOptions);
-        chartInstances.accountBalanceTrends.render();
+        safeRender(accountBalanceTrendsChartEl, accountBalanceOptions, 'accountBalanceTrends');
     }
 
     // Income Sources Breakdown Chart (Donut Chart)
     const incomeSourcesChartEl = document.getElementById('incomeSourcesChart');
-    if (incomeSourcesChartEl && incomeSourcesData.length > 0) {
+    if (nodeInDocument(incomeSourcesChartEl) && incomeSourcesData.length > 0) {
         const total = incomeSourcesData.reduce((sum, item) => sum + item.amount, 0);
 
         const incomeSourcesOptions = {
@@ -597,13 +601,12 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.incomeSources = new ApexCharts(incomeSourcesChartEl, incomeSourcesOptions);
-        chartInstances.incomeSources.render();
+        safeRender(incomeSourcesChartEl, incomeSourcesOptions, 'incomeSources');
     }
 
     // Expense Patterns by Day of Week Chart (Bar Chart)
     const expensePatternsChartEl = document.getElementById('expensePatternsChart');
-    if (expensePatternsChartEl && expensePatternsData.length > 0) {
+    if (nodeInDocument(expensePatternsChartEl) && expensePatternsData.length > 0) {
         // Sort by day order (Monday to Sunday)
         const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const sortedData = expensePatternsData.sort((a, b) => {
@@ -686,7 +689,6 @@ function initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, saving
             }
         };
 
-        chartInstances.expensePatterns = new ApexCharts(expensePatternsChartEl, expensePatternsOptions);
-        chartInstances.expensePatterns.render();
+        safeRender(expensePatternsChartEl, expensePatternsOptions, 'expensePatterns');
     }
 }

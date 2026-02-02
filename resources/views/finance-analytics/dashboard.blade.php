@@ -98,28 +98,31 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/finance-charts.js') }}"></script>
         <script>
-            (function() {
-                const monthlyData = @json($monthlyData ?? []);
-                const memberWiseData = @json($memberWiseData ?? []);
-                const categoryWiseData = @json($categoryWiseData ?? []);
-                const savingsTrendData = @json($savingsTrendData ?? []);
-                const accountBalanceTrends = @json($accountBalanceTrends ?? []);
-                const incomeSourcesData = @json($incomeSourcesData ?? []);
-                const expensePatternsData = @json($expensePatternsData ?? []);
+            document.addEventListener('DOMContentLoaded', function() {
+                var monthlyData = @json($monthlyData ?? []);
+                var memberWiseData = @json($memberWiseData ?? []);
+                var categoryWiseData = @json($categoryWiseData ?? []);
+                var savingsTrendData = @json($savingsTrendData ?? []);
+                var accountBalanceTrends = @json($accountBalanceTrends ?? []);
+                var incomeSourcesData = @json($incomeSourcesData ?? []);
+                var expensePatternsData = @json($expensePatternsData ?? []);
                 function run() {
                     if (typeof ApexCharts !== 'undefined' && typeof initFinanceCharts === 'function') {
-                        initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData);
-                        return true;
+                        var el = document.getElementById('monthlyChart') || document.getElementById('memberWiseChart');
+                        if (el && document.body.contains(el)) return true;
                     }
                     return false;
                 }
-                if (run()) return;
-                var attempts = 0;
-                var t = setInterval(function() {
-                    if (run()) { clearInterval(t); return; }
-                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initFinanceCharts not loaded'); }
-                }, 150);
-            })();
+                function init() {
+                    if (run()) { setTimeout(function() { initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData); }, 250); return; }
+                    var attempts = 0;
+                    var t = setInterval(function() {
+                        if (run()) { clearInterval(t); setTimeout(function() { initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData); }, 250); return; }
+                        if (++attempts >= 50) clearInterval(t);
+                    }, 150);
+                }
+                setTimeout(init, 0);
+            });
         </script>
     @endpush
 </x-app-layout>

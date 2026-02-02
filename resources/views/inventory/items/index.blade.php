@@ -199,23 +199,26 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/inventory-charts.js') }}"></script>
         <script>
-            (function() {
-                const categoryData = @json($categoryDistribution ?? []);
-                const stockStatusData = @json($stockStatusOverview ?? []);
+            document.addEventListener('DOMContentLoaded', function() {
+                var categoryData = @json($categoryDistribution ?? []);
+                var stockStatusData = @json($stockStatusOverview ?? []);
                 function run() {
                     if (typeof ApexCharts !== 'undefined' && typeof initInventoryCharts === 'function') {
-                        initInventoryCharts(categoryData, stockStatusData);
-                        return true;
+                        var el = document.getElementById('categoryDistributionChart') || document.getElementById('stockStatusChart');
+                        if (el && document.body.contains(el)) return true;
                     }
                     return false;
                 }
-                if (run()) return;
-                var attempts = 0;
-                var t = setInterval(function() {
-                    if (run()) { clearInterval(t); return; }
-                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initInventoryCharts not loaded'); }
-                }, 150);
-            })();
+                function init() {
+                    if (run()) { setTimeout(function() { initInventoryCharts(categoryData, stockStatusData); }, 250); return; }
+                    var attempts = 0;
+                    var t = setInterval(function() {
+                        if (run()) { clearInterval(t); setTimeout(function() { initInventoryCharts(categoryData, stockStatusData); }, 250); return; }
+                        if (++attempts >= 50) clearInterval(t);
+                    }, 150);
+                }
+                setTimeout(init, 0);
+            });
         </script>
     @endpush
 </x-app-layout>
