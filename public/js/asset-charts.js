@@ -12,9 +12,7 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
         return;
     }
 
-    function nodeInDocument(el) {
-        return el && document.body && document.body.contains(el);
-    }
+    function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
     function safeRender(elOrId, options, instanceKey, dimensionRetries) {
         dimensionRetries = dimensionRetries || 0;
         var el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : (elOrId && elOrId.id ? document.getElementById(elOrId.id) : elOrId);
@@ -33,7 +31,7 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
                 if (!el || !document.body.contains(el)) return;
                 try {
                     if (!options.chart) options.chart = {};
-                    options.chart.width = Math.max(el.offsetWidth || w, 200);
+                    options.chart.width = el.offsetWidth || w;
                     options.chart.height = options.chart.height || 400;
                     var chart = new ApexCharts(el, options);
                     assetChartInstances[instanceKey] = chart;
@@ -41,7 +39,7 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
                 } catch (e) {
                     if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
                 }
-            }, 250);
+            }, 100);
         } catch (e) {
             if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
         }
@@ -83,10 +81,10 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
         colors.info,
     ];
 
-    // Destroy existing charts (wrap in try-catch in case node was detached)
+    // Destroy existing charts
     Object.keys(assetChartInstances).forEach(key => {
         if (assetChartInstances[key]) {
-            try { assetChartInstances[key].destroy(); } catch (e) { /* ignore */ }
+            assetChartInstances[key].destroy();
             assetChartInstances[key] = null;
         }
     });
@@ -153,21 +151,38 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
         safeRender(typeDistributionChartEl, typeDistributionOptions, 'typeDistribution');
     }
 
-    // Render owner distribution after a delay to avoid "Node cannot be found" when both charts init together
-    var ownerDistributionChartEl = document.getElementById('assetOwnerDistributionChart');
+    // Owner-wise Distribution Chart (Donut Chart) - same pattern as investment-charts
+    const ownerDistributionChartEl = document.getElementById('assetOwnerDistributionChart');
     if (nodeInDocument(ownerDistributionChartEl) && ownerDistributionData.length > 0) {
-        var ownerTotal = ownerDistributionData.reduce(function(sum, item) { return sum + item.total_value; }, 0);
-        var ownerDistributionOptions = {
-            series: ownerDistributionData.map(function(item) { return item.total_value; }),
-            chart: { type: 'donut', height: 400, fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif', animations: { enabled: true, easing: 'easeinout', speed: 800 } },
-            labels: ownerDistributionData.map(function(item) { return item.owner_name; }),
-            colors: ownerDistributionData.map(function(_, idx) { return palette[idx % palette.length]; }),
-            dataLabels: { enabled: true, formatter: function(val, opts) { var v = opts.w.globals.series[opts.seriesIndex]; return (ownerTotal > 0 ? ((v / ownerTotal) * 100).toFixed(1) : 0) + '%'; }, style: { fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif', fontSize: '12px', fontWeight: 600 } },
+        const ownerTotal = ownerDistributionData.reduce((sum, item) => sum + item.total_value, 0);
+        const ownerDistributionOptions = {
+            series: ownerDistributionData.map(item => item.total_value),
+            chart: {
+                type: 'donut',
+                height: 400,
+                fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif',
+                animations: { enabled: true, easing: 'easeinout', speed: 800 }
+            },
+            labels: ownerDistributionData.map(item => item.owner_name),
+            colors: ownerDistributionData.map((_, idx) => palette[idx % palette.length]),
+            dataLabels: {
+                enabled: true,
+                formatter: function(val, opts) {
+                    const value = opts.w.globals.series[opts.seriesIndex];
+                    const percentage = ownerTotal > 0 ? ((value / ownerTotal) * 100).toFixed(1) : 0;
+                    return percentage + '%';
+                },
+                style: { fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif', fontSize: '12px', fontWeight: 600 }
+            },
             plotOptions: { pie: { donut: { size: '60%' } } },
-            tooltip: { theme: 'light', style: { fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif' }, y: { formatter: function(value) { return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); } } },
+            tooltip: {
+                theme: 'light',
+                style: { fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif' },
+                y: { formatter: function(value) { return '₹' + value.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); } }
+            },
             legend: { position: 'right', fontFamily: 'Instrument Sans, ui-sans-serif, system-ui, sans-serif', labels: { colors: colors.textPrimary } }
         };
-        setTimeout(function() { safeRender(ownerDistributionChartEl, ownerDistributionOptions, 'ownerDistribution'); }, 400);
+        safeRender(ownerDistributionChartEl, ownerDistributionOptions, 'ownerDistribution');
     }
 
     // Asset Count by Type Chart (Bar Chart)

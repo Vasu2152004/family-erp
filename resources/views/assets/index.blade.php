@@ -159,36 +159,28 @@
             </div>
         @endif
 
-        <!-- Charts Section - Moved to bottom after the list -->
+        <!-- Charts Section - Same structure as investments -->
         @if($assets->count() > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Asset Type Distribution Chart (Donut) -->
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Asset Type Distribution</h2>
-                    @if(count($typeDistributionData) > 0)
-                        <div id="assetTypeDistributionChart" style="min-height: 400px; height: 400px; width: 100%;"></div>
-                    @else
-                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
-                            <p>No visible assets available for chart visualization.</p>
-                            <p class="text-sm mt-2">Locked assets are excluded from charts.</p>
+            @php
+                $hasTypeDistribution = count($typeDistributionData ?? []) > 0;
+                $hasOwnerDistribution = count($ownerDistributionData ?? []) > 0;
+            @endphp
+            @if($hasTypeDistribution || $hasOwnerDistribution)
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @if($hasTypeDistribution)
+                        <div class="card">
+                            <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Asset Type Distribution</h2>
+                            <div id="assetTypeDistributionChart" style="min-height: 400px; width: 100%;"></div>
+                        </div>
+                    @endif
+                    @if($hasOwnerDistribution)
+                        <div class="card">
+                            <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
+                            <div id="assetOwnerDistributionChart" style="min-height: 400px; width: 100%;"></div>
                         </div>
                     @endif
                 </div>
-
-                <!-- Owner-wise Distribution Chart (Donut) -->
-                <div class="card">
-                    <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
-                    @if(count($ownerDistributionData) > 0)
-                        <div id="assetOwnerDistributionChart" style="min-height: 400px; height: 400px; width: 100%;"></div>
-                    @else
-                        <div class="text-center py-12 text-[var(--color-text-secondary)]">
-                            <p>No visible assets available for chart visualization.</p>
-                            <p class="text-sm mt-2">Locked assets are excluded from charts.</p>
-                        </div>
-                    @endif
-                </div>
-
-            </div>
+            @endif
         @endif
     </div>
 
@@ -208,21 +200,14 @@
                         return false;
                     }
                     function init() {
-                        if (run()) {
-                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 800);
-                            return;
-                        }
+                        if (run()) { setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500); return; }
                         var attempts = 0;
                         var t = setInterval(function() {
-                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 800); return; }
+                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500); return; }
                             if (++attempts >= 50) clearInterval(t);
                         }, 150);
                     }
-                    if (document.readyState === 'complete') {
-                        setTimeout(init, 0);
-                    } else {
-                        window.addEventListener('load', function() { setTimeout(init, 0); });
-                    }
+                    if (document.readyState === 'complete') { setTimeout(init, 0); } else { window.addEventListener('load', function() { setTimeout(init, 0); }); }
                 })();
             </script>
         @endpush
