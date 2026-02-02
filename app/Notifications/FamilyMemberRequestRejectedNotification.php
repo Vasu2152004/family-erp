@@ -76,12 +76,19 @@ class FamilyMemberRequestRejectedNotification extends Notification implements Sh
      */
     public function toArray(object $notifiable): array
     {
+        $this->request->loadMissing(['family', 'requestedUser']);
+        $memberName = $this->request->first_name . ' ' . $this->request->last_name;
+        $familyName = $this->request->family->name;
+        $rejectedByName = $this->request->requestedUser->name ?? 'They';
+
         return [
             'type' => 'family_member_request_rejected',
+            'title' => 'Family Member Request Rejected',
+            'message' => "{$rejectedByName} rejected your request to add {$memberName} to {$familyName}.",
             'request_id' => $this->request->id,
             'family_id' => $this->request->family_id,
-            'family_name' => $this->request->family->name,
-            'member_name' => $this->request->first_name . ' ' . $this->request->last_name,
+            'family_name' => $familyName,
+            'member_name' => $memberName,
         ];
     }
 }

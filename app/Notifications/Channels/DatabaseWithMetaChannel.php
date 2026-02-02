@@ -26,8 +26,8 @@ class DatabaseWithMetaChannel
             'read_at' => null,
             'user_id' => $notifiable->id ?? null,
             'tenant_id' => $notifiable->tenant_id ?? null,
-            'title' => $data['title'] ?? null,
-            'message' => $data['message'] ?? null,
+            'title' => $data['title'] ?? 'Notification',
+            'message' => $data['message'] ?? '',
         ];
 
         NotificationModel::create($payload);

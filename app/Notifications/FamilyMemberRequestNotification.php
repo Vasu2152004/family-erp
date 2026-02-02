@@ -77,13 +77,20 @@ class FamilyMemberRequestNotification extends Notification implements ShouldQueu
      */
     public function toArray(object $notifiable): array
     {
+        $this->request->loadMissing(['family', 'requestedBy']);
+        $memberName = $this->request->first_name . ' ' . $this->request->last_name;
+        $familyName = $this->request->family->name;
+        $requestedByName = $this->request->requestedBy->name ?? 'Someone';
+
         return [
             'type' => 'family_member_request',
+            'title' => 'Family Member Request',
+            'message' => "{$requestedByName} requested to add {$memberName} to family {$familyName}.",
             'request_id' => $this->request->id,
             'family_id' => $this->request->family_id,
-            'family_name' => $this->request->family->name,
-            'member_name' => $this->request->first_name . ' ' . $this->request->last_name,
-            'requested_by' => $this->request->requestedBy->name,
+            'family_name' => $familyName,
+            'member_name' => $memberName,
+            'requested_by' => $requestedByName,
         ];
     }
 }
