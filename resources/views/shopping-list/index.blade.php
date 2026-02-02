@@ -17,14 +17,14 @@
                 </div>
             @endif
 
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">Shopping List</h1>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div class="min-w-0">
+                    <h1 class="text-2xl sm:text-3xl font-bold text-[var(--color-text-primary)] truncate">Shopping List</h1>
                     <p class="mt-2 text-sm text-[var(--color-text-secondary)]">
                         Manage shopping list for {{ $family->name }}
                     </p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2 shrink-0">
                     @can('create', [\App\Models\ShoppingListItem::class, $family])
                         <x-form method="POST" action="{{ route('shopping-list.auto-add-low-stock', ['family_id' => $family->id]) }}" class="inline">
                             <x-button type="submit" variant="outline" size="md">Auto-Add Low Stock</x-button>
@@ -52,7 +52,7 @@
                     <x-form method="POST" action="{{ route('shopping-list.store', ['family_id' => $family->id]) }}" class="space-y-4">
                         <input type="hidden" name="family_id" value="{{ $family->id }}">
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
                                 <x-label for="name" required>Item Name</x-label>
                                 <x-input type="text" name="name" id="name" value="{{ old('name') }}" required class="mt-1" />
@@ -112,8 +112,8 @@
                 @if($pendingItems->count() > 0)
                     <div class="space-y-3">
                         @foreach($pendingItems as $item)
-                            <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4 flex items-center justify-between">
-                                <div class="flex-1">
+                            <div class="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-primary)] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-3">
                                         <h3 class="text-lg font-medium text-[var(--color-text-primary)]">{{ $item->name }}</h3>
                                         @if($item->is_auto_added)
@@ -130,7 +130,7 @@
                                         Added by {{ $item->addedBy->name }} on {{ $item->created_at->format('M d, Y') }}
                                     </p>
                                 </div>
-                                <div class="flex gap-2">
+                                <div class="flex flex-wrap gap-2 shrink-0">
                                     @if(in_array($item->id, $pendingCanMarkPurchasedIds ?? []))
                                         <button type="button" onclick="openPurchaseModal({{ $item->id }}, '{{ addslashes($item->name) }}')" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--color-primary)] text-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] hover:border-[var(--color-primary-dark)] focus:ring-[var(--color-primary)] shadow-sm">
                                             Mark Purchased

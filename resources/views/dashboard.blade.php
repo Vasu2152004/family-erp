@@ -8,14 +8,14 @@
         <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl shadow-lg p-5 text-white relative overflow-hidden">
             <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
             <div class="relative z-10">
-                <h1 class="text-2xl font-bold">Welcome back, {{ $user->name }}! 👋</h1>
+                <h1 class="text-xl sm:text-2xl font-bold truncate">Welcome back, {{ $user->name }}! 👋</h1>
                 <p class="text-blue-100 text-sm mt-0.5">Here's what's happening with your families today.</p>
             </div>
         </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-6">
+    <!-- Stats Grid - Responsive: 1 col mobile, 2 sm, 3 md, 4 lg, 5 xl - no horizontal scroll -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 mb-6 w-full min-w-0">
         <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
@@ -94,7 +94,7 @@
         @endif
 
         @if($familiesCount === 0)
-            <div class="col-span-2 sm:col-span-3 lg:col-span-6 bg-white rounded-xl shadow border border-gray-200 p-5 flex items-center justify-between">
+            <div class="col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 2xl:col-span-6 bg-white rounded-xl shadow border border-gray-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Get Started</h3>
                     <p class="text-sm text-gray-600 mb-3">Create your first family to access all features.</p>
@@ -217,16 +217,16 @@
                         <h2 class="text-lg font-bold text-gray-800">Task Summary</h2>
                         <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">View Tasks</a>
                     </div>
-                    <div class="flex gap-4">
-                        <div class="flex-1 text-center p-3 rounded-lg bg-amber-50">
+                    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div class="flex-1 min-w-0 text-center p-3 rounded-lg bg-amber-50">
                             <p class="text-2xl font-bold text-amber-600">{{ $taskCountsByStatus['pending'] ?? 0 }}</p>
                             <p class="text-xs text-gray-600">Pending</p>
                         </div>
-                        <div class="flex-1 text-center p-3 rounded-lg bg-blue-50">
+                        <div class="flex-1 min-w-0 text-center p-3 rounded-lg bg-blue-50">
                             <p class="text-2xl font-bold text-blue-600">{{ $taskCountsByStatus['in_progress'] ?? 0 }}</p>
                             <p class="text-xs text-gray-600">In Progress</p>
                         </div>
-                        <div class="flex-1 text-center p-3 rounded-lg bg-emerald-50">
+                        <div class="flex-1 min-w-0 text-center p-3 rounded-lg bg-emerald-50">
                             <p class="text-2xl font-bold text-emerald-600">{{ $taskCountsByStatus['done'] ?? 0 }}</p>
                             <p class="text-xs text-gray-600">Done</p>
                         </div>
@@ -295,17 +295,17 @@
     @endif
 
     <!-- Quick Links -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-            <div class="flex items-start space-x-4">
-                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <div class="flex flex-col sm:flex-row items-start gap-3 sm:space-x-4 sm:gap-0">
+                <div class="w-14 h-14 shrink-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                 </div>
-                <div class="flex-1">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">Manage Families</h3>
-                    <p class="text-gray-600 mb-4">View and manage all your family groups, members, and roles in one place.</p>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">Manage Families</h3>
+                    <p class="text-gray-600 mb-4 text-sm sm:text-base">View and manage all your family groups, members, and roles in one place.</p>
                     <span class="inline-flex items-center text-blue-600 font-semibold text-sm group-hover:translate-x-1 transition-transform">
                         View Families
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -316,16 +316,16 @@
             </div>
         </a>
 
-        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-            <div class="flex items-start space-x-4">
-                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 sm:p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <div class="flex flex-col sm:flex-row items-start gap-3 sm:space-x-4 sm:gap-0">
+                <div class="w-14 h-14 shrink-0 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
                 </div>
-                <div class="flex-1">
-                    <h3 class="text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">Family Requests</h3>
-                    <p class="text-gray-600 mb-4">Review and respond to family member requests from other users.</p>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-purple-600 transition-colors">Family Requests</h3>
+                    <p class="text-gray-600 mb-4 text-sm sm:text-base">Review and respond to family member requests from other users.</p>
                     <span class="inline-flex items-center text-purple-600 font-semibold text-sm group-hover:translate-x-1 transition-transform">
                         View Requests
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

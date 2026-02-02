@@ -39,7 +39,9 @@ class CacheHeadersForGet
             return $response;
         }
 
-        $response->headers->set('Cache-Control', 'public, max-age=' . self::MAX_AGE);
+        // Use private for authenticated routes (user-specific content), public for guest
+        $cacheType = $request->user() ? 'private' : 'public';
+        $response->headers->set('Cache-Control', $cacheType . ', max-age=' . self::MAX_AGE);
 
         $content = $response->getContent();
         if ($content !== false && $content !== '') {
@@ -49,7 +51,7 @@ class CacheHeadersForGet
             if ($request->header('If-None-Match') === $etag) {
                 return response('', 304)
                     ->withHeaders([
-                        'Cache-Control' => 'public, max-age=' . self::MAX_AGE,
+                        'Cache-Control' => $cacheType . ', max-age=' . self::MAX_AGE,
                         'ETag' => $etag,
                     ]);
             }

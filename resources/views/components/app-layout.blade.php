@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $title ?? 'Dashboard' }} - {{ config('app.name', 'Family ERP') }}</title>
@@ -21,7 +21,7 @@
     <x-sidebar />
 
     <!-- Main Content Area -->
-    <div class="lg:pl-64 min-h-screen">
+    <div class="lg:pl-64 min-h-screen min-w-0 overflow-x-hidden">
         <!-- Top Navigation Bar -->
         <header class="sticky top-0 z-30 bg-[var(--color-bg-secondary)]/90 backdrop-blur-xl border-b border-[var(--color-border-primary)] shadow-sm">
             <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
@@ -33,8 +33,8 @@
                 </button>
 
                 <!-- Page Title -->
-                <div class="flex-1 lg:flex-none">
-                    <h1 class="text-xl font-bold text-[var(--color-text-primary)]">
+                <div class="flex-1 lg:flex-none min-w-0 overflow-hidden">
+                    <h1 class="text-lg sm:text-xl font-bold text-[var(--color-text-primary)] truncate">
                         {{ $title ?? 'Dashboard' }}
                     </h1>
                 </div>
@@ -57,8 +57,8 @@
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="p-4 sm:p-6 lg:p-8 bg-[var(--color-bg-primary)] min-h-screen">
+        <!-- Main Content - min-w-0 prevents horizontal overflow from flex children -->
+        <main class="p-4 sm:p-6 lg:p-8 bg-[var(--color-bg-primary)] min-h-screen min-w-0 overflow-x-hidden">
             <!-- Flash Messages - Fixed at Top Right -->
             <div class="fixed top-20 right-4 z-40 space-y-2 w-full max-w-md sm:max-w-lg pointer-events-none">
                 @if(session('success'))
