@@ -30,11 +30,12 @@
 
         @if($activeFamily)
             @php
+                $financeUser = once(fn () => auth()->user());
                 $userRole = \App\Models\FamilyUserRole::where('family_id', $activeFamily->id)
-                    ->where('user_id', Auth::id())
+                    ->where('user_id', $financeUser->id)
                     ->first();
                 $isFamilyMember = \App\Models\FamilyMember::where('family_id', $activeFamily->id)
-                    ->where('user_id', Auth::id())
+                    ->where('user_id', $financeUser->id)
                     ->exists();
                 // User is a "member" if they have MEMBER role OR they are a family member without a role
                 $isMember = ($userRole && $userRole->role === 'MEMBER') || ($isFamilyMember && !$userRole);

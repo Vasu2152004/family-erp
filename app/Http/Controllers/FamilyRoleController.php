@@ -27,73 +27,63 @@ class FamilyRoleController extends Controller
     {
         $this->authorize('view', $family);
 
+        $user = once(fn () => Auth::user());
+        $userId = $user->id;
+
         $roles = $family->roles()->with('user')->orderByRaw("CASE WHEN role = 'OWNER' THEN 1 WHEN role = 'ADMIN' THEN 2 WHEN role = 'MEMBER' THEN 3 ELSE 4 END")->get();
         $membersWithoutUser = $family->members()->whereNull('user_id')->get();
-        
-        // Get all users who are family members of THIS specific family (excluding current user)
-        // Users must be linked to a family member record in this family
+
         $familyMemberUserIds = $family->members()
             ->whereNotNull('user_id')
             ->pluck('user_id')
             ->unique()
             ->toArray();
-        
+
         $allUsers = \App\Models\User::whereIn('id', $familyMemberUserIds)
-            ->where('id', '!=', Auth::id()) // Exclude current user
+            ->where('id', '!=', $userId)
             ->orderBy('name')
             ->get();
-        
-        // Also get all family members (even if they don't have a role yet)
+
         $allFamilyMembers = $family->members()->with('user')->get();
 
-        // CRITICAL: Always check for auto-promotion FIRST, before checking current role
-        // This ensures promoted users get their role immediately
-        
-        // Check if user has an auto_promoted request - if so, ensure they have ADMIN role
         $userAdminRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->where('status', 'auto_promoted')
             ->first();
-        
+
         if ($userAdminRequest) {
-            // User was promoted - verify and ensure ADMIN role exists
             $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                ->where('user_id', Auth::id())
+                ->where('user_id', $userId)
                 ->first();
-            
+
             if (!$userRole || ($userRole->role !== 'OWNER' && $userRole->role !== 'ADMIN')) {
-                // Role missing or wrong - create/update it immediately using direct DB update
                 if ($userRole) {
-                    // Update existing role directly using DB query
                     \Illuminate\Support\Facades\DB::table('family_user_roles')
                         ->where('id', $userRole->id)
                         ->update(['role' => 'ADMIN']);
                 } else {
-                    // Create new role
-                    $this->familyRoleService->assignRole(Auth::id(), $family->id, 'ADMIN');
+                    $this->familyRoleService->assignRole($userId, $family->id, 'ADMIN');
                 }
-                \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                \Illuminate\Support\Facades\Cache::forget("user_role_{$userId}_{$family->id}");
                 \Illuminate\Support\Facades\Cache::forget("family_roles_{$family->id}");
-                
-                // Refresh to get the new role
+
                 $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                    ->where('user_id', Auth::id())
+                    ->where('user_id', $userId)
                     ->first();
             }
         }
-        
-        // Check for pending requests that need promotion
+
         if (!$userAdminRequest || $userAdminRequest->status !== 'auto_promoted') {
             $pendingRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-                ->where('user_id', Auth::id())
+                ->where('user_id', $userId)
                 ->where('status', 'pending')
                 ->where('request_count', '>=', 3)
                 ->first();
-            
+
             if ($pendingRequest) {
                 $promotedRole = $this->familyRoleService->checkAndAutoPromote($family->id, $pendingRequest->id);
                 if ($promotedRole) {
-                    \Illuminate\Support\Facades\Cache::forget("user_role_" . Auth::id() . "_{$family->id}");
+                    \Illuminate\Support\Facades\Cache::forget("user_role_{$userId}_{$family->id}");
                     \Illuminate\Support\Facades\Cache::forget("family_roles_{$family->id}");
                     session()->flash('success', 'Congratulations! You have been automatically promoted to ADMIN role after 3 requests with no response from admins.');
                     
@@ -105,19 +95,16 @@ class FamilyRoleController extends Controller
             }
         }
         
-        // Now get the current role (after ensuring promotion is handled)
         $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $userId)
             ->first();
         $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
-        
-        // Only show request UI if user is NOT admin/owner
+
         if ($isOwnerOrAdmin) {
             $userAdminRequest = null;
         } else {
-            // Get pending request for display
             $userAdminRequest = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-                ->where('user_id', Auth::id())
+                ->where('user_id', $userId)
                 ->whereIn('status', ['pending', 'auto_promoted'])
                 ->first();
         }
@@ -136,7 +123,7 @@ class FamilyRoleController extends Controller
         if ($isOwnerOrAdmin) {
             // Get all pending admin role requests for this family (excluding current user's own requests)
             $adminRequestsToReview = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-                ->where('user_id', '!=', Auth::id())
+                ->where('user_id', '!=', $userId)
                 ->where('status', 'pending')
                 ->with('user')
                 ->orderBy('created_at', 'desc')
@@ -159,8 +146,7 @@ class FamilyRoleController extends Controller
             'is_backup_admin' => ['boolean'],
         ]);
 
-        // Only owners can assign OWNER role
-        if ($validated['role'] === 'OWNER' && !Auth::user()->isFamilyOwner($family->id)) {
+        if ($validated['role'] === 'OWNER' && !once(fn () => Auth::user())->isFamilyOwner($family->id)) {
             return redirect()->back()
                 ->withErrors(['role' => 'Only owners can assign OWNER role.'])
                 ->withInput();
@@ -217,7 +203,7 @@ class FamilyRoleController extends Controller
     public function requestAdminRole(Request $request, Family $family): RedirectResponse
     {
         try {
-            $user = Auth::user();
+            $user = once(fn () => Auth::user());
             $adminRequest = $this->familyRoleService->requestAdminRole($user->id, $family->id);
 
             $message = "Admin role request submitted. This is request #{$adminRequest->request_count} of 3.";

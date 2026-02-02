@@ -17,7 +17,7 @@ class ProfileController extends Controller
      */
     public function edit(): View
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
         return view('profile.edit', compact('user'));
     }
 
@@ -26,7 +26,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],

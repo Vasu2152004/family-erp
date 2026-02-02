@@ -4,16 +4,14 @@
     ]" />
 
     @php
-        $user = Auth::user();
-        
-        // Cache expensive queries for 5 minutes
-        $cacheKey = 'dashboard_data_' . $user->id;
-        $dashboardData = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function() use ($user) {
+        $user = once(fn () => auth()->user());
+
+        $dashboardData = once(function () use ($user) {
             $familyIds = \App\Models\FamilyUserRole::where('user_id', $user->id)
                 ->pluck('family_id')
                 ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
                 ->unique();
-            
+
             return [
                 'familiesCount' => $familyIds->count(),
                 'pendingRequestsCount' => \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
@@ -22,38 +20,43 @@
                 'familyIds' => $familyIds->values()->all(),
             ];
         });
-        
+
         $familiesCount = $dashboardData['familiesCount'];
         $pendingRequestsCount = $dashboardData['pendingRequestsCount'];
         $familyIds = collect($dashboardData['familyIds']);
-        
-        // Get unread notifications, especially budget alerts (limit to 10 for performance)
-        $unreadNotifications = $user->unreadNotifications()
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
-        $budgetAlerts = $unreadNotifications->filter(function($notification) {
+
+        $unreadNotifications = once(function () use ($user) {
+            return $user->unreadNotifications()
+                ->orderBy('created_at', 'desc')
+                ->limit(10)
+                ->get();
+        });
+        $budgetAlerts = $unreadNotifications->filter(function ($notification) {
             return in_array($notification->type, ['budget_alert', 'budget_exceeded']);
         });
-        $otherNotifications = $unreadNotifications->filter(function($notification) {
+        $otherNotifications = $unreadNotifications->filter(function ($notification) {
             return !in_array($notification->type, ['budget_alert', 'budget_exceeded']);
         });
-        
-        // Get vehicle expiry alerts (optimized query)
-        $expiringVehicles = \App\Models\Vehicle::whereIn('family_id', $familyIds)
-            ->where('tenant_id', $user->tenant_id)
-            ->where(function($query) {
-                $today = \Carbon\Carbon::today();
-                $future = $today->copy()->addDays(30);
-                $query->where(function($q) use ($today, $future) {
-                    $q->whereBetween('rc_expiry_date', [$today, $future])
-                        ->orWhereBetween('insurance_expiry_date', [$today, $future])
-                        ->orWhereBetween('puc_expiry_date', [$today, $future]);
-                });
-            })
-            ->with('family:id,name')
-            ->limit(10)
-            ->get();
+
+        $expiringVehicles = once(function () use ($user, $familyIds) {
+            return \App\Models\Vehicle::whereIn('family_id', $familyIds)
+                ->where('tenant_id', $user->tenant_id)
+                ->where(function ($query) {
+                    $today = \Carbon\Carbon::today();
+                    $future = $today->copy()->addDays(30);
+                    $query->where(function ($q) use ($today, $future) {
+                        $q->whereBetween('rc_expiry_date', [$today, $future])
+                            ->orWhereBetween('insurance_expiry_date', [$today, $future])
+                            ->orWhereBetween('puc_expiry_date', [$today, $future]);
+                    });
+                })
+                ->with('family:id,name')
+                ->limit(10)
+                ->get();
+        });
+
+        $budgetAlertFamilyIds = $budgetAlerts->pluck('data.family_id')->filter()->unique()->values()->all();
+        $familiesById = empty($budgetAlertFamilyIds) ? collect() : \App\Models\Family::whereIn('id', $budgetAlertFamilyIds)->get()->keyBy('id');
     @endphp
 
     <!-- Welcome Section -->
@@ -97,7 +100,7 @@
                                     <p class="text-sm text-gray-700">{{ $alert->message }}</p>
                                     @if($alert->data && isset($alert->data['family_id']))
                                         @php
-                                            $family = \App\Models\Family::find($alert->data['family_id']);
+                                            $family = $familiesById->get($alert->data['family_id']);
                                         @endphp
                                         @if($family)
                                             <a href="{{ route('finance.budgets.index', ['family_id' => $family->id]) }}" class="text-xs text-red-600 hover:text-red-800 font-semibold mt-2 inline-block">

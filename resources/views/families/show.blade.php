@@ -26,8 +26,9 @@
                         </a>
                     @endcan
                     @php
+                        $showUser = once(fn () => auth()->user());
                         $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                            ->where('user_id', Auth::id())
+                            ->where('user_id', $showUser->id)
                             ->first();
                         $isOwner = $userRole && $userRole->role === 'OWNER';
                     @endphp

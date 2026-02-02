@@ -20,8 +20,9 @@
             <input type="hidden" name="family_id" value="{{ $family->id }}">
 
             @php
+                $txUser = once(fn () => auth()->user());
                 $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                    ->where('user_id', Auth::id())
+                    ->where('user_id', $txUser->id)
                     ->first();
                 $isMember = $userRole && $userRole->role === 'MEMBER';
                 $preSelectedType = request()->input('type') ?? old('type');

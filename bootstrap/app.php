@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => \App\Http\Middleware\EnsureTenantAccess::class,
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\CacheHeadersForGet::class);
         $middleware->trustProxies(
             '*',
             Request::HEADER_X_FORWARDED_FOR |

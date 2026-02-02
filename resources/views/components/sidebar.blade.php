@@ -1,5 +1,13 @@
 @props(['active' => ''])
 
+@php
+    $sidebarUser = once(fn () => auth()->user());
+    if (!app()->bound('unread_notifications_count')) {
+        app()->instance('unread_notifications_count', auth()->user()->unreadNotifications()->count());
+    }
+    $sidebarUnreadCount = app('unread_notifications_count');
+@endphp
+
 <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 -translate-x-full shadow-2xl flex flex-col border-r border-[var(--color-border-primary)]">
     <!-- Sidebar Header -->
     <div class="flex items-center justify-between h-16 px-6 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
@@ -27,11 +35,11 @@
     <div class="px-6 py-4 border-b border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)]">
         <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity">
             <div class="w-10 h-10 rounded-full overflow-hidden border border-[var(--color-border-primary)] shadow-sm flex items-center justify-center bg-[var(--color-primary)]/10">
-                <span class="text-[var(--color-primary)] font-semibold">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+                <span class="text-[var(--color-primary)] font-semibold">{{ strtoupper(substr($sidebarUser->name, 0, 1)) }}</span>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">{{ Auth::user()->name }}</p>
-                <p class="text-xs text-[var(--color-text-secondary)] truncate">{{ Auth::user()->email }}</p>
+                <p class="text-sm font-semibold text-[var(--color-text-primary)] truncate">{{ $sidebarUser->name }}</p>
+                <p class="text-xs text-[var(--color-text-secondary)] truncate">{{ $sidebarUser->email }}</p>
             </div>
         </a>
     </div>
@@ -40,13 +48,14 @@
     <nav class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 sidebar-scroll">
         @php
             $routeName = request()->route()?->getName();
-            $user = Auth::user();
-            $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)->pluck('family_id');
-            $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id');
-            $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
-            $accessibleFamilies = \App\Models\Family::whereIn('id', $familyIds)->orderBy('name')->get();
-            
-            // Get active family - ensure it's a model instance, not a string/ID
+            $user = $sidebarUser;
+            $accessibleFamilies = once(function () use ($user) {
+                $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)->pluck('family_id');
+                $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id');
+                $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
+                return \App\Models\Family::whereIn('id', $familyIds)->orderBy('name')->get();
+            });
+
             $routeFamily = request()->route('family');
             if ($routeFamily instanceof \App\Models\Family) {
                 $activeFamily = $routeFamily;
@@ -384,11 +393,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                     </svg>
                     <span class="font-medium">Notifications</span>
-                    @php
-                        $unreadCount = Auth::user()->unreadNotifications()->count();
-                    @endphp
-                    @if($unreadCount > 0)
-                        <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ $unreadCount }}</span>
+                    @if($sidebarUnreadCount > 0)
+                        <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ $sidebarUnreadCount }}</span>
                     @endif
                 </a>
             </li>

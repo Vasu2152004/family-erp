@@ -18,7 +18,7 @@ class FamilyController extends Controller
      */
     public function index(): View
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
         
         // Get unique family IDs where user has a role
         $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)
@@ -59,7 +59,7 @@ class FamilyController extends Controller
      */
     public function create(): View
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
         
         // Check if user is already part of a family
         $hasFamily = \App\Models\FamilyUserRole::where('user_id', $user->id)
@@ -82,7 +82,7 @@ class FamilyController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
 
         // Check if user is already part of a family
         $hasFamily = \App\Models\FamilyUserRole::where('user_id', $user->id)
@@ -143,22 +143,21 @@ class FamilyController extends Controller
     public function show(Family $family): View
     {
         $this->authorize('view', $family);
-        
-        // Check if user should be auto-promoted (if they have 3+ requests)
-        $this->checkAndPromoteIfNeeded($family);
+
+        $user = once(fn () => Auth::user());
+
+        $this->checkAndPromoteIfNeeded($family, $user);
 
         $family->load([
-            'members' => fn($q) => $q->orderBy('created_at', 'desc'),
+            'members' => fn ($q) => $q->orderBy('created_at', 'desc'),
             'roles.user',
         ]);
 
-        // Optimize: Load all data in parallel with eager loading
         $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->first();
         $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
 
-        // Get owner(s) to include in member count and list - use already loaded roles
         $owners = $family->roles()
             ->where('role', 'OWNER')
             ->with('user:id,name')
@@ -176,26 +175,22 @@ class FamilyController extends Controller
                 ];
             });
 
-        // Get pending family member requests for this family (where current user is the requested user)
         $pendingMemberRequests = \App\Models\FamilyMemberRequest::where('family_id', $family->id)
-            ->where('requested_user_id', Auth::id())
+            ->where('requested_user_id', $user->id)
             ->where('status', 'pending')
             ->with(['family:id,name', 'requestedBy:id,name'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get pending admin role requests for this family (where current user is the requester)
         $pendingAdminRequests = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->where('status', 'pending')
             ->first();
 
-        // Get admin role requests that need admin/owner attention (for admins/owners only)
         $adminRequestsToReview = collect();
         if ($isOwnerOrAdmin) {
-            // Get all pending admin role requests for this family (excluding current user's own requests)
             $adminRequestsToReview = \App\Models\AdminRoleRequest::where('family_id', $family->id)
-                ->where('user_id', '!=', Auth::id())
+                ->where('user_id', '!=', $user->id)
                 ->where('status', 'pending')
                 ->with('user:id,name')
                 ->orderBy('created_at', 'desc')

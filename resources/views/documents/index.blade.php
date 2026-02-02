@@ -80,9 +80,10 @@
             </div>
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                @php $docUser = once(fn () => auth()->user()); @endphp
                 @forelse($documents as $document)
                     @php
-                        $requiresPassword = $document->requiresPasswordFor(auth()->user());
+                        $requiresPassword = $document->requiresPasswordFor($docUser);
                         $isSensitive = $document->is_sensitive;
                         $hasPassword = !empty($document->password_hash);
                         $isPasswordProtected = $document->isPasswordProtected();

@@ -21,27 +21,33 @@ class HealthController extends Controller
     public function index(Request $request, Family $family): View
     {
         $user = $request->user();
-        
+
         $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
             || $family->members()->where('user_id', $user->id)->exists();
-        
+
         if (!$hasAccess) {
             abort(403, 'You do not have access to this family.');
         }
 
-        // Get stats
-        $totalRecords = MedicalRecord::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->count();
-
-        $totalVisits = DoctorVisit::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->count();
-
-        $activePrescriptions = Prescription::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->where('status', 'active')
-            ->count();
+        $statsKey = 'health_stats_' . $family->id . '_' . $family->tenant_id;
+        if (!app()->bound($statsKey)) {
+            app()->instance($statsKey, [
+                'records' => MedicalRecord::where('family_id', $family->id)
+                    ->where('tenant_id', $family->tenant_id)
+                    ->count(),
+                'visits' => DoctorVisit::where('family_id', $family->id)
+                    ->where('tenant_id', $family->tenant_id)
+                    ->count(),
+                'prescriptions' => Prescription::where('family_id', $family->id)
+                    ->where('tenant_id', $family->tenant_id)
+                    ->where('status', 'active')
+                    ->count(),
+            ]);
+        }
+        $stats = app($statsKey);
+        $totalRecords = $stats['records'];
+        $totalVisits = $stats['visits'];
+        $activePrescriptions = $stats['prescriptions'];
 
         // Recent visits (past visits only - exclude future visits)
         $recentVisitsQuery = DoctorVisit::where('family_id', $family->id)

@@ -113,7 +113,7 @@
             @endif
 
             <!-- Status Update Section -->
-            @if(auth()->user()->can('updateStatus', $task))
+            @if(once(fn () => auth()->user())->can('updateStatus', $task))
                 <div class="mt-8 pt-6 border-t border-[var(--color-border-primary)]">
                     <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Update Status</h3>
                     <x-form method="PATCH" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" id="task-status-form" class="space-y-4">

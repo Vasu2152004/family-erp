@@ -49,8 +49,7 @@ class InvestmentController extends Controller
         if ($request->filled('show_hidden')) {
             $query->hidden();
         } else {
-            // Show visible investments, unlocked investments, or ones owned by the current user (including creator fallback)
-            $user = Auth::user();
+            $user = once(fn () => Auth::user());
             $role = $user?->getFamilyRole($family->id);
             $unlockedInvestmentIds = \App\Models\InvestmentUnlockAccess::where('user_id', $user->id)
                 ->pluck('investment_id');

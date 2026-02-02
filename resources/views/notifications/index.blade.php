@@ -14,7 +14,10 @@
                         View and manage your notifications
                     </p>
                 </div>
-                @if($notifications->count() > 0 && Auth::user()->unreadNotifications()->count() > 0)
+                @php
+                    $notifUnreadCount = app()->bound('unread_notifications_count') ? app('unread_notifications_count') : tap(auth()->user()->unreadNotifications()->count(), fn ($v) => app()->instance('unread_notifications_count', $v));
+                @endphp
+                @if($notifications->count() > 0 && $notifUnreadCount > 0)
                     <x-form method="POST" action="{{ route('notifications.read-all') }}">
                         <x-button type="submit" variant="secondary" size="md">Mark All as Read</x-button>
                     </x-form>

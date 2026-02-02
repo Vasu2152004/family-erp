@@ -27,34 +27,32 @@ class FinanceController extends Controller
     public function index(Request $request): View|RedirectResponse
     {
         $accessibleFamilies = $this->getAccessibleFamilies();
-        
+
         if ($accessibleFamilies->isEmpty()) {
             return redirect()->route('families.index')
                 ->with('info', 'Please create or join a family to access finance features.');
         }
 
-        // Get active family from request or session
         $familyId = $request->input('family_id');
         $activeFamily = $this->getActiveFamily($familyId);
 
+        $user = once(fn () => Auth::user());
         $memberWiseExpenses = null;
+
         if ($activeFamily) {
             $currentMonth = now()->month;
             $currentYear = now()->year;
-            
-            // Get user role to determine what data to show
+
             $userRole = \App\Models\FamilyUserRole::where('family_id', $activeFamily->id)
-                ->where('user_id', Auth::id())
+                ->where('user_id', $user->id)
                 ->first();
             $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
-            
+
             if ($isAdminOrOwner) {
-                // Admin/Owner can see all members' expenses
                 $memberWiseExpenses = $this->analyticsService->getMemberWiseSpending($activeFamily->id, $currentMonth, $currentYear);
             } else {
-                // Members can only see their own expenses
                 $member = \App\Models\FamilyMember::where('family_id', $activeFamily->id)
-                    ->where('user_id', Auth::id())
+                    ->where('user_id', $user->id)
                     ->first();
                 
                 if ($member) {

@@ -45,7 +45,8 @@
                     </p>
 
                     @php
-                        $role = Auth::user()?->getFamilyRole($investment->family_id);
+                        $invUser = once(fn () => auth()->user());
+                        $role = $invUser?->getFamilyRole($investment->family_id);
                         $isAdminOrOwner = $role && in_array($role->role, ['OWNER', 'ADMIN']);
                     @endphp
                     @if($isOwner)

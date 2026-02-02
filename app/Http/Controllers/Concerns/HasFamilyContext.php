@@ -14,19 +14,25 @@ trait HasFamilyContext
      */
     protected function getAccessibleFamilies()
     {
-        $user = Auth::user();
-        
-        $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)
-            ->pluck('family_id')
-            ->unique();
-        
-        $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)
-            ->pluck('family_id')
-            ->unique();
-        
-        $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
-        
-        return Family::whereIn('id', $familyIds)->orderBy('name')->get();
+        $key = 'accessible_families_' . (auth()->id() ?? 'guest');
+
+        if (!app()->bound($key)) {
+            $user = Auth::user();
+            if (!$user) {
+                app()->instance($key, collect());
+            } else {
+                $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)
+                    ->pluck('family_id')
+                    ->unique();
+                $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)
+                    ->pluck('family_id')
+                    ->unique();
+                $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
+                app()->instance($key, Family::whereIn('id', $familyIds)->orderBy('name')->get());
+            }
+        }
+
+        return app($key);
     }
 
     /**
@@ -34,13 +40,17 @@ trait HasFamilyContext
      */
     protected function getActiveFamily(mixed $familyId = null): ?Family
     {
+        $families = $this->getAccessibleFamilies();
+        if ($families->isEmpty()) {
+            return null;
+        }
+
         // If family ID is provided in request, use it and store in session
         if ($familyId) {
-            // Cast to int if it's a string
             $familyId = is_numeric($familyId) ? (int) $familyId : null;
             if ($familyId) {
-                $family = Family::find($familyId);
-                if ($family && $this->canAccessFamily($family)) {
+                $family = $families->firstWhere('id', $familyId);
+                if ($family) {
                     session(['active_finance_family_id' => $family->id]);
                     return $family;
                 }
@@ -50,21 +60,17 @@ trait HasFamilyContext
         // Try to get from session
         $sessionFamilyId = session('active_finance_family_id');
         if ($sessionFamilyId) {
-            $family = Family::find($sessionFamilyId);
-            if ($family && $this->canAccessFamily($family)) {
+            $family = $families->firstWhere('id', $sessionFamilyId);
+            if ($family) {
                 return $family;
             }
         }
 
         // Fallback to first accessible family
-        $families = $this->getAccessibleFamilies();
-        if ($families->isNotEmpty()) {
-            $firstFamily = $families->first();
-            session(['active_finance_family_id' => $firstFamily->id]);
-            return $firstFamily;
-        }
+        $firstFamily = $families->first();
+        session(['active_finance_family_id' => $firstFamily->id]);
 
-        return null;
+        return $firstFamily;
     }
 
     /**
@@ -72,17 +78,9 @@ trait HasFamilyContext
      */
     protected function canAccessFamily(Family $family): bool
     {
-        $user = Auth::user();
-        
-        $hasRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', $user->id)
-            ->exists();
-        
-        $isMember = \App\Models\FamilyMember::where('family_id', $family->id)
-            ->where('user_id', $user->id)
-            ->exists();
-        
-        return $hasRole || $isMember;
+        $accessibleFamilies = $this->getAccessibleFamilies();
+
+        return $accessibleFamilies->contains('id', $family->id);
     }
 }
 
