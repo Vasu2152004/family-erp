@@ -98,36 +98,28 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/finance-charts.js') }}"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Monthly Chart Data
+            (function() {
                 const monthlyData = @json($monthlyData ?? []);
-                // Member-wise Data
                 const memberWiseData = @json($memberWiseData ?? []);
-                // Category-wise Data
                 const categoryWiseData = @json($categoryWiseData ?? []);
-                // Savings Trend Data
                 const savingsTrendData = @json($savingsTrendData ?? []);
-                // Account Balance Trends Data
                 const accountBalanceTrends = @json($accountBalanceTrends ?? []);
-                // Income Sources Data
                 const incomeSourcesData = @json($incomeSourcesData ?? []);
-                // Expense Patterns Data
                 const expensePatternsData = @json($expensePatternsData ?? []);
-                
-                // Initialize charts once ApexCharts is loaded
-                if (typeof ApexCharts !== 'undefined' && typeof initFinanceCharts === 'function') {
-                    initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData);
-                } else {
-                    // Wait for ApexCharts to load
-                    window.addEventListener('load', function() {
-                        if (typeof ApexCharts !== 'undefined' && typeof initFinanceCharts === 'function') {
-                            initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData);
-                        } else {
-                            console.error('ApexCharts or initFinanceCharts function not available');
-                        }
-                    });
+                function run() {
+                    if (typeof ApexCharts !== 'undefined' && typeof initFinanceCharts === 'function') {
+                        initFinanceCharts(monthlyData, memberWiseData, categoryWiseData, savingsTrendData, accountBalanceTrends, incomeSourcesData, expensePatternsData);
+                        return true;
+                    }
+                    return false;
                 }
-            });
+                if (run()) return;
+                var attempts = 0;
+                var t = setInterval(function() {
+                    if (run()) { clearInterval(t); return; }
+                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initFinanceCharts not loaded'); }
+                }, 150);
+            })();
         </script>
     @endpush
 </x-app-layout>

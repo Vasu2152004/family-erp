@@ -156,24 +156,22 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/task-charts.js') }}"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Task Status Data
+            (function() {
                 const taskStatusData = @json($taskStatusData ?? []);
-                
-                // Initialize charts once ApexCharts is loaded
-                if (typeof ApexCharts !== 'undefined' && typeof initTaskCharts === 'function') {
-                    initTaskCharts(taskStatusData);
-                } else {
-                    // Wait for ApexCharts to load
-                    window.addEventListener('load', function() {
-                        if (typeof ApexCharts !== 'undefined' && typeof initTaskCharts === 'function') {
-                            initTaskCharts(taskStatusData);
-                        } else {
-                            console.error('ApexCharts or initTaskCharts function not available');
-                        }
-                    });
+                function run() {
+                    if (typeof ApexCharts !== 'undefined' && typeof initTaskCharts === 'function') {
+                        initTaskCharts(taskStatusData);
+                        return true;
+                    }
+                    return false;
                 }
-            });
+                if (run()) return;
+                var attempts = 0;
+                var t = setInterval(function() {
+                    if (run()) { clearInterval(t); return; }
+                    if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initTaskCharts not loaded'); }
+                }, 150);
+            })();
         </script>
     @endpush
 </x-app-layout>

@@ -242,32 +242,26 @@
             <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
             <script src="{{ asset('js/investment-charts.js') }}"></script>
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    // Investment Type Distribution Data
+                (function() {
                     const typeDistributionData = @json($typeDistributionData ?? []);
-                    // Profit/Loss Trend Data
                     const profitLossTrendData = @json($profitLossTrendData ?? []);
-                    // Owner-wise Distribution Data
                     const ownerDistributionData = @json($ownerDistributionData ?? []);
-                    // Count by Type Data
                     const countByTypeData = @json($countByTypeData ?? []);
-                    // Value Trend Data
                     const valueTrendData = @json($valueTrendData ?? []);
-                    
-                    // Initialize charts once ApexCharts is loaded
-                    if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
-                        initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData);
-                    } else {
-                        // Wait for ApexCharts to load
-                        window.addEventListener('load', function() {
-                            if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
-                                initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData);
-                            } else {
-                                console.error('ApexCharts or initInvestmentCharts function not available');
-                            }
-                        });
+                    function run() {
+                        if (typeof ApexCharts !== 'undefined' && typeof initInvestmentCharts === 'function') {
+                            initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData);
+                            return true;
+                        }
+                        return false;
                     }
-                });
+                    if (run()) return;
+                    var attempts = 0;
+                    var t = setInterval(function() {
+                        if (run()) { clearInterval(t); return; }
+                        if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initInvestmentCharts not loaded'); }
+                    }, 150);
+                })();
             </script>
         @endpush
     @endif

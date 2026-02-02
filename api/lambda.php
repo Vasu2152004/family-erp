@@ -7,9 +7,17 @@ define('LARAVEL_START', microtime(true));
 
 // On Vercel, all requests hit this handler. Serve static assets from public/ before booting Laravel
 // so that /js/*.js, /css/*.css, /build/*, favicon.ico etc. are returned correctly.
-$uri = $_SERVER['REQUEST_URI'] ?? '/';
-$path = parse_url($uri, PHP_URL_PATH);
-$path = $path === '' || $path === false ? '/' : $path;
+// Vercel rewrite passes original path as req_path query param; fallback to REQUEST_URI.
+$path = isset($_GET['req_path']) ? (string) $_GET['req_path'] : null;
+if ($path === null || $path === '') {
+    $uri = $_SERVER['REQUEST_URI'] ?? '/';
+    $path = parse_url($uri, PHP_URL_PATH);
+    $path = $path === false ? '/' : $path;
+}
+$path = '/' . trim((string) $path, '/');
+if ($path === '//') {
+    $path = '/';
+}
 $publicDir = __DIR__ . '/../public';
 $staticPrefixes = ['/js/', '/css/', '/build/', '/favicon.ico', '/robots.txt'];
 $isStatic = false;
