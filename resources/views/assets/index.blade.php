@@ -166,7 +166,7 @@
                 <div class="card">
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Asset Type Distribution</h2>
                     @if(count($typeDistributionData) > 0)
-                        <div id="assetTypeDistributionChart" style="min-height: 400px; width: 100%;"></div>
+                        <div id="assetTypeDistributionChart" style="min-height: 400px; height: 400px; width: 100%;"></div>
                     @else
                         <div class="text-center py-12 text-[var(--color-text-secondary)]">
                             <p>No visible assets available for chart visualization.</p>
@@ -179,7 +179,7 @@
                 <div class="card">
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
                     @if(count($ownerDistributionData) > 0)
-                        <div id="assetOwnerDistributionChart" style="min-height: 400px; width: 100%;"></div>
+                        <div id="assetOwnerDistributionChart" style="min-height: 400px; height: 400px; width: 100%;"></div>
                     @else
                         <div class="text-center py-12 text-[var(--color-text-secondary)]">
                             <p>No visible assets available for chart visualization.</p>
@@ -209,12 +209,12 @@
                     }
                     function init() {
                         if (run()) {
-                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500);
+                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 800);
                             return;
                         }
                         var attempts = 0;
                         var t = setInterval(function() {
-                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500); return; }
+                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 800); return; }
                             if (++attempts >= 50) clearInterval(t);
                         }, 150);
                     }
