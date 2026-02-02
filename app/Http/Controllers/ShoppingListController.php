@@ -16,6 +16,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ShoppingListController extends Controller
 {
@@ -48,7 +49,7 @@ class ShoppingListController extends Controller
                 'addedBy:id,name'
             ])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         $purchasedItems = ShoppingListItem::where('family_id', $family->id)
             ->purchased()
@@ -59,7 +60,7 @@ class ShoppingListController extends Controller
                 'budget.category:id,name'
             ])
             ->orderBy('purchased_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         // Only load inventory items that might be needed for the dropdown (limit to 100 most recent)
         $inventoryItems = InventoryItem::where('family_id', $family->id)
@@ -100,7 +101,13 @@ class ShoppingListController extends Controller
             })->get();
         }
 
-        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets'));
+        $user = once(fn () => Auth::user());
+        $pendingCanMarkPurchasedIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('markPurchased', $item))->pluck('id')->all();
+        $pendingCanUpdateIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
+        $pendingCanDeleteIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('delete', $item))->pluck('id')->all();
+        $purchasedCanUpdateIds = $purchasedItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
+
+        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets', 'pendingCanMarkPurchasedIds', 'pendingCanUpdateIds', 'pendingCanDeleteIds', 'purchasedCanUpdateIds'));
     }
 
     /**

@@ -134,12 +134,12 @@
                                             <a href="{{ route('families.medicines.show', ['family' => $family->id, 'medicine' => $medicine->id]) }}#add-intake-reminder">
                                                 <x-button variant="primary" size="sm">Add Reminder</x-button>
                                             </a>
-                                            @can('update', $medicine)
+                                            @if(in_array($medicine->id, $canUpdateIds ?? []))
                                                 <a href="{{ route('families.medicines.edit', ['family' => $family->id, 'medicine' => $medicine->id]) }}">
                                                     <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('delete', $medicine)
+                                            @endif
+                                            @if(in_array($medicine->id, $canDeleteIds ?? []))
                                                 <x-form 
                                                     method="POST" 
                                                     action="{{ route('families.medicines.destroy', ['family' => $family->id, 'medicine' => $medicine->id]) }}" 
@@ -152,7 +152,7 @@
                                                     @method('DELETE')
                                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

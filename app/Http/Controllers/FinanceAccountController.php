@@ -10,6 +10,8 @@ use App\Models\FinanceAccount;
 use App\Services\FinanceAccountService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class FinanceAccountController extends Controller
@@ -37,9 +39,13 @@ class FinanceAccountController extends Controller
 
         $accounts = FinanceAccount::where('family_id', $family->id)
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
-        return view('finance-accounts.index', compact('family', 'accounts'));
+        $user = once(fn () => Auth::user());
+        $canUpdateIds = $accounts->getCollection()->filter(fn (FinanceAccount $a) => Gate::forUser($user)->allows('update', $a))->pluck('id')->all();
+        $canDeleteIds = $accounts->getCollection()->filter(fn (FinanceAccount $a) => Gate::forUser($user)->allows('delete', $a))->pluck('id')->all();
+
+        return view('finance-accounts.index', compact('family', 'accounts', 'canUpdateIds', 'canDeleteIds'));
     }
 
     /**

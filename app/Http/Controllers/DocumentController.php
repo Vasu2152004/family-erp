@@ -67,7 +67,10 @@ class DocumentController extends Controller
             }
         }
 
-        $documents = $query->paginate(10)->appends($request->query());
+        $documents = $query->simplePaginate(10)->appends($request->query());
+
+        $user = once(fn () => $request->user());
+        $canDeleteIds = $documents->getCollection()->filter(fn (Document $doc) => Gate::forUser($user)->allows('delete', $doc))->pluck('id')->all();
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $request->user()->tenant_id)
@@ -96,6 +99,7 @@ class DocumentController extends Controller
         return view('documents.index', [
             'family' => $family,
             'documents' => $documents,
+            'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['search', 'document_type', 'family_member_id', 'sensitive', 'expiry']),
             'documentTypes' => $allTypes->toArray(),
             'members' => $members,

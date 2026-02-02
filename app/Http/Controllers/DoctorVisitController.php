@@ -74,7 +74,7 @@ class DoctorVisitController extends Controller
             }
         }
 
-        $visits = $query->paginate(10)->appends($request->query());
+        $visits = $query->simplePaginate(10)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)

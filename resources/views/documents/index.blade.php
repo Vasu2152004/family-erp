@@ -142,7 +142,7 @@
                                 @endif
                             </button>
                             
-                            @can('delete', $document)
+                            @if(in_array($document->id, $canDeleteIds ?? []))
                                 <x-form 
                                     method="POST" 
                                     action="{{ route('families.documents.destroy', ['family' => $family->id, 'document' => $document]) }}" 
@@ -154,7 +154,7 @@
                                     @method('DELETE')
                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                 </x-form>
-                            @endcan
+                            @endif
                         </div>
                     </div>
                 @empty

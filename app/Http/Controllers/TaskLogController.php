@@ -21,7 +21,7 @@ class TaskLogController extends Controller
             ->where('family_id', $family->id)
             ->with('changedBy')
             ->latestFirst()
-            ->paginate(10);
+            ->simplePaginate(10);
 
         return view('tasks.logs.index', [
             'family' => $family,

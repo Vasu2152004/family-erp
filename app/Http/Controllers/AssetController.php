@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Carbon;
 
@@ -59,7 +60,7 @@ class AssetController extends Controller
         }
 
         $assets = $query->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         $members = FamilyMember::where('family_id', $family->id)
             ->orderBy('first_name')
@@ -69,10 +70,19 @@ class AssetController extends Controller
         $typeDistributionData = $this->analyticsService->getAssetTypeDistribution($family->id);
         $ownerDistributionData = $this->analyticsService->getOwnerWiseDistribution($family->id);
 
+        $user = once(fn () => Auth::user());
+        $collection = $assets->getCollection();
+        $canViewIds = $collection->filter(fn (Asset $a) => Gate::forUser($user)->allows('view', $a))->pluck('id')->all();
+        $canUpdateIds = $collection->filter(fn (Asset $a) => Gate::forUser($user)->allows('update', $a))->pluck('id')->all();
+        $canDeleteIds = $collection->filter(fn (Asset $a) => Gate::forUser($user)->allows('delete', $a))->pluck('id')->all();
+
         return view('assets.index', compact(
             'family',
             'assets',
             'members',
+            'canViewIds',
+            'canUpdateIds',
+            'canDeleteIds',
             'typeDistributionData',
             'ownerDistributionData'
         ));

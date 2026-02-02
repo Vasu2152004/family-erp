@@ -130,17 +130,17 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
-                                            @can('view', $investment)
+                                            @if(in_array($investment->id, $canViewIds ?? []))
                                                 <a href="{{ route('investments.show', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">View</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('update', $investment)
+                                            @endif
+                                            @if(in_array($investment->id, $canUpdateIds ?? []))
                                                 <a href="{{ route('investments.edit', ['investment' => $investment->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('delete', $investment)
+                                            @endif
+                                            @if(in_array($investment->id, $canDeleteIds ?? []))
                                                 <x-form 
                                                     method="DELETE" 
                                                     action="{{ route('investments.destroy', ['investment' => $investment->id, 'family_id' => $family->id]) }}" 
@@ -151,7 +151,7 @@
                                                 >
                                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

@@ -29,19 +29,6 @@
         @endif
 
         @if($activeFamily)
-            @php
-                $financeUser = once(fn () => auth()->user());
-                $userRole = \App\Models\FamilyUserRole::where('family_id', $activeFamily->id)
-                    ->where('user_id', $financeUser->id)
-                    ->first();
-                $isFamilyMember = \App\Models\FamilyMember::where('family_id', $activeFamily->id)
-                    ->where('user_id', $financeUser->id)
-                    ->exists();
-                // User is a "member" if they have MEMBER role OR they are a family member without a role
-                $isMember = ($userRole && $userRole->role === 'MEMBER') || ($isFamilyMember && !$userRole);
-                $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
-            @endphp
-
             <!-- Finance & Expenses Dashboard -->
             <div class="bg-[var(--color-bg-primary)] rounded-xl shadow-lg border border-[var(--color-border-primary)] p-8">
                 <div class="flex items-center justify-between mb-6">

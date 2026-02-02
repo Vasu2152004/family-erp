@@ -12,6 +12,8 @@ use App\Models\FamilyMember;
 use App\Services\NoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class NoteController extends Controller
@@ -40,11 +42,15 @@ class NoteController extends Controller
             });
         }
 
-        $notes = $query->orderBy('updated_at', 'desc')->paginate(10)->appends($request->query());
+        $notes = $query->orderBy('updated_at', 'desc')->simplePaginate(10)->appends($request->query());
+
+        $user = once(fn () => Auth::user());
+        $canDeleteIds = $notes->getCollection()->filter(fn (Note $note) => Gate::forUser($user)->allows('delete', $note))->pluck('id')->all();
 
         return view('notes.index', [
             'family' => $family,
             'notes' => $notes,
+            'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['visibility', 'search']),
         ]);
     }

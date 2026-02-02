@@ -130,7 +130,7 @@ class FamilyRoleController extends Controller
                 ->get();
         }
 
-        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers', 'isOwnerOrAdmin', 'hasActiveAdmins', 'adminRequestsToReview'));
+        return view('family-roles.index', compact('family', 'roles', 'membersWithoutUser', 'userAdminRequest', 'allFamilyMembers', 'allUsers', 'isOwnerOrAdmin', 'hasActiveAdmins', 'adminRequestsToReview', 'user'));
     }
 
     /**

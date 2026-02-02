@@ -73,7 +73,7 @@
                                     <svg class="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                     </svg>
-                                    @can('delete', $note)
+                                    @if(in_array($note->id, $canDeleteIds ?? []))
                                         <x-form 
                                             method="DELETE" 
                                             action="{{ route('families.notes.destroy', ['family' => $family->id, 'note' => $note->id]) }}" 
@@ -89,7 +89,7 @@
                                                 </svg>
                                             </x-button>
                                         </x-form>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>

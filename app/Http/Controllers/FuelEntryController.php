@@ -43,7 +43,7 @@ class FuelEntryController extends Controller
         // Always recalculate mileage to ensure it's up to date
         $this->vehicleService->recalculateAllMileages($vehicle);
         
-        $fuelEntries = $query->paginate(10)->appends($request->query());
+        $fuelEntries = $query->simplePaginate(10)->appends($request->query());
 
         $averageMileage = $vehicle->calculateAverageMileage();
 

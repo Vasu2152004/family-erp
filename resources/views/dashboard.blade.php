@@ -3,62 +3,6 @@
         ['label' => 'Dashboard']
     ]" />
 
-    @php
-        $user = once(fn () => auth()->user());
-
-        $dashboardData = once(function () use ($user) {
-            $familyIds = \App\Models\FamilyUserRole::where('user_id', $user->id)
-                ->pluck('family_id')
-                ->merge(\App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id'))
-                ->unique();
-
-            return [
-                'familiesCount' => $familyIds->count(),
-                'pendingRequestsCount' => \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
-                    ->where('status', 'pending')
-                    ->count(),
-                'familyIds' => $familyIds->values()->all(),
-            ];
-        });
-
-        $familiesCount = $dashboardData['familiesCount'];
-        $pendingRequestsCount = $dashboardData['pendingRequestsCount'];
-        $familyIds = collect($dashboardData['familyIds']);
-
-        $unreadNotifications = once(function () use ($user) {
-            return $user->unreadNotifications()
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
-        });
-        $budgetAlerts = $unreadNotifications->filter(function ($notification) {
-            return in_array($notification->type, ['budget_alert', 'budget_exceeded']);
-        });
-        $otherNotifications = $unreadNotifications->filter(function ($notification) {
-            return !in_array($notification->type, ['budget_alert', 'budget_exceeded']);
-        });
-
-        $expiringVehicles = once(function () use ($user, $familyIds) {
-            return \App\Models\Vehicle::whereIn('family_id', $familyIds)
-                ->where('tenant_id', $user->tenant_id)
-                ->where(function ($query) {
-                    $today = \Carbon\Carbon::today();
-                    $future = $today->copy()->addDays(30);
-                    $query->where(function ($q) use ($today, $future) {
-                        $q->whereBetween('rc_expiry_date', [$today, $future])
-                            ->orWhereBetween('insurance_expiry_date', [$today, $future])
-                            ->orWhereBetween('puc_expiry_date', [$today, $future]);
-                    });
-                })
-                ->with('family:id,name')
-                ->limit(10)
-                ->get();
-        });
-
-        $budgetAlertFamilyIds = $budgetAlerts->pluck('data.family_id')->filter()->unique()->values()->all();
-        $familiesById = empty($budgetAlertFamilyIds) ? collect() : \App\Models\Family::whereIn('id', $budgetAlertFamilyIds)->get()->keyBy('id');
-    @endphp
-
     <!-- Welcome Section -->
     <div class="mb-8">
         <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
@@ -99,10 +43,7 @@
                                     <h3 class="font-bold text-red-800 mb-1">{{ $alert->title }}</h3>
                                     <p class="text-sm text-gray-700">{{ $alert->message }}</p>
                                     @if($alert->data && isset($alert->data['family_id']))
-                                        @php
-                                            $family = $familiesById->get($alert->data['family_id']);
-                                        @endphp
-                                        @if($family)
+                                        @if($family = $familiesById->get($alert->data['family_id']))
                                             <a href="{{ route('finance.budgets.index', ['family_id' => $family->id]) }}" class="text-xs text-red-600 hover:text-red-800 font-semibold mt-2 inline-block">
                                                 View Budgets →
                                             </a>

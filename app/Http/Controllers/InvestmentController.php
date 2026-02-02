@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Carbon;
 
 class InvestmentController extends Controller
@@ -92,7 +93,7 @@ class InvestmentController extends Controller
         }
 
         $investments = $query->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         $members = FamilyMember::where('family_id', $family->id)
             ->orderBy('first_name')
@@ -105,10 +106,19 @@ class InvestmentController extends Controller
         $countByTypeData = $this->analyticsService->getInvestmentCountByType($family->id);
         $valueTrendData = $this->analyticsService->getInvestmentValueTrend($family->id);
 
+        $user = once(fn () => Auth::user());
+        $collection = $investments->getCollection();
+        $canViewIds = $collection->filter(fn ($inv) => Gate::forUser($user)->allows('view', $inv))->pluck('id')->all();
+        $canUpdateIds = $collection->filter(fn ($inv) => Gate::forUser($user)->allows('update', $inv))->pluck('id')->all();
+        $canDeleteIds = $collection->filter(fn ($inv) => Gate::forUser($user)->allows('delete', $inv))->pluck('id')->all();
+
         return view('investments.index', compact(
             'family',
             'investments',
             'members',
+            'canViewIds',
+            'canUpdateIds',
+            'canDeleteIds',
             'typeDistributionData',
             'profitLossTrendData',
             'ownerDistributionData',

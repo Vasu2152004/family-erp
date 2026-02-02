@@ -45,12 +45,12 @@
                                 @endif
                             </div>
                             <div class="flex gap-2 mt-4">
-                                @can('update', $category)
+                                @if(in_array($category->id, $canUpdateIds ?? []))
                                     <a href="{{ route('inventory.categories.edit', ['category' => $category->id, 'family_id' => $family->id]) }}">
                                         <x-button variant="outline" size="sm">Edit</x-button>
                                     </a>
-                                @endcan
-                                @can('delete', $category)
+                                @endif
+                                @if(in_array($category->id, $canDeleteIds ?? []))
                                     <x-form 
                                         method="DELETE" 
                                         action="{{ route('inventory.categories.destroy', ['category' => $category->id, 'family_id' => $family->id]) }}" 
@@ -61,7 +61,7 @@
                                     >
                                         <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                     </x-form>
-                                @endcan
+                                @endif
                             </div>
                         </div>
                     @endforeach

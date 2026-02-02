@@ -134,12 +134,12 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex flex-col gap-2">
                                             <div class="flex gap-3 items-center">
-                                                @can('update', $item)
+                                                @if(in_array($item->id, $canUpdateIds ?? []))
                                                     <a href="{{ route('families.inventory.items.edit', ['family' => $family->id, 'item' => $item->id]) }}">
                                                         <x-button variant="outline" size="sm">Edit</x-button>
                                                     </a>
-                                                @endcan
-                                                @can('delete', $item)
+                                                @endif
+                                                @if(in_array($item->id, $canDeleteIds ?? []))
                                                     <x-form 
                                                         method="POST" 
                                                         action="{{ route('families.inventory.items.destroy', ['family' => $family->id, 'item' => $item->id]) }}" 
@@ -152,10 +152,10 @@
                                                         @method('DELETE')
                                                         <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                     </x-form>
-                                                @endcan
+                                                @endif
                                             </div>
 
-                                            @can('update', $item)
+                                            @if(in_array($item->id, $canUpdateIds ?? []))
                                                 <x-form method="POST" action="{{ route('families.inventory.items.log-usage', ['family' => $family->id, 'item' => $item->id]) }}" class="flex items-center gap-2">
                                                     @csrf
                                                     <input
@@ -170,7 +170,7 @@
                                                     />
                                                     <x-button type="submit" variant="primary" size="sm">Log Usage</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

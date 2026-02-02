@@ -38,6 +38,10 @@ class FinanceController extends Controller
 
         $user = once(fn () => Auth::user());
         $memberWiseExpenses = null;
+        $userRole = null;
+        $isFamilyMember = false;
+        $isMember = false;
+        $isAdminOrOwner = false;
 
         if ($activeFamily) {
             $currentMonth = now()->month;
@@ -46,6 +50,10 @@ class FinanceController extends Controller
             $userRole = \App\Models\FamilyUserRole::where('family_id', $activeFamily->id)
                 ->where('user_id', $user->id)
                 ->first();
+            $isFamilyMember = \App\Models\FamilyMember::where('family_id', $activeFamily->id)
+                ->where('user_id', $user->id)
+                ->exists();
+            $isMember = ($userRole && $userRole->role === 'MEMBER') || ($isFamilyMember && !$userRole);
             $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
 
             if ($isAdminOrOwner) {
@@ -76,7 +84,7 @@ class FinanceController extends Controller
             }
         }
 
-        return view('finance.index', compact('accessibleFamilies', 'activeFamily', 'memberWiseExpenses'));
+        return view('finance.index', compact('accessibleFamilies', 'activeFamily', 'memberWiseExpenses', 'user', 'userRole', 'isFamilyMember', 'isMember', 'isAdminOrOwner'));
     }
 }
 

@@ -104,7 +104,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
                                     </a>
-                                    @can('delete', $vehicle)
+                                    @if(in_array($vehicle->id, $canDeleteIds ?? []))
                                         <button type="button" onclick="openDeleteModal({{ $vehicle->id }}, '{{ addslashes($vehicle->make) }} {{ addslashes($vehicle->model) }}', '{{ $vehicle->registration_number }}')" title="Delete Vehicle">
                                             <x-button variant="danger-outline" size="sm">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +112,7 @@
                                                 </svg>
                                             </x-button>
                                         </button>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         </div>

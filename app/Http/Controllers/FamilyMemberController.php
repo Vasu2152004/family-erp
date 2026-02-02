@@ -58,7 +58,7 @@ class FamilyMemberController extends Controller
         $members = FamilyMember::where('family_id', $family->id)
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         return view('family-members.index', compact('family', 'members', 'owners'));
     }

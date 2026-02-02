@@ -13,6 +13,8 @@ use App\Models\Prescription;
 use App\Services\MedicineService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Carbon\Carbon;
 
@@ -73,7 +75,7 @@ class MedicineController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $medicines = $query->paginate(10)->appends($request->query());
+        $medicines = $query->simplePaginate(10)->appends($request->query());
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)
@@ -81,10 +83,16 @@ class MedicineController extends Controller
             ->orderBy('first_name')
             ->get();
 
+        $authUser = once(fn () => Auth::user());
+        $canUpdateIds = $medicines->getCollection()->filter(fn (Medicine $m) => Gate::forUser($authUser)->allows('update', $m))->pluck('id')->all();
+        $canDeleteIds = $medicines->getCollection()->filter(fn (Medicine $m) => Gate::forUser($authUser)->allows('delete', $m))->pluck('id')->all();
+
         return view('medicines.index', [
             'family' => $family,
             'medicines' => $medicines,
             'members' => $members,
+            'canUpdateIds' => $canUpdateIds,
+            'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['search', 'family_member_id', 'expired', 'expiring_soon', 'low_stock']),
         ]);
     }

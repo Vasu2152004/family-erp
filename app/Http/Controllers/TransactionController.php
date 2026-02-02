@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class TransactionController extends Controller
 {
@@ -81,17 +82,21 @@ class TransactionController extends Controller
             $query->dateRange($request->start_date, $request->end_date);
         }
 
-        $transactions = $query->with(['financeAccount', 'familyMember', 'category', 'budget.category', 'budget.familyMember.user'])
+        $transactions = $query->with(['financeAccount', 'transferToAccount', 'familyMember', 'category', 'budget.category', 'budget.familyMember.user'])
             ->orderBy('transaction_date', 'desc')
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         // Get filter options
         $accounts = FinanceAccount::where('family_id', $family->id)->get();
         $categories = TransactionCategory::where('family_id', $family->id)->get();
         $members = $family->members()->with('user')->get();
 
-        return view('transactions.index', compact('family', 'transactions', 'accounts', 'categories', 'members'));
+        $user = once(fn () => Auth::user());
+        $canUpdateIds = $transactions->getCollection()->filter(fn (Transaction $t) => Gate::forUser($user)->allows('update', $t))->pluck('id')->all();
+        $canDeleteIds = $transactions->getCollection()->filter(fn (Transaction $t) => Gate::forUser($user)->allows('delete', $t))->pluck('id')->all();
+
+        return view('transactions.index', compact('family', 'transactions', 'accounts', 'categories', 'members', 'canUpdateIds', 'canDeleteIds'));
     }
 
     /**

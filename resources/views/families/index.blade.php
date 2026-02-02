@@ -53,13 +53,13 @@
                                         View
                                     </x-button>
                                 </a>
-                                @can('update', $family)
+                                @if(in_array($family->id, $canUpdateIds ?? []))
                                     <a href="{{ route('families.edit', $family) }}">
                                         <x-button variant="ghost" size="sm">
                                             Edit
                                         </x-button>
                                     </a>
-                                @endcan
+                                @endif
                             </div>
                             @if(isset($family->pending_requests_count) && $family->pending_requests_count > 0)
                                 <a href="{{ route('families.member-requests.index', $family) }}" class="w-full">

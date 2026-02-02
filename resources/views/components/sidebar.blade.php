@@ -60,7 +60,7 @@
             if ($routeFamily instanceof \App\Models\Family) {
                 $activeFamily = $routeFamily;
             } elseif (is_numeric($routeFamily)) {
-                $activeFamily = \App\Models\Family::find($routeFamily) ?? $accessibleFamilies->first();
+                $activeFamily = $accessibleFamilies->firstWhere('id', (int) $routeFamily) ?? $accessibleFamilies->first();
             } else {
                 $activeFamily = $accessibleFamilies->first();
             }

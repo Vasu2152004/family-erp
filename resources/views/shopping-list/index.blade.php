@@ -131,17 +131,17 @@
                                     </p>
                                 </div>
                                 <div class="flex gap-2">
-                                    @can('markPurchased', $item)
+                                    @if(in_array($item->id, $pendingCanMarkPurchasedIds ?? []))
                                         <button type="button" onclick="openPurchaseModal({{ $item->id }}, '{{ addslashes($item->name) }}')" class="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--color-primary)] text-white border border-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] hover:border-[var(--color-primary-dark)] focus:ring-[var(--color-primary)] shadow-sm">
                                             Mark Purchased
                                         </button>
-                                    @endcan
-                                    @can('update', $item)
+                                    @endif
+                                    @if(in_array($item->id, $pendingCanUpdateIds ?? []))
                                         <a href="#">
                                             <x-button variant="outline" size="sm">Edit</x-button>
                                         </a>
-                                    @endcan
-                                    @can('delete', $item)
+                                    @endif
+                                    @if(in_array($item->id, $pendingCanDeleteIds ?? []))
                                         <x-form 
                                             method="DELETE" 
                                             action="{{ route('shopping-list.destroy', ['item' => $item->id, 'family_id' => $family->id]) }}" 
@@ -152,7 +152,7 @@
                                         >
                                             <x-button type="submit" variant="danger-outline" size="sm">Remove</x-button>
                                         </x-form>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -194,11 +194,11 @@
                                         </p>
                                     </div>
                                     <div class="flex gap-2">
-                                        @can('update', $item)
+                                        @if(in_array($item->id, $purchasedCanUpdateIds ?? []))
                                             <x-form method="PATCH" action="{{ route('shopping-list.mark-pending', ['item' => $item->id, 'family_id' => $family->id]) }}" class="inline">
                                                 <x-button type="submit" variant="outline" size="sm">Mark Pending</x-button>
                                             </x-form>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </div>
                             </div>

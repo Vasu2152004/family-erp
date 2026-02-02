@@ -13,6 +13,8 @@ use App\Services\VehicleService;
 use App\Services\VehicleAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Carbon\Carbon;
 
@@ -64,7 +66,10 @@ class VehicleController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $vehicles = $query->paginate(10)->appends($request->query());
+        $vehicles = $query->simplePaginate(10)->appends($request->query());
+
+        $user = once(fn () => $request->user());
+        $canDeleteIds = $vehicles->getCollection()->filter(fn (Vehicle $v) => Gate::forUser($user)->allows('delete', $v))->pluck('id')->all();
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)
@@ -79,6 +84,7 @@ class VehicleController extends Controller
             'family' => $family,
             'vehicles' => $vehicles,
             'members' => $members,
+            'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['search', 'family_member_id', 'expiring_soon']),
             'fuelConsumptionData' => $fuelConsumptionData,
         ]);
@@ -138,8 +144,6 @@ class VehicleController extends Controller
 
         $this->authorize('view', $vehicle);
 
-        // Always recalculate mileage to ensure it's up to date
-        // This handles cases where entries were created before calculation was implemented
         $this->vehicleService->recalculateAllMileages($vehicle);
 
         $vehicle->load([
@@ -147,15 +151,33 @@ class VehicleController extends Controller
             'createdBy',
             'updatedBy',
             'serviceLogs' => fn ($q) => $q->latestFirst()->limit(3),
-            'fuelEntries' => fn ($q) => $q->latestFirst()->limit(3),
+            'fuelEntries' => fn ($q) => $q->orderBy('fill_date', 'asc'),
         ]);
 
         $averageMileage = $vehicle->calculateAverageMileage();
+
+        $fuelEntries = $vehicle->fuelEntries;
+        $totalFuelEntries = $fuelEntries->count();
+        $entriesWithMileage = $fuelEntries->whereNotNull('calculated_mileage')->count();
+        $hasDecreasingReadings = false;
+        if ($fuelEntries->count() > 1) {
+            $prevReading = null;
+            foreach ($fuelEntries as $entry) {
+                if ($prevReading !== null && $entry->odometer_reading < $prevReading) {
+                    $hasDecreasingReadings = true;
+                    break;
+                }
+                $prevReading = $entry->odometer_reading;
+            }
+        }
 
         return view('vehicles.show', [
             'family' => $family,
             'vehicle' => $vehicle,
             'averageMileage' => $averageMileage,
+            'totalFuelEntries' => $totalFuelEntries,
+            'entriesWithMileage' => $entriesWithMileage,
+            'hasDecreasingReadings' => $hasDecreasingReadings,
         ]);
     }
 

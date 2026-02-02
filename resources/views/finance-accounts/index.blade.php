@@ -70,12 +70,12 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
-                                            @can('update', $account)
+                                            @if(in_array($account->id, $canUpdateIds ?? []))
                                                 <a href="{{ route('finance.accounts.edit', ['account' => $account->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('delete', $account)
+                                            @endif
+                                            @if(in_array($account->id, $canDeleteIds ?? []))
                                                 <x-form 
                                                     method="POST" 
                                                     action="{{ route('finance.accounts.destroy', ['account' => $account->id, 'family_id' => $family->id]) }}" 
@@ -88,7 +88,7 @@
                                                     @method('DELETE')
                                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

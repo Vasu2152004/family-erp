@@ -64,12 +64,12 @@
                                     @else
                                         <span class="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">On Track</span>
                                     @endif
-                                    @can('update', $budget)
+                                    @if(in_array($budget->id, $canUpdateIds ?? []))
                                         <a href="{{ route('finance.budgets.edit', ['budget' => $budget->id, 'family_id' => $family->id]) }}">
                                             <x-button variant="outline" size="sm">Edit</x-button>
                                         </a>
-                                    @endcan
-                                    @can('delete', $budget)
+                                    @endif
+                                    @if(in_array($budget->id, $canDeleteIds ?? []))
                                         <x-form 
                                             method="POST" 
                                             action="{{ route('finance.budgets.destroy', ['budget' => $budget->id, 'family_id' => $family->id]) }}" 
@@ -82,7 +82,7 @@
                                             @method('DELETE')
                                             <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                         </x-form>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                             <div class="mb-2">

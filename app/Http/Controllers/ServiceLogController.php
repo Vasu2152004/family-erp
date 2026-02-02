@@ -44,7 +44,7 @@ class ServiceLogController extends Controller
 
         $query->latestFirst();
 
-        $serviceLogs = $query->paginate(10)->appends($request->query());
+        $serviceLogs = $query->simplePaginate(10)->appends($request->query());
 
         return view('vehicles.service-logs.index', [
             'family' => $family,

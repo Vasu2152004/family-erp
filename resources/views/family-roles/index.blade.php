@@ -19,23 +19,6 @@
         </div>
 
         <!-- Admin Role Request Section -->
-        @php
-            $viewUser = once(fn () => auth()->user());
-            if (!isset($isOwnerOrAdmin)) {
-                $userRole = $family->roles()->where('user_id', $viewUser->id)->first();
-                $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
-            }
-            
-            $hasActiveAdmins = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                ->whereIn('role', ['OWNER', 'ADMIN'])
-                ->whereHas('user', function ($query) {
-                    $query->whereHas('familyMember', function ($q) {
-                        $q->where('is_deceased', false);
-                    })->orWhereDoesntHave('familyMember');
-                })
-                ->exists();
-        @endphp
-
         @if(isset($userAdminRequest) && $userAdminRequest && !$isOwnerOrAdmin)
             @if($userAdminRequest->status === 'auto_promoted')
                 <div class="bg-green-50 border border-green-200 rounded-xl shadow-lg p-6 mb-6">
@@ -161,7 +144,7 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         @can('manageFamily', $family)
                                             <div class="flex items-center gap-2 justify-end">
-                                                @if($role->role === 'OWNER' && $viewUser->isFamilyOwner($family->id))
+                                                @if($role->role === 'OWNER' && $user->isFamilyOwner($family->id))
                                                     @if($role->is_backup_admin)
                                                         <x-form method="POST" action="{{ route('families.roles.remove-backup-admin', $family) }}" class="inline">
                                                             @csrf
@@ -298,14 +281,14 @@
                             <x-label for="role" required>Role</x-label>
                             <select name="role" id="role" required class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                                 <option value="">Select a role...</option>
-                                @if($viewUser->isFamilyOwner($family->id))
+                                @if($user->isFamilyOwner($family->id))
                                     <option value="OWNER">OWNER</option>
                                 @endif
                                 <option value="ADMIN">ADMIN</option>
                                 <option value="MEMBER">MEMBER</option>
                                 <option value="VIEWER">VIEWER</option>
                             </select>
-                            @if($isOwnerOrAdmin && !$viewUser->isFamilyOwner($family->id))
+                            @if($isOwnerOrAdmin && !$user->isFamilyOwner($family->id))
                                 <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Note: Only owners can assign OWNER role.</p>
                             @endif
                             <x-error-message field="role" />

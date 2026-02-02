@@ -141,12 +141,12 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
-                                            @can('update', $transaction)
+                                            @if(in_array($transaction->id, $canUpdateIds ?? []))
                                                 <a href="{{ route('finance.transactions.edit', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('delete', $transaction)
+                                            @endif
+                                            @if(in_array($transaction->id, $canDeleteIds ?? []))
                                                 <x-form 
                                                     action="{{ route('finance.transactions.destroy', ['transaction' => $transaction->id, 'family_id' => $family->id]) }}" 
                                                     method="DELETE" 
@@ -158,7 +158,7 @@
                                                     @csrf
                                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

@@ -40,11 +40,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
     // Dashboard Route
-    Route::get('/dashboard', function () {
-        return view('dashboard', [
-            'user' => auth()->user(),
-        ]);
-    })->name('dashboard');
+    Route::get('/dashboard', \App\Http\Controllers\DashboardController::class)->name('dashboard');
 
     // Family Management Routes
     Route::resource('families', \App\Http\Controllers\FamilyController::class);

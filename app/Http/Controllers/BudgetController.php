@@ -12,6 +12,8 @@ use App\Services\BudgetService;
 use App\Services\BudgetAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class BudgetController extends Controller
@@ -46,18 +48,20 @@ class BudgetController extends Controller
             ->where('month', $currentMonth)
             ->with(['category', 'familyMember.user'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
-        // Get budget status for each (map through paginated collection)
-        $budgetsWithStatus = $budgets->getCollection()->map(function ($budget) {
-            $status = $this->budgetService->getBudgetStatus($budget->id);
+        $collection = $budgets->getCollection();
+        $user = once(fn () => Auth::user());
+        $canUpdateIds = $collection->filter(fn ($b) => Gate::forUser($user)->allows('update', $b))->pluck('id')->all();
+        $canDeleteIds = $collection->filter(fn ($b) => Gate::forUser($user)->allows('delete', $b))->pluck('id')->all();
+
+        $statusMap = $this->budgetService->getBudgetStatusForBudgets($collection);
+        $budgetsWithStatus = $collection->map(function ($budget) use ($statusMap) {
             return [
                 'budget' => $budget,
-                'status' => $status,
+                'status' => $statusMap[$budget->id] ?? ['spent' => 0, 'remaining' => (float) $budget->amount, 'percentage' => 0, 'is_exceeded' => false],
             ];
         });
-
-        // Set the mapped collection back to the paginator
         $budgets->setCollection($budgetsWithStatus);
 
         $categories = TransactionCategory::where('family_id', $family->id)
@@ -67,7 +71,7 @@ class BudgetController extends Controller
         // Get analytics data for charts
         $budgetVsActualData = $this->analyticsService->getBudgetVsActual($family->id, $currentMonth, $currentYear);
 
-        return view('budgets.index', compact('family', 'budgets', 'budgetsWithStatus', 'categories', 'currentMonth', 'currentYear', 'budgetVsActualData'));
+        return view('budgets.index', compact('family', 'budgets', 'budgetsWithStatus', 'canUpdateIds', 'canDeleteIds', 'categories', 'currentMonth', 'currentYear', 'budgetVsActualData'));
     }
 
     /**

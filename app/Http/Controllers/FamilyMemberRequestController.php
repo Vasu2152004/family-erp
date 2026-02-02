@@ -26,7 +26,7 @@ class FamilyMemberRequestController extends Controller
             ->where('status', 'pending')
             ->with(['family', 'requestedBy'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         return view('family-member-requests.index', compact('pendingRequests'));
     }

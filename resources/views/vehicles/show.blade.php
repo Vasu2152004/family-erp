@@ -53,23 +53,7 @@
                     @if($averageMileage)
                         <p class="text-[var(--color-text-primary)] font-medium">{{ number_format($averageMileage, 2) }} km/l</p>
                     @else
-                        @php
-                            $totalEntries = $vehicle->fuelEntries()->count();
-                            $entriesWithMileage = $vehicle->fuelEntries()->whereNotNull('calculated_mileage')->count();
-                            $entries = $vehicle->fuelEntries()->orderBy('fill_date', 'asc')->get();
-                            $hasDecreasingReadings = false;
-                            if ($entries->count() > 1) {
-                                $prevReading = null;
-                                foreach ($entries as $entry) {
-                                    if ($prevReading !== null && $entry->odometer_reading < $prevReading) {
-                                        $hasDecreasingReadings = true;
-                                        break;
-                                    }
-                                    $prevReading = $entry->odometer_reading;
-                                }
-                            }
-                        @endphp
-                        @if($totalEntries < 2)
+                        @if($totalFuelEntries < 2)
                             <p class="text-[var(--color-text-secondary)] text-sm">Need at least 2 fuel entries to calculate mileage</p>
                         @elseif($hasDecreasingReadings)
                             <div class="text-sm">

@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class InventoryItemController extends Controller
 {
@@ -66,7 +67,7 @@ class InventoryItemController extends Controller
         }
 
         $items = $query->orderBy('name')
-            ->paginate(10);
+            ->simplePaginate(10);
 
         $categories = InventoryCategory::where('family_id', $family->id)
             ->orderBy('name')
@@ -76,12 +77,18 @@ class InventoryItemController extends Controller
         $categoryDistribution = $this->analyticsService->getCategoryWiseDistribution($family->id);
         $stockStatusOverview = $this->analyticsService->getStockStatusOverview($family->id);
 
+        $user = once(fn () => Auth::user());
+        $canUpdateIds = $items->getCollection()->filter(fn (InventoryItem $item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
+        $canDeleteIds = $items->getCollection()->filter(fn (InventoryItem $item) => Gate::forUser($user)->allows('delete', $item))->pluck('id')->all();
+
         return view('inventory.items.index', compact(
             'family',
             'items',
             'categories',
             'categoryDistribution',
-            'stockStatusOverview'
+            'stockStatusOverview',
+            'canUpdateIds',
+            'canDeleteIds'
         ));
     }
 

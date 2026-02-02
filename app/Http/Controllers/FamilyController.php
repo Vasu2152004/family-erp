@@ -8,6 +8,7 @@ use App\Models\Family;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class FamilyController extends Controller
@@ -33,25 +34,32 @@ class FamilyController extends Controller
         // Merge and get unique family IDs
         $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
         
-        // Get families by IDs with counts
         $families = Family::whereIn('id', $familyIds)
             ->withCount(['members', 'roles'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->simplePaginate(10);
 
-        // Add owner count to each family (owners are in roles table)
-        $families->getCollection()->transform(function ($family) {
-            $ownerCount = \App\Models\FamilyUserRole::where('family_id', $family->id)
+        $familyIdsList = $families->getCollection()->pluck('id')->all();
+        $ownerCounts = empty($familyIdsList)
+            ? []
+            : \App\Models\FamilyUserRole::whereIn('family_id', $familyIdsList)
                 ->where('role', 'OWNER')
-                ->count();
-            $family->members_count = $family->members_count + $ownerCount;
+                ->selectRaw('family_id, count(*) as owner_count')
+                ->groupBy('family_id')
+                ->pluck('owner_count', 'family_id')
+                ->all();
+
+        $families->getCollection()->transform(function ($family) use ($ownerCounts) {
+            $family->members_count = $family->members_count + ($ownerCounts[$family->id] ?? 0);
             return $family;
         });
+
+        $canUpdateIds = $families->getCollection()->filter(fn (Family $f) => Gate::forUser($user)->allows('update', $f))->pluck('id')->all();
 
         // Check if user is already part of any family
         $hasFamily = $familyIds->isNotEmpty();
 
-        return view('families.index', compact('families', 'hasFamily'));
+        return view('families.index', compact('families', 'canUpdateIds', 'hasFamily'));
     }
 
     /**

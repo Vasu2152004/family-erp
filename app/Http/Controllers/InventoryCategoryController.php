@@ -10,8 +10,9 @@ use App\Models\InventoryCategory;
 use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
 
 class InventoryCategoryController extends Controller
 {
@@ -39,9 +40,13 @@ class InventoryCategoryController extends Controller
         $categories = InventoryCategory::where('family_id', $family->id)
             ->with('createdBy')
             ->orderBy('name')
-            ->paginate(10);
+            ->simplePaginate(10);
 
-        return view('inventory.categories.index', compact('family', 'categories'));
+        $user = once(fn () => Auth::user());
+        $canUpdateIds = $categories->getCollection()->filter(fn (InventoryCategory $c) => Gate::forUser($user)->allows('update', $c))->pluck('id')->all();
+        $canDeleteIds = $categories->getCollection()->filter(fn (InventoryCategory $c) => Gate::forUser($user)->allows('delete', $c))->pluck('id')->all();
+
+        return view('inventory.categories.index', compact('family', 'categories', 'canUpdateIds', 'canDeleteIds'));
     }
 
     /**

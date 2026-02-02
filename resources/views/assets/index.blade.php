@@ -112,17 +112,17 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex gap-2">
-                                            @can('view', $asset)
+                                            @if(in_array($asset->id, $canViewIds ?? []))
                                                 <a href="{{ route('assets.show', ['asset' => $asset->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">View</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('update', $asset)
+                                            @endif
+                                            @if(in_array($asset->id, $canUpdateIds ?? []))
                                                 <a href="{{ route('assets.edit', ['asset' => $asset->id, 'family_id' => $family->id]) }}">
                                                     <x-button variant="outline" size="sm">Edit</x-button>
                                                 </a>
-                                            @endcan
-                                            @can('delete', $asset)
+                                            @endif
+                                            @if(in_array($asset->id, $canDeleteIds ?? []))
                                                 <x-form 
                                                     method="DELETE" 
                                                     action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" 
@@ -133,7 +133,7 @@
                                                 >
                                                     <x-button type="submit" variant="danger-outline" size="sm">Delete</x-button>
                                                 </x-form>
-                                            @endcan
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

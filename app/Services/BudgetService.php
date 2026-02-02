@@ -6,7 +6,10 @@ namespace App\Services;
 
 use App\Models\Budget;
 use App\Models\Transaction;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class BudgetService
 {
@@ -76,16 +79,75 @@ class BudgetService
     public function getBudgetStatus(int $budgetId): array
     {
         $budget = Budget::findOrFail($budgetId);
+
+        return $this->getBudgetStatusFromModel($budget);
+    }
+
+    /**
+     * Get budget status from an already-loaded Budget model (no extra fetch).
+     */
+    public function getBudgetStatusFromModel(Budget $budget): array
+    {
         $spent = $budget->getSpentAmount();
-        $remaining = $budget->getRemainingAmount();
-        $percentage = $budget->amount > 0 ? ($spent / $budget->amount) * 100 : 0;
+        $remaining = max(0, (float) $budget->amount - $spent);
+        $percentage = $budget->amount > 0 ? ($spent / (float) $budget->amount) * 100 : 0;
 
         return [
             'spent' => $spent,
             'remaining' => $remaining,
             'percentage' => round($percentage, 2),
-            'is_exceeded' => $budget->isExceeded(),
+            'is_exceeded' => $spent > (float) $budget->amount,
         ];
+    }
+
+    /**
+     * Get budget status for multiple budgets in one query (avoids N+1).
+     * Uses budget_id on transactions; all budgets must share same month/year.
+     */
+    public function getBudgetStatusForBudgets(Collection $budgets): array
+    {
+        if ($budgets->isEmpty()) {
+            return [];
+        }
+
+        $first = $budgets->first();
+        $year = (int) $first->year;
+        $month = (int) $first->month;
+        $startDate = Carbon::create($year, $month, 1)->startOfMonth();
+        $endDate = Carbon::create($year, $month, 1)->endOfMonth();
+        $budgetIds = $budgets->pluck('id')->all();
+
+        if (!Schema::hasColumn((new Transaction)->getTable(), 'budget_id')) {
+            $result = [];
+            foreach ($budgets as $budget) {
+                $result[$budget->id] = $this->getBudgetStatusFromModel($budget);
+            }
+            return $result;
+        }
+
+        $spentByBudget = Transaction::whereIn('budget_id', $budgetIds)
+            ->where('type', 'EXPENSE')
+            ->whereBetween('transaction_date', [$startDate, $endDate])
+            ->groupBy('budget_id')
+            ->selectRaw('budget_id, sum(amount) as spent')
+            ->pluck('spent', 'budget_id')
+            ->all();
+
+        $result = [];
+        foreach ($budgets as $budget) {
+            $spent = (float) ($spentByBudget[$budget->id] ?? 0);
+            $amount = (float) $budget->amount;
+            $remaining = max(0, $amount - $spent);
+            $percentage = $amount > 0 ? ($spent / $amount) * 100 : 0;
+            $result[$budget->id] = [
+                'spent' => $spent,
+                'remaining' => $remaining,
+                'percentage' => round($percentage, 2),
+                'is_exceeded' => $spent > $amount,
+            ];
+        }
+
+        return $result;
     }
 
     /**

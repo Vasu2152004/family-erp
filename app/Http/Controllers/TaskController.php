@@ -13,6 +13,8 @@ use App\Services\TaskService;
 use App\Services\TaskAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -63,7 +65,10 @@ class TaskController extends Controller
 
         $query->orderBy('created_at', 'desc');
 
-        $tasks = $query->paginate(10)->appends($request->query());
+        $tasks = $query->simplePaginate(10)->appends($request->query());
+
+        $user = once(fn () => $request->user());
+        $canDeleteIds = $tasks->getCollection()->filter(fn (Task $t) => Gate::forUser($user)->allows('delete', $t))->pluck('id')->all();
 
         $members = FamilyMember::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)
@@ -78,6 +83,7 @@ class TaskController extends Controller
             'family' => $family,
             'tasks' => $tasks,
             'members' => $members,
+            'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['search', 'status', 'frequency', 'family_member_id']),
             'taskStatusData' => $taskStatusData,
         ]);
