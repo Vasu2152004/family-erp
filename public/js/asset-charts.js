@@ -20,27 +20,28 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
         var el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : (elOrId && elOrId.id ? document.getElementById(elOrId.id) : elOrId);
         if (!el || !document.body || !document.body.contains(el)) return;
         try {
-            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) {
+            var w = el.offsetWidth || (el.parentElement && el.parentElement.offsetWidth) || 400;
+            var h = el.offsetHeight || (el.parentElement && el.parentElement.offsetHeight) || 400;
+            if (w <= 0 || h <= 0) {
                 if (dimensionRetries >= 40) return;
                 setTimeout(function() { safeRender(elOrId, options, instanceKey, dimensionRetries + 1); }, 150);
                 return;
             }
             var id = el.id;
-            requestAnimationFrame(function() {
-                requestAnimationFrame(function() {
-                    el = id ? document.getElementById(id) : el;
-                    if (!el || !document.body.contains(el)) return;
-                    try {
-                        if (!options.chart) options.chart = {};
-                        options.chart.width = el.offsetWidth || options.chart.width;
-                        var chart = new ApexCharts(el, options);
-                        assetChartInstances[instanceKey] = chart;
-                        chart.render();
-                    } catch (e) {
-                        if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
-                    }
-                });
-            });
+            setTimeout(function() {
+                el = id ? document.getElementById(id) : el;
+                if (!el || !document.body.contains(el)) return;
+                try {
+                    if (!options.chart) options.chart = {};
+                    options.chart.width = el.offsetWidth || w;
+                    options.chart.height = options.chart.height || 400;
+                    var chart = new ApexCharts(el, options);
+                    assetChartInstances[instanceKey] = chart;
+                    chart.render();
+                } catch (e) {
+                    if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
+                }
+            }, 100);
         } catch (e) {
             if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
         }

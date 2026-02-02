@@ -212,7 +212,7 @@
         <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
         <script src="{{ asset('js/vehicle-charts.js') }}"></script>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            (function() {
                 var fuelConsumptionData = @json($fuelConsumptionData ?? []);
                 function run() {
                     if (typeof ApexCharts !== 'undefined' && typeof initVehicleCharts === 'function') {
@@ -222,15 +222,15 @@
                     return false;
                 }
                 function init() {
-                    if (run()) { setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 250); return; }
+                    if (run()) { setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 500); return; }
                     var attempts = 0;
                     var t = setInterval(function() {
-                        if (run()) { clearInterval(t); setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 250); return; }
+                        if (run()) { clearInterval(t); setTimeout(function() { initVehicleCharts(fuelConsumptionData); }, 500); return; }
                         if (++attempts >= 50) clearInterval(t);
                     }, 150);
                 }
-                setTimeout(init, 0);
-            });
+                if (document.readyState === 'complete') { setTimeout(init, 0); } else { window.addEventListener('load', function() { setTimeout(init, 0); }); }
+            })();
 
             function openDeleteModal(vehicleId, vehicleName, vehicleReg) {
                 document.getElementById('deleteModal').classList.remove('hidden');

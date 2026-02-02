@@ -242,7 +242,7 @@
             <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
             <script src="{{ asset('js/investment-charts.js') }}"></script>
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
+                (function() {
                     var typeDistributionData = @json($typeDistributionData ?? []);
                     var profitLossTrendData = @json($profitLossTrendData ?? []);
                     var ownerDistributionData = @json($ownerDistributionData ?? []);
@@ -256,15 +256,15 @@
                         return false;
                     }
                     function init() {
-                        if (run()) { setTimeout(function() { initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData); }, 250); return; }
+                        if (run()) { setTimeout(function() { initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData); }, 500); return; }
                         var attempts = 0;
                         var t = setInterval(function() {
-                            if (run()) { clearInterval(t); setTimeout(function() { initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData); }, 250); return; }
+                            if (run()) { clearInterval(t); setTimeout(function() { initInvestmentCharts(typeDistributionData, profitLossTrendData, ownerDistributionData, countByTypeData, valueTrendData); }, 500); return; }
                             if (++attempts >= 50) clearInterval(t);
                         }, 150);
                     }
-                    setTimeout(init, 0);
-                });
+                    if (document.readyState === 'complete') { setTimeout(init, 0); } else { window.addEventListener('load', function() { setTimeout(init, 0); }); }
+                })();
             </script>
         @endpush
     @endif

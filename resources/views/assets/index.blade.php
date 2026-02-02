@@ -197,7 +197,7 @@
             <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
             <script src="{{ asset('js/asset-charts.js') }}"></script>
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
+                (function() {
                     var typeDistributionData = @json($typeDistributionData ?? []);
                     var ownerDistributionData = @json($ownerDistributionData ?? []);
                     function run() {
@@ -209,17 +209,21 @@
                     }
                     function init() {
                         if (run()) {
-                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 250);
+                            setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500);
                             return;
                         }
                         var attempts = 0;
                         var t = setInterval(function() {
-                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 250); return; }
+                            if (run()) { clearInterval(t); setTimeout(function() { initAssetCharts(typeDistributionData, [], ownerDistributionData, []); }, 500); return; }
                             if (++attempts >= 50) clearInterval(t);
                         }, 150);
                     }
-                    setTimeout(init, 0);
-                });
+                    if (document.readyState === 'complete') {
+                        setTimeout(init, 0);
+                    } else {
+                        window.addEventListener('load', function() { setTimeout(init, 0); });
+                    }
+                })();
             </script>
         @endpush
     @endif
