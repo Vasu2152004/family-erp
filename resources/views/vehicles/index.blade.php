@@ -137,7 +137,7 @@
             @if(count($fuelConsumptionData ?? []) > 0)
                 <div class="mt-6 card">
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Fuel Consumption Trends (Last 12 Months)</h2>
-                    <div id="fuelConsumptionChart" style="min-height: 400px;"></div>
+                    <div id="fuelConsumptionChart" style="min-height: 400px; width: 100%;"></div>
                 </div>
             @endif
         </div>

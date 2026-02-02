@@ -32,7 +32,7 @@
                 @if(count($categoryDistribution) > 0)
                     <div class="card">
                         <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Category-wise Distribution</h2>
-                        <div id="categoryDistributionChart" style="min-height: 400px;"></div>
+                        <div id="categoryDistributionChart" style="min-height: 400px; width: 100%;"></div>
                     </div>
                 @endif
 
@@ -40,7 +40,7 @@
                 @if(count($stockStatusOverview) > 0)
                     <div class="card">
                         <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Stock Status Overview</h2>
-                        <div id="stockStatusChart" style="min-height: 400px;"></div>
+                        <div id="stockStatusChart" style="min-height: 400px; width: 100%;"></div>
                     </div>
                 @endif
             </div>

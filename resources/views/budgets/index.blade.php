@@ -118,7 +118,7 @@
         @if(count($budgetVsActualData ?? []) > 0)
             <div class="card">
                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Budget vs Actual Spending ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
-                <div id="budgetVsActualChart" style="min-height: 400px;"></div>
+                <div id="budgetVsActualChart" style="min-height: 400px; width: 100%;"></div>
             </div>
         @endif
     </div>

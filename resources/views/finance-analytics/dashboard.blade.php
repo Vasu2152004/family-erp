@@ -40,14 +40,14 @@
         <!-- Monthly Expenses Chart -->
         <div class="card">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Monthly Expenses & Income ({{ $currentYear }})</h2>
-            <div id="monthlyChart" style="min-height: 400px;"></div>
+            <div id="monthlyChart" style="min-height: 400px; width: 100%;"></div>
         </div>
 
         <!-- Member-wise Spending -->
         <div class="card">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Member-wise Spending ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
             @if(count($memberWiseData) > 0)
-                <div id="memberWiseChart" style="min-height: 400px;"></div>
+                <div id="memberWiseChart" style="min-height: 400px; width: 100%;"></div>
             @else
                 <div class="text-center py-12">
                     <p class="text-[var(--color-text-secondary)]">No spending data available for this month.</p>
@@ -59,21 +59,21 @@
         @if(count($categoryWiseData) > 0)
             <div class="card">
                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Category-wise Expenses ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
-                <div id="categoryWiseChart" style="min-height: 400px;"></div>
+                <div id="categoryWiseChart" style="min-height: 400px; width: 100%;"></div>
             </div>
         @endif
 
         <!-- Savings Trend Chart -->
         <div class="card">
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Savings Trend ({{ $currentYear }})</h2>
-            <div id="savingsTrendChart" style="min-height: 400px;"></div>
+            <div id="savingsTrendChart" style="min-height: 400px; width: 100%;"></div>
         </div>
 
         <!-- Account Balance Trends -->
         @if(count($accountBalanceTrends) > 0)
             <div class="card">
                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Account Balance Trends ({{ $currentYear }})</h2>
-                <div id="accountBalanceTrendsChart" style="min-height: 400px;"></div>
+                <div id="accountBalanceTrendsChart" style="min-height: 400px; width: 100%;"></div>
             </div>
         @endif
 
@@ -81,7 +81,7 @@
         @if(count($incomeSourcesData) > 0)
             <div class="card">
                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Income Sources ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
-                <div id="incomeSourcesChart" style="min-height: 400px;"></div>
+                <div id="incomeSourcesChart" style="min-height: 400px; width: 100%;"></div>
             </div>
         @endif
 
@@ -89,7 +89,7 @@
         @if(count($expensePatternsData) > 0)
             <div class="card">
                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Expense Patterns by Day of Week ({{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->format('F Y') }})</h2>
-                <div id="expensePatternsChart" style="min-height: 400px;"></div>
+                <div id="expensePatternsChart" style="min-height: 400px; width: 100%;"></div>
             </div>
         @endif
     </div>

@@ -146,7 +146,7 @@
             @if(count($taskStatusData ?? []) > 0 && array_sum(array_column($taskStatusData, 'count')) > 0)
                 <div class="mt-6 card">
                     <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Task Status Distribution</h2>
-                    <div id="taskStatusChart" style="min-height: 400px;"></div>
+                    <div id="taskStatusChart" style="min-height: 400px; width: 100%;"></div>
                 </div>
             @endif
         </div>

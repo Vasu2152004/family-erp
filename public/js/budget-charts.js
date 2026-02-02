@@ -9,12 +9,27 @@ function initBudgetCharts(budgetVsActualData) {
         return;
     }
     function nodeInDocument(el) { return el && document.body && document.body.contains(el); }
-    function safeRender(el, options, key) {
-        if (!nodeInDocument(el)) return;
+    function safeRender(elOrId, options, key, dimensionRetries) {
+        dimensionRetries = dimensionRetries || 0;
+        var el = (typeof elOrId === 'string') ? document.getElementById(elOrId) : (elOrId && elOrId.id ? document.getElementById(elOrId.id) : elOrId);
+        if (!el || !document.body || !document.body.contains(el)) return;
         try {
-            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) { setTimeout(function() { safeRender(el, options, key); }, 150); return; }
-            if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
-            var chart = new ApexCharts(el, options); budgetChartInstances[key] = chart; setTimeout(function() { chart.render(); }, 50);
+            if (el.offsetWidth <= 0 || el.offsetHeight <= 0) {
+                if (dimensionRetries >= 40) return;
+                setTimeout(function() { safeRender(elOrId, options, key, dimensionRetries + 1); }, 150);
+                return;
+            }
+            var id = el.id;
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    el = id ? document.getElementById(id) : el;
+                    if (!el || !document.body.contains(el)) return;
+                    try {
+                        if (!options.chart) options.chart = {}; options.chart.width = el.offsetWidth || options.chart.width;
+                        var chart = new ApexCharts(el, options); budgetChartInstances[key] = chart; chart.render();
+                    } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
+                });
+            });
         } catch (e) { if (console && console.warn) console.warn('Chart render skipped:', e.message); }
     }
 

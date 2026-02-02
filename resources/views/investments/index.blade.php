@@ -196,7 +196,7 @@
                         @if($hasTypeDistribution)
                             <div class="card">
                                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Type Distribution</h2>
-                                <div id="investmentTypeDistributionChart" style="min-height: 400px;"></div>
+                                <div id="investmentTypeDistributionChart" style="min-height: 400px; width: 100%;"></div>
                             </div>
                         @endif
 
@@ -204,7 +204,7 @@
                         @if($hasOwnerDistribution)
                             <div class="card">
                                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Owner-wise Distribution</h2>
-                                <div id="investmentOwnerDistributionChart" style="min-height: 400px;"></div>
+                                <div id="investmentOwnerDistributionChart" style="min-height: 400px; width: 100%;"></div>
                             </div>
                         @endif
 
@@ -212,7 +212,7 @@
                         @if($hasCountByType)
                             <div class="card">
                                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Count by Type</h2>
-                                <div id="investmentCountByTypeChart" style="min-height: 400px;"></div>
+                                <div id="investmentCountByTypeChart" style="min-height: 400px; width: 100%;"></div>
                             </div>
                         @endif
 
@@ -220,7 +220,7 @@
                         @if($hasValueTrend)
                             <div class="card">
                                 <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Investment Value Trend</h2>
-                                <div id="investmentValueTrendChart" style="min-height: 400px;"></div>
+                                <div id="investmentValueTrendChart" style="min-height: 400px; width: 100%;"></div>
                             </div>
                         @endif
                     </div>
@@ -230,7 +230,7 @@
                 @if($hasProfitLoss)
                     <div class="card">
                         <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Profit/Loss Trend</h2>
-                        <div id="investmentProfitLossTrendChart" style="min-height: 400px;"></div>
+                        <div id="investmentProfitLossTrendChart" style="min-height: 400px; width: 100%;"></div>
                     </div>
                 @endif
             @endif
