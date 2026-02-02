@@ -59,7 +59,12 @@ class FamilyController extends Controller
         // Check if user is already part of any family
         $hasFamily = $familyIds->isNotEmpty();
 
-        return view('families.index', compact('families', 'canUpdateIds', 'hasFamily'));
+        // Pending requests where current user is the one being asked (requested_user_id)
+        $pendingRequestsCount = \App\Models\FamilyMemberRequest::where('requested_user_id', $user->id)
+            ->where('status', 'pending')
+            ->count();
+
+        return view('families.index', compact('families', 'canUpdateIds', 'hasFamily', 'pendingRequestsCount'));
     }
 
     /**

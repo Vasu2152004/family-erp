@@ -274,8 +274,7 @@
 
     @push('scripts')
         <script>
-            // Handle inventory item selection
-            document.addEventListener('DOMContentLoaded', function() {
+            function initInventorySelection() {
                 const inventorySelect = document.getElementById('inventory_item_id');
                 const nameInput = document.getElementById('name');
                 const unitSelect = document.getElementById('unit');
@@ -316,7 +315,7 @@
                         }
                     });
                 }
-            });
+            }
             
             // Make function globally accessible
             window.openPurchaseModal = function(itemId, itemName) {
@@ -401,8 +400,7 @@
                 console.log('Family ID:', familyIdInput?.value);
             }
             
-            // Handle form submission using fetch to ensure it works
-            document.addEventListener('DOMContentLoaded', function() {
+            function initPurchaseForm() {
                 const purchaseForm = document.getElementById('purchaseForm');
                 if (purchaseForm) {
                     purchaseForm.addEventListener('submit', async function(e) {
@@ -512,7 +510,18 @@
                         }
                     });
                 }
-            });
+            }
+            
+            function initModalOutsideClick() {
+                const modal = document.getElementById('purchaseModal');
+                if (modal) {
+                    modal.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closePurchaseModal();
+                        }
+                    });
+                }
+            }
             
             function closePurchaseModal() {
                 const modal = document.getElementById('purchaseModal');
@@ -528,17 +537,17 @@
                 }
             }
             
-            // Close modal on outside click
-            document.addEventListener('DOMContentLoaded', function() {
-                const modal = document.getElementById('purchaseModal');
-                if (modal) {
-                    modal.addEventListener('click', function(e) {
-                        if (e.target === this) {
-                            closePurchaseModal();
-                        }
-                    });
-                }
-            });
+            // Run init when DOM is ready (handles late script load from @push)
+            function initShoppingList() {
+                initInventorySelection();
+                initPurchaseForm();
+                initModalOutsideClick();
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initShoppingList);
+            } else {
+                initShoppingList();
+            }
         </script>
     @endpush
 </x-app-layout>

@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\CalendarEvent;
+use App\Models\DoctorVisit;
 use App\Models\Family;
 use App\Models\FamilyMember;
 use App\Models\FamilyMemberRequest;
 use App\Models\FamilyUserRole;
+use App\Models\FinanceAccount;
+use App\Models\InventoryItem;
+use App\Models\Task;
+use App\Models\Transaction;
 use App\Models\Vehicle;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -62,6 +69,96 @@ class DashboardController extends Controller
                 ? collect()
                 : Family::whereIn('id', $budgetAlertFamilyIds)->get()->keyBy('id');
 
+            // Real data widgets - only when user has families
+            $recentTransactions = collect();
+            $lowStockItems = collect();
+            $lowStockCount = 0;
+            $upcomingEvents = collect();
+            $upcomingDoctorVisits = collect();
+            $taskCountsByStatus = ['pending' => 0, 'in_progress' => 0, 'done' => 0];
+            $financeSummary = [];
+            $firstFamily = null;
+
+            if ($familyIds->isNotEmpty()) {
+                $recentTransactions = Transaction::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->orderBy('transaction_date', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->with(['family:id,name', 'financeAccount:id,name'])
+                    ->get();
+
+                $lowStockItems = InventoryItem::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->lowStock()
+                    ->with('family:id,name')
+                    ->limit(5)
+                    ->get();
+                $lowStockCount = InventoryItem::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->lowStock()
+                    ->count();
+
+                $upcomingEvents = CalendarEvent::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->where('start_at', '>=', Carbon::now())
+                    ->orderBy('start_at')
+                    ->limit(5)
+                    ->with('family:id,name')
+                    ->get();
+
+                $upcomingDoctorVisits = DoctorVisit::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->where('status', '!=', 'cancelled')
+                    ->where(function ($q) use ($today) {
+                        $q->where('visit_date', '>=', $today)
+                            ->orWhere('next_visit_date', '>=', $today);
+                    })
+                    ->orderByRaw('COALESCE(next_visit_date, visit_date) ASC')
+                    ->limit(5)
+                    ->with(['family:id,name', 'familyMember:id,first_name,last_name'])
+                    ->get();
+
+                $taskCounts = Task::whereIn('family_id', $familyIds)
+                    ->where('tenant_id', $user->tenant_id)
+                    ->select('status', DB::raw('count(*) as count'))
+                    ->groupBy('status')
+                    ->pluck('count', 'status');
+                $taskCountsByStatus = [
+                    'pending' => (int) ($taskCounts['pending'] ?? 0),
+                    'in_progress' => (int) ($taskCounts['in_progress'] ?? 0),
+                    'done' => (int) ($taskCounts['done'] ?? 0),
+                ];
+
+                $currentMonthStart = Carbon::now()->startOfMonth();
+                $currentMonthEnd = Carbon::now()->endOfMonth();
+                $families = Family::whereIn('id', $familyIds)->get(['id', 'name']);
+
+                foreach ($families as $family) {
+                    $totalBalance = FinanceAccount::where('family_id', $family->id)
+                        ->where('is_active', true)
+                        ->sum('current_balance');
+                    $monthlyIncome = Transaction::where('family_id', $family->id)
+                        ->where('type', 'INCOME')
+                        ->whereBetween('transaction_date', [$currentMonthStart, $currentMonthEnd])
+                        ->sum('amount');
+                    $monthlyExpense = Transaction::where('family_id', $family->id)
+                        ->where('type', 'EXPENSE')
+                        ->whereBetween('transaction_date', [$currentMonthStart, $currentMonthEnd])
+                        ->sum('amount');
+
+                    $financeSummary[] = [
+                        'family' => $family,
+                        'total_balance' => (float) $totalBalance,
+                        'monthly_income' => (float) $monthlyIncome,
+                        'monthly_expense' => (float) $monthlyExpense,
+                    ];
+                }
+                $firstFamily = $families->first();
+            } else {
+                $firstFamily = null;
+            }
+
             app()->instance($key, [
                 'user' => $user,
                 'familiesCount' => $familiesCount,
@@ -70,6 +167,14 @@ class DashboardController extends Controller
                 'otherNotifications' => $otherNotifications,
                 'expiringVehicles' => $expiringVehicles,
                 'familiesById' => $familiesById,
+                'recentTransactions' => $recentTransactions,
+                'lowStockItems' => $lowStockItems,
+                'lowStockCount' => $lowStockCount,
+                'upcomingEvents' => $upcomingEvents,
+                'upcomingDoctorVisits' => $upcomingDoctorVisits,
+                'taskCountsByStatus' => $taskCountsByStatus,
+                'financeSummary' => $financeSummary,
+                'firstFamily' => $firstFamily ?? null,
             ]);
         }
 
@@ -83,6 +188,14 @@ class DashboardController extends Controller
             'otherNotifications' => $data['otherNotifications'],
             'expiringVehicles' => $data['expiringVehicles'],
             'familiesById' => $data['familiesById'],
+            'recentTransactions' => $data['recentTransactions'],
+            'lowStockItems' => $data['lowStockItems'],
+            'lowStockCount' => $data['lowStockCount'],
+            'upcomingEvents' => $data['upcomingEvents'],
+            'upcomingDoctorVisits' => $data['upcomingDoctorVisits'],
+            'taskCountsByStatus' => $data['taskCountsByStatus'],
+            'financeSummary' => $data['financeSummary'],
+            'firstFamily' => $data['firstFamily'] ?? null,
         ]);
     }
 }

@@ -82,6 +82,17 @@
         @else
             <div class="text-center py-12">
                 <p class="text-[var(--color-text-secondary)] mb-4">No families found.</p>
+                @if(!$hasFamily && ($pendingRequestsCount ?? 0) > 0)
+                    <div class="mb-6 p-6 bg-[var(--color-bg-secondary)] rounded-xl border-2 border-[var(--color-primary)] border-dashed">
+                        <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-2">You have {{ $pendingRequestsCount }} pending family request(s)</h3>
+                        <p class="text-sm text-[var(--color-text-secondary)] mb-4">Someone has invited you to add a family member. Review and accept or reject the request.</p>
+                        <a href="{{ route('family-member-requests.index') }}">
+                            <x-button variant="primary" size="md">
+                                View Requests & Respond
+                            </x-button>
+                        </a>
+                    </div>
+                @endif
                 @unless($hasFamily)
                 <a href="{{ route('families.create') }}">
                     <x-button variant="primary" size="md">
