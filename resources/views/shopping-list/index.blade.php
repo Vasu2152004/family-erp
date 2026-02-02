@@ -351,10 +351,9 @@
                 modal.classList.add('flex');
                 document.getElementById('purchaseItemName').textContent = itemName;
                 
-                // Set form action correctly
-                // Route: /shopping-list/{item}/purchased
+                // Set form action correctly - use Laravel's url helper for correct base path
                 const familyId = {{ $family->id }};
-                form.action = `/shopping-list/${itemId}/purchased`;
+                form.action = "{{ url('shopping-list') }}/" + itemId + "/purchased";
                 
                 // Ensure family_id is in the form
                 let familyIdInput = form.querySelector('input[name="family_id"]');
@@ -454,9 +453,12 @@
                             console.log('Response ok:', response.ok);
                             
                             if (response.ok) {
-                                // Success - reload page to show updated list
-                                const result = await response.json().catch(() => null);
-                                console.log('Success response:', result);
+                                // Success - controller returns JSON for AJAX requests
+                                const contentType = response.headers.get('content-type');
+                                if (contentType && contentType.includes('application/json')) {
+                                    const result = await response.json().catch(() => null);
+                                    console.log('Success response:', result);
+                                }
                                 window.location.reload();
                             } else {
                                 // Handle error

@@ -9,7 +9,10 @@ use App\Http\Requests\Vehicles\UpdateFuelEntryRequest;
 use App\Models\Family;
 use App\Models\Vehicle;
 use App\Models\FuelEntry;
+use App\Models\Budget;
+use App\Models\FamilyMember;
 use App\Services\VehicleService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -60,9 +63,12 @@ class FuelEntryController extends Controller
     {
         $this->authorize('view', $vehicle);
 
+        $budgets = $this->getBudgetsForFamily($family);
+
         return view('vehicles.fuel-entries.create', [
             'family' => $family,
             'vehicle' => $vehicle,
+            'budgets' => $budgets,
         ]);
     }
 
@@ -86,10 +92,13 @@ class FuelEntryController extends Controller
     {
         $this->authorize('view', $vehicle);
 
+        $budgets = $this->getBudgetsForFamily($family);
+
         return view('vehicles.fuel-entries.edit', [
             'family' => $family,
             'vehicle' => $vehicle,
             'fuelEntry' => $fuelEntry,
+            'budgets' => $budgets,
         ]);
     }
 
@@ -143,6 +152,38 @@ class FuelEntryController extends Controller
 
         return redirect()->route('families.vehicles.fuel-entries.index', ['family' => $family->id, 'vehicle' => $vehicle->id])
             ->with('success', 'Fuel entry deleted successfully.');
+    }
+
+    private function getBudgetsForFamily(Family $family): \Illuminate\Support\Collection
+    {
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+
+        $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->select('role')
+            ->first();
+        $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
+
+        $budgetsQuery = Budget::where('family_id', $family->id)
+            ->where('month', $currentMonth)
+            ->where('year', $currentYear)
+            ->where('is_active', true)
+            ->with(['category:id,name']);
+
+        if ($isAdminOrOwner) {
+            return $budgetsQuery->get();
+        }
+
+        $currentUserMember = FamilyMember::where('family_id', $family->id)
+            ->where('user_id', Auth::id())
+            ->select('id')
+            ->first();
+
+        return $budgetsQuery->where(function ($q) use ($currentUserMember) {
+            $q->whereNull('family_member_id')
+                ->orWhere('family_member_id', $currentUserMember?->id);
+        })->get();
     }
 }
 

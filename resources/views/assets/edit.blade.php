@@ -32,21 +32,25 @@
                             Cancel
                         </x-button>
                     </a>
-                    <x-form 
-                        method="POST" 
-                        action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}" 
-                        data-confirm="Delete this asset?"
-                        data-confirm-title="Delete Asset"
-                        data-confirm-variant="danger"
-                    >
-                        @csrf
-                        @method('DELETE')
-                        <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
-                            Delete
-                        </x-button>
-                    </x-form>
                 </div>
             </x-form>
+
+            <div class="mt-6 pt-6 border-t border-[var(--color-border-primary)]">
+                <x-form
+                    method="POST"
+                    action="{{ route('assets.destroy', ['asset' => $asset->id, 'family_id' => $family->id]) }}"
+                    class="inline"
+                    data-confirm="Delete this asset?"
+                    data-confirm-title="Delete Asset"
+                    data-confirm-variant="danger"
+                >
+                    @csrf
+                    @method('DELETE')
+                    <x-button type="submit" variant="outline" size="md" class="text-red-600 border-red-300 hover:bg-red-50">
+                        Delete Asset
+                    </x-button>
+                </x-form>
+            </div>
         </div>
     </div>
 </x-app-layout>

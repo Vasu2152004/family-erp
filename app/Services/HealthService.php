@@ -107,6 +107,7 @@ class HealthService
                 'visit_date' => $data['visit_date'],
                 'visit_time' => $data['visit_time'] ?? null,
                 'status' => $data['status'] ?? 'scheduled',
+                'cancellation_reason' => $data['cancellation_reason'] ?? null,
                 'doctor_name' => $data['doctor_name'] ?? null,
                 'clinic_name' => $data['clinic_name'] ?? null,
                 'specialization' => $data['specialization'] ?? null,
@@ -136,6 +137,9 @@ class HealthService
                 'visit_date' => $data['visit_date'] ?? $visit->visit_date,
                 'visit_time' => $data['visit_time'] ?? $visit->visit_time,
                 'status' => $data['status'] ?? $visit->status,
+                'cancellation_reason' => ($data['status'] ?? $visit->status) === 'cancelled'
+                    ? ($data['cancellation_reason'] ?? $visit->cancellation_reason)
+                    : null,
                 'doctor_name' => $data['doctor_name'] ?? $visit->doctor_name,
                 'clinic_name' => $data['clinic_name'] ?? $visit->clinic_name,
                 'specialization' => $data['specialization'] ?? $visit->specialization,

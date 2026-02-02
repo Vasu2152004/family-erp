@@ -228,9 +228,13 @@ class ShoppingListController extends Controller
 
         $this->shoppingListService->markAsPurchased($item->id, Auth::id(), $amount, $budgetId);
 
-        $message = $amount 
+        $message = $amount
             ? 'Item marked as purchased and transaction created successfully.'
             : 'Item marked as purchased.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => $message]);
+        }
 
         return redirect()->route('shopping-list.index', ['family_id' => $family->id])
             ->with('success', $message);

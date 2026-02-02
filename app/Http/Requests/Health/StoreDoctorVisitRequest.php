@@ -22,6 +22,7 @@ class StoreDoctorVisitRequest extends FormRequest
             'visit_date' => ['required', 'date'],
             'visit_time' => ['nullable', 'date_format:H:i'],
             'status' => ['sometimes', 'string', Rule::in(['scheduled', 'completed', 'cancelled'])],
+            'cancellation_reason' => ['nullable', 'required_if:status,cancelled', 'string', 'max:1000'],
             'doctor_name' => ['nullable', 'string', 'max:255'],
             'clinic_name' => ['nullable', 'string', 'max:255'],
             'specialization' => ['nullable', 'string', 'max:255'],

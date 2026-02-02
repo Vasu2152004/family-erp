@@ -77,5 +77,20 @@ class AppServiceProvider extends ServiceProvider
             }
             return \App\Models\MedicineIntakeReminder::findOrFail($value);
         });
+
+        // Route model binding for 'item' - disambiguate InventoryItem vs ShoppingListItem by route
+        \Illuminate\Support\Facades\Route::bind('item', function ($value, $route) {
+            if (!is_numeric($value)) {
+                abort(404);
+            }
+            $name = $route->getName() ?? '';
+            if (str_starts_with($name, 'inventory.items.') || str_starts_with($name, 'families.inventory.items.')) {
+                return \App\Models\InventoryItem::findOrFail((int) $value);
+            }
+            if (str_starts_with($name, 'shopping-list.')) {
+                return \App\Models\ShoppingListItem::findOrFail((int) $value);
+            }
+            abort(404);
+        });
     }
 }

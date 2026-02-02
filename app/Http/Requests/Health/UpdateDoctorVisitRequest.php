@@ -23,6 +23,7 @@ class UpdateDoctorVisitRequest extends FormRequest
             'visit_date' => ['sometimes', 'date'],
             'visit_time' => ['sometimes', 'nullable', 'date_format:H:i'],
             'status' => ['sometimes', 'string', Rule::in(['scheduled', 'completed', 'cancelled'])],
+            'cancellation_reason' => ['nullable', 'required_if:status,cancelled', 'string', 'max:1000'],
             'doctor_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'clinic_name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'specialization' => ['sometimes', 'nullable', 'string', 'max:255'],

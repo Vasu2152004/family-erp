@@ -46,5 +46,46 @@
         <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes', $fuelEntry?->notes ?? '') }}</textarea>
         <x-error-message field="notes" />
     </div>
+
+    @if(isset($budgets) && $budgets->isNotEmpty())
+    <div class="md:col-span-2 pt-4 border-t border-[var(--color-border-primary)]">
+        @if($fuelEntry?->transaction_id)
+            <p class="text-sm text-[var(--color-text-secondary)]">Already linked to a transaction.</p>
+        @else
+        <label class="flex items-center gap-2 mb-3">
+            <input type="checkbox" name="create_transaction" id="create_transaction" value="1" {{ old('create_transaction') ? 'checked' : '' }} class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
+            <span class="text-sm font-medium text-[var(--color-text-primary)]">Create transaction for this expense</span>
+        </label>
+        <div id="budget_field" class="mt-2" style="display: {{ old('create_transaction') ? 'block' : 'none' }};">
+            <x-label for="budget_id">Budget</x-label>
+            <select name="budget_id" id="budget_id" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                <option value="">Select budget</option>
+                @foreach($budgets as $budget)
+                    <option value="{{ $budget->id }}" {{ old('budget_id') == $budget->id ? 'selected' : '' }}>
+                        {{ $budget->category->name ?? 'Uncategorized' }}
+                        @if($budget->family_member_id)(Personal)@else(Family)@endif
+                        - ₹{{ number_format($budget->amount, 2) }}
+                    </option>
+                @endforeach
+            </select>
+            <x-error-message field="budget_id" />
+        </div>
+        @endif
+    </div>
+    @endif
 </div>
+
+@if(isset($budgets) && $budgets->isNotEmpty())
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createTransactionCheckbox = document.getElementById('create_transaction');
+    const budgetField = document.getElementById('budget_field');
+    if (createTransactionCheckbox && budgetField) {
+        createTransactionCheckbox.addEventListener('change', function() {
+            budgetField.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+</script>
+@endif
 

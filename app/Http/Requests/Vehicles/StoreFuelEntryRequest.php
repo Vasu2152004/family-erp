@@ -24,6 +24,8 @@ class StoreFuelEntryRequest extends FormRequest
             'fuel_type' => ['required', 'string', Rule::in(['petrol', 'diesel'])],
             'fuel_station_name' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
+            'create_transaction' => ['sometimes', 'boolean'],
+            'budget_id' => ['nullable', 'required_if:create_transaction,1', 'exists:budgets,id'],
         ];
     }
 }

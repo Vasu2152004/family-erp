@@ -133,7 +133,7 @@
         </div>
     </div>
 
-    <div>
+    <div id="current_value_field">
         <x-label for="current_value">Current Value</x-label>
         <x-input
             type="number"
@@ -145,7 +145,7 @@
             placeholder="0.00"
             class="mt-1"
         />
-        <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Auto-calculated if start date and interest rate provided. Leave empty for manual entry.</p>
+        <p class="mt-1 text-xs text-[var(--color-text-secondary)]" id="current_value_hint">Auto-calculated if start date and interest rate provided. Leave empty for manual entry.</p>
         <x-error-message field="current_value" />
     </div>
 
@@ -255,9 +255,29 @@ document.addEventListener('DOMContentLoaded', function() {
             monthlyPremiumField.style.display = 'none';
         }
         
+        // For FD, RD, SIP: disable current_value so it's not submitted (service auto-calculates)
+        const currentValueInput = document.getElementById('current_value');
+        const currentValueHint = document.getElementById('current_value_hint');
         if (type === 'FD' || type === 'RD' || type === 'SIP') {
             interestFields.style.display = 'grid';
-        } else if (type === 'OTHER') {
+            if (currentValueInput) {
+                currentValueInput.disabled = true;
+                currentValueInput.setAttribute('data-auto-calc', '1');
+            }
+            if (currentValueHint) {
+                currentValueHint.textContent = 'Auto-calculated from amount, start date, and interest rate.';
+            }
+        } else {
+            if (currentValueInput) {
+                currentValueInput.disabled = false;
+                currentValueInput.removeAttribute('data-auto-calc');
+            }
+            if (currentValueHint) {
+                currentValueHint.textContent = 'Auto-calculated if start date and interest rate provided. Leave empty for manual entry.';
+            }
+        }
+
+        if (type === 'OTHER') {
             // For OTHER type, hide interest fields (no interest)
             interestFields.style.display = 'none';
         } else {

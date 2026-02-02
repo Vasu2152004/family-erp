@@ -12,11 +12,17 @@ use App\Models\VehicleSale;
 use App\Models\Transaction;
 use App\Models\TransactionCategory;
 use App\Models\FinanceAccount;
+use App\Models\Budget;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 class VehicleService
 {
+    public function __construct(
+        private readonly TransactionService $transactionService
+    ) {
+    }
+
     /**
      * Create a vehicle.
      */
@@ -162,12 +168,55 @@ class VehicleService
     }
 
     /**
+     * Create an expense transaction for vehicle fuel/service.
+     */
+    private function createVehicleExpenseTransaction(
+        int $tenantId,
+        int $familyId,
+        Vehicle $vehicle,
+        float $amount,
+        string $transactionDate,
+        string $description,
+        int $budgetId
+    ): Transaction {
+        $budget = Budget::where('id', $budgetId)->where('family_id', $familyId)->firstOrFail();
+
+        $financeAccount = FinanceAccount::where('family_id', $familyId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$financeAccount) {
+            $financeAccount = FinanceAccount::create([
+                'tenant_id' => $tenantId,
+                'family_id' => $familyId,
+                'name' => 'Cash',
+                'type' => 'CASH',
+                'initial_balance' => 0,
+                'current_balance' => 0,
+                'is_active' => true,
+            ]);
+        }
+
+        return $this->transactionService->createTransaction([
+            'finance_account_id' => $financeAccount->id,
+            'family_member_id' => $vehicle->family_member_id,
+            'category_id' => $budget->category_id,
+            'type' => 'EXPENSE',
+            'amount' => $amount,
+            'description' => $description,
+            'transaction_date' => $transactionDate,
+            'is_shared' => $vehicle->family_member_id ? false : true,
+            'budget_id' => $budgetId,
+        ], $tenantId, $familyId);
+    }
+
+    /**
      * Create a service log.
      */
     public function createServiceLog(array $data, int $tenantId, int $familyId, Vehicle $vehicle, int $userId): ServiceLog
     {
         return DB::transaction(function () use ($data, $tenantId, $familyId, $vehicle, $userId) {
-            return ServiceLog::create([
+            $serviceLog = ServiceLog::create([
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
                 'vehicle_id' => $vehicle->id,
@@ -183,6 +232,22 @@ class VehicleService
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
+
+            // Optionally create expense transaction
+            if (!empty($data['create_transaction']) && !empty($data['budget_id'])) {
+                $transaction = $this->createVehicleExpenseTransaction(
+                    $tenantId,
+                    $familyId,
+                    $vehicle,
+                    (float) $data['cost'],
+                    $data['service_date'],
+                    "Vehicle Service: {$vehicle->make} {$vehicle->model} ({$vehicle->registration_number}) - " . ($data['service_center_name'] ?? $data['service_type']),
+                    (int) $data['budget_id']
+                );
+                $serviceLog->update(['transaction_id' => $transaction->id]);
+            }
+
+            return $serviceLog->fresh();
         });
     }
 
@@ -204,6 +269,21 @@ class VehicleService
                 'next_service_odometer' => $data['next_service_odometer'] ?? $serviceLog->next_service_odometer,
                 'updated_by' => $userId,
             ]);
+
+            // Optionally create expense transaction on update (if not already linked)
+            if (!$serviceLog->transaction_id && !empty($data['create_transaction']) && !empty($data['budget_id'])) {
+                $vehicle = $serviceLog->vehicle;
+                $transaction = $this->createVehicleExpenseTransaction(
+                    $serviceLog->tenant_id,
+                    $serviceLog->family_id,
+                    $vehicle,
+                    (float) $serviceLog->cost,
+                    $serviceLog->service_date->format('Y-m-d'),
+                    "Vehicle Service: {$vehicle->make} {$vehicle->model} ({$vehicle->registration_number}) - " . ($serviceLog->service_center_name ?? $serviceLog->service_type),
+                    (int) $data['budget_id']
+                );
+                $serviceLog->update(['transaction_id' => $transaction->id]);
+            }
 
             return $serviceLog->fresh();
         });
@@ -238,10 +318,24 @@ class VehicleService
                 'updated_by' => $userId,
             ]);
 
+            // Optionally create expense transaction
+            if (!empty($data['create_transaction']) && !empty($data['budget_id'])) {
+                $transaction = $this->createVehicleExpenseTransaction(
+                    $tenantId,
+                    $familyId,
+                    $vehicle,
+                    (float) $data['cost'],
+                    $data['fill_date'],
+                    "Fuel: {$vehicle->make} {$vehicle->model} ({$vehicle->registration_number}) - " . ($data['fuel_station_name'] ?? 'Unknown station'),
+                    (int) $data['budget_id']
+                );
+                $fuelEntry->update(['transaction_id' => $transaction->id]);
+            }
+
             // Recalculate mileage for subsequent entries if needed
             $this->recalculateSubsequentMileages($vehicle, $fuelEntry);
 
-            return $fuelEntry;
+            return $fuelEntry->fresh();
         });
     }
 
@@ -264,6 +358,21 @@ class VehicleService
                 'notes' => $data['notes'] ?? $fuelEntry->notes,
                 'updated_by' => $userId,
             ]);
+
+            // Optionally create expense transaction on update (if not already linked)
+            if (!$fuelEntry->transaction_id && !empty($data['create_transaction']) && !empty($data['budget_id'])) {
+                $vehicle = $fuelEntry->vehicle;
+                $transaction = $this->createVehicleExpenseTransaction(
+                    $fuelEntry->tenant_id,
+                    $fuelEntry->family_id,
+                    $vehicle,
+                    (float) $fuelEntry->cost,
+                    $fuelEntry->fill_date->format('Y-m-d'),
+                    "Fuel: {$vehicle->make} {$vehicle->model} ({$vehicle->registration_number}) - " . ($fuelEntry->fuel_station_name ?? 'Unknown station'),
+                    (int) $data['budget_id']
+                );
+                $fuelEntry->update(['transaction_id' => $transaction->id]);
+            }
 
             // Recalculate mileage for this entry and subsequent ones
             $vehicle = $fuelEntry->vehicle;

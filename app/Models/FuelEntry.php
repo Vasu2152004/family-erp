@@ -21,6 +21,7 @@ class FuelEntry extends Model
         'odometer_reading',
         'fuel_amount',
         'cost',
+        'transaction_id',
         'fuel_type',
         'fuel_station_name',
         'notes',
@@ -53,6 +54,11 @@ class FuelEntry extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     public function createdBy(): BelongsTo

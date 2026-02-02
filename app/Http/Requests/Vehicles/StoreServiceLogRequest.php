@@ -26,6 +26,8 @@ class StoreServiceLogRequest extends FormRequest
             'description' => ['nullable', 'string'],
             'next_service_due_date' => ['nullable', 'date', 'after_or_equal:service_date'],
             'next_service_odometer' => ['nullable', 'integer', 'min:0'],
+            'create_transaction' => ['sometimes', 'boolean'],
+            'budget_id' => ['nullable', 'required_if:create_transaction,1', 'exists:budgets,id'],
         ];
     }
 }

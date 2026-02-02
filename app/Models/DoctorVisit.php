@@ -21,6 +21,7 @@ class DoctorVisit extends Model
         'visit_date',
         'visit_time',
         'status',
+        'cancellation_reason',
         'doctor_name',
         'clinic_name',
         'specialization',

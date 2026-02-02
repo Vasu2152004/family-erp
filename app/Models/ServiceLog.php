@@ -20,6 +20,7 @@ class ServiceLog extends Model
         'service_date',
         'odometer_reading',
         'cost',
+        'transaction_id',
         'service_center_name',
         'service_center_contact',
         'service_type',
@@ -54,6 +55,11 @@ class ServiceLog extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     public function createdBy(): BelongsTo

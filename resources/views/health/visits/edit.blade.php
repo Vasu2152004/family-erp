@@ -37,6 +37,12 @@
                         <x-error-message field="status" />
                     </div>
 
+                    <div id="cancellation_reason_field" class="md:col-span-2" style="display: none;">
+                        <x-label for="cancellation_reason" required>Cancellation Reason</x-label>
+                        <textarea name="cancellation_reason" id="cancellation_reason" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('cancellation_reason', $visit->cancellation_reason) }}</textarea>
+                        <x-error-message field="cancellation_reason" />
+                    </div>
+
                     <div>
                         <x-label for="medical_record_id">Medical Record</x-label>
                         <select name="medical_record_id" id="medical_record_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -44,7 +50,7 @@
                             @foreach($medicalRecords as $record)
                                 @php
                                     $displayParts = [];
-                                    $displayParts[] = $record->title;
+                                    $displayParts[] = $record->title ?? 'Untitled';
                                     if ($record->primary_condition) {
                                         $displayParts[] = $record->primary_condition;
                                     }
@@ -113,6 +119,7 @@
                     </div>
                 </div>
 
+                <div id="completed_fields" class="space-y-6">
                     <div>
                         <x-label for="chief_complaint">Chief Complaint</x-label>
                         <x-input type="text" name="chief_complaint" id="chief_complaint" value="{{ old('chief_complaint', $visit->chief_complaint) }}" class="mt-1" />
@@ -142,6 +149,7 @@
                     <textarea name="notes" id="notes" rows="3" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">{{ old('notes', $visit->notes) }}</textarea>
                     <x-error-message field="notes" />
                 </div>
+                </div>
 
                 <div class="flex gap-4">
                     <x-button type="submit" variant="primary" size="md">Update Visit</x-button>
@@ -152,5 +160,34 @@
             </x-form>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSelect = document.getElementById('status');
+        const completedFields = document.getElementById('completed_fields');
+        const cancellationReasonField = document.getElementById('cancellation_reason_field');
+        const cancellationReasonInput = document.getElementById('cancellation_reason');
+
+        function toggleStatusFields() {
+            const status = statusSelect.value;
+            if (status === 'completed') {
+                completedFields.style.display = 'block';
+                cancellationReasonField.style.display = 'none';
+                if (cancellationReasonInput) cancellationReasonInput.removeAttribute('required');
+            } else if (status === 'cancelled') {
+                completedFields.style.display = 'none';
+                cancellationReasonField.style.display = 'block';
+                if (cancellationReasonInput) cancellationReasonInput.setAttribute('required', 'required');
+            } else {
+                completedFields.style.display = 'none';
+                cancellationReasonField.style.display = 'none';
+                if (cancellationReasonInput) cancellationReasonInput.removeAttribute('required');
+            }
+        }
+
+        statusSelect.addEventListener('change', toggleStatusFields);
+        toggleStatusFields();
+    });
+    </script>
 </x-app-layout>
 

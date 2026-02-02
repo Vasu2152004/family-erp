@@ -306,6 +306,12 @@ class InvestmentController extends Controller
             $validated['is_hidden'] = false;
         }
 
+        // For auto-calculate types (FD, RD, SIP), unset current_value so the service recalculates it
+        $autoCalculateTypes = ['FD', 'RD', 'SIP'];
+        if (in_array($validated['investment_type'] ?? $investment->investment_type, $autoCalculateTypes, true)) {
+            unset($validated['current_value']);
+        }
+
         $this->investmentService->updateInvestment($investment->id, $validated);
 
         // Log access

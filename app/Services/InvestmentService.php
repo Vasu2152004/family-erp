@@ -186,7 +186,12 @@ class InvestmentService
             $amount = $data['amount'] ?? $investment->amount;
             $investmentType = $data['investment_type'] ?? $investment->investment_type;
 
-            if ($startDate && $interestRate && !isset($data['current_value'])) {
+            // Auto-calculate types: FD, RD, SIP - always recalculate when we have required data
+            $autoCalculateTypes = ['FD', 'RD', 'SIP'];
+            $isAutoCalculateType = in_array($investmentType, $autoCalculateTypes, true);
+            $shouldRecalculate = $isAutoCalculateType && $startDate && $interestRate;
+
+            if ($shouldRecalculate) {
                 // For SIP, use 0 as amount since it's not used in calculation
                 $amountForCalculation = ($investmentType === 'SIP') ? 0 : (float) $amount;
                 $calculatedValue = $this->calculateCurrentValue(
@@ -246,9 +251,13 @@ class InvestmentService
                 $updateData['monthly_premium'] = $monthlyPremium;
             }
 
-            // Update current_value if calculated or explicitly provided
-            if (isset($data['current_value']) || $calculatedValue !== null) {
+            // Update current_value: for auto-calculate types use calculated value; otherwise use explicit value if provided
+            if ($isAutoCalculateType && $calculatedValue !== null) {
+                $updateData['current_value'] = $calculatedValue;
+            } elseif (!$isAutoCalculateType && (isset($data['current_value']) || $calculatedValue !== null)) {
                 $updateData['current_value'] = $data['current_value'] ?? $calculatedValue;
+            } elseif (isset($data['current_value'])) {
+                $updateData['current_value'] = $data['current_value'];
             }
 
             // Family Investments (no owner) cannot be hidden
