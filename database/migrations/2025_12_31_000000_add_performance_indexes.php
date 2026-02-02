@@ -13,61 +13,37 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Shopping list items - frequently queried by family_id and is_purchased
-        if (Schema::hasTable('shopping_list_items')) {
-            Schema::table('shopping_list_items', function (Blueprint $table) {
-                if (!$this->hasIndex('shopping_list_items', 'shopping_list_items_family_id_is_purchased_index')) {
-                    $table->index(['family_id', 'is_purchased'], 'shopping_list_items_family_id_is_purchased_index');
-                }
-                if (!$this->hasIndex('shopping_list_items', 'shopping_list_items_inventory_item_id_index')) {
-                    $table->index('inventory_item_id');
-                }
-            });
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
         }
 
-        // Inventory items - frequently queried by family_id and min_qty
-        if (Schema::hasTable('inventory_items')) {
-            Schema::table('inventory_items', function (Blueprint $table) {
-                if (!$this->hasIndex('inventory_items', 'inventory_items_family_id_min_qty_index')) {
-                    $table->index(['family_id', 'min_qty'], 'inventory_items_family_id_min_qty_index');
-                }
-            });
-        }
+        $this->safeAddIndex('shopping_list_items', 'shopping_list_items_family_id_is_purchased_index', ['family_id', 'is_purchased']);
+        $this->safeAddIndex('shopping_list_items', 'shopping_list_items_inventory_item_id_index', ['inventory_item_id']);
+        $this->safeAddIndex('inventory_items', 'inventory_items_family_id_min_qty_index', ['family_id', 'min_qty']);
+        $this->safeAddIndex('family_user_roles', 'family_user_roles_family_user_index', ['family_id', 'user_id']);
+        $this->safeAddIndex('family_member_requests', 'family_member_requests_user_status_index', ['requested_user_id', 'status']);
+        $this->safeAddIndex('admin_role_requests', 'admin_role_requests_family_status_index', ['family_id', 'status']);
+        $this->safeAddIndex('budgets', 'budgets_family_month_year_active_index', ['family_id', 'month', 'year', 'is_active']);
+    }
 
-        // Family user roles - frequently queried by family_id and user_id
-        if (Schema::hasTable('family_user_roles')) {
-            Schema::table('family_user_roles', function (Blueprint $table) {
-                if (!$this->hasIndex('family_user_roles', 'family_user_roles_family_user_index')) {
-                    $table->index(['family_id', 'user_id'], 'family_user_roles_family_user_index');
-                }
-            });
+    private function safeAddIndex(string $tableName, string $indexName, array $columns): void
+    {
+        if (!Schema::hasTable($tableName) || $this->hasIndex($tableName, $indexName)) {
+            return;
         }
-
-        // Family member requests - frequently queried by requested_user_id and status
-        if (Schema::hasTable('family_member_requests')) {
-            Schema::table('family_member_requests', function (Blueprint $table) {
-                if (!$this->hasIndex('family_member_requests', 'family_member_requests_user_status_index')) {
-                    $table->index(['requested_user_id', 'status'], 'family_member_requests_user_status_index');
+        try {
+            Schema::table($tableName, function (Blueprint $table) use ($indexName, $columns) {
+                if (count($columns) === 1) {
+                    $table->index($columns[0], $indexName);
+                } else {
+                    $table->index($columns, $indexName);
                 }
             });
-        }
-
-        // Admin role requests - frequently queried by family_id and status
-        if (Schema::hasTable('admin_role_requests')) {
-            Schema::table('admin_role_requests', function (Blueprint $table) {
-                if (!$this->hasIndex('admin_role_requests', 'admin_role_requests_family_status_index')) {
-                    $table->index(['family_id', 'status'], 'admin_role_requests_family_status_index');
-                }
-            });
-        }
-
-        // Budgets - frequently queried by family_id, month, year, is_active
-        if (Schema::hasTable('budgets')) {
-            Schema::table('budgets', function (Blueprint $table) {
-                if (!$this->hasIndex('budgets', 'budgets_family_month_year_active_index')) {
-                    $table->index(['family_id', 'month', 'year', 'is_active'], 'budgets_family_month_year_active_index');
-                }
-            });
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), 'already exists') || str_contains($e->getMessage(), 'duplicate key')) {
+                return;
+            }
+            throw $e;
         }
     }
 
@@ -106,13 +82,34 @@ return new class extends Migration
     private function hasIndex(string $table, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        $database = $connection->getDatabaseName();
-        $indexes = $connection->select(
-            "SELECT INDEX_NAME FROM information_schema.STATISTICS 
-             WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
-            [$database, $table, $indexName]
-        );
-        return count($indexes) > 0;
+        $driver = $connection->getDriverName();
+        if ($driver === 'sqlite') {
+            return false;
+        }
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            $database = $connection->getDatabaseName();
+            $indexes = $connection->select(
+                "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
+                [$database, $table, $indexName]
+            );
+            if (count($indexes) > 0) {
+                return true;
+            }
+            $prefix = $table . '_';
+            $indexes = $connection->select(
+                "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
+                [$database, $table, $prefix . $indexName]
+            );
+            return count($indexes) > 0;
+        }
+        if ($driver === 'pgsql') {
+            $indexes = $connection->select(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ? AND indexname = ?",
+                [$table, $indexName]
+            );
+            return count($indexes) > 0;
+        }
+        return false;
     }
 };
 

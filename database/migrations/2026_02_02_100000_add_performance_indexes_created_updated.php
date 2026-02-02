@@ -14,6 +14,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        $driver = Schema::getConnection()->getDriverName();
+        if ($driver === 'sqlite') {
+            return;
+        }
+
         $this->addIndexIfMissing('vehicles', 'vehicles_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('tasks', 'tasks_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('documents', 'documents_family_created_index', ['family_id', 'created_at']);
@@ -24,7 +29,7 @@ return new class extends Migration
         $this->addIndexIfMissing('finance_accounts', 'finance_accounts_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('family_members', 'family_members_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('medicines', 'medicines_family_created_index', ['family_id', 'created_at']);
-        $this->addIndexIfMissing('calendar_events', 'calendar_events_family_start_index', ['family_id', 'start']);
+        $this->addIndexIfMissing('calendar_events', 'calendar_events_family_start_index', ['family_id', 'start_at']);
         $this->addIndexIfMissing('notifications', 'notifications_user_created_index', ['user_id', 'created_at']);
     }
 
@@ -71,26 +76,53 @@ return new class extends Migration
         if ($this->hasIndex($tableName, $indexName)) {
             return;
         }
-        $connection = Schema::getConnection();
-        if ($connection->getDriverName() === 'sqlite') {
-            return;
+        try {
+            Schema::table($tableName, function (Blueprint $table) use ($indexName, $columns) {
+                $table->index($columns, $indexName);
+            });
+        } catch (\Throwable $e) {
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'Duplicate') || str_contains($msg, 'already exists') || str_contains($msg, 'duplicate key')) {
+                return;
+            }
+            throw $e;
         }
-        Schema::table($tableName, function (Blueprint $table) use ($indexName, $columns) {
-            $table->index($columns, $indexName);
-        });
     }
 
     private function hasIndex(string $tableName, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        if ($connection->getDriverName() === 'sqlite') {
+        $driver = $connection->getDriverName();
+
+        if ($driver === 'sqlite') {
             return false;
         }
-        $database = $connection->getDatabaseName();
-        $result = $connection->select(
-            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
-            [$database, $tableName, $indexName]
-        );
-        return count($result) > 0;
+
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            $database = $connection->getDatabaseName();
+            $result = $connection->select(
+                'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+                [$database, $tableName, $indexName]
+            );
+            if (count($result) > 0) {
+                return true;
+            }
+            $prefix = $tableName . '_';
+            $result = $connection->select(
+                'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+                [$database, $tableName, $prefix . $indexName]
+            );
+            return count($result) > 0;
+        }
+
+        if ($driver === 'pgsql') {
+            $result = $connection->select(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ? AND indexname = ?",
+                [$tableName, $indexName]
+            );
+            return count($result) > 0;
+        }
+
+        return false;
     }
 };

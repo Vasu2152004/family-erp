@@ -13,23 +13,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('medical_records') && !$this->hasIndex('medical_records', 'medical_records_family_tenant_index')) {
-            Schema::table('medical_records', function (Blueprint $table) {
-                $table->index(['family_id', 'tenant_id'], 'medical_records_family_tenant_index');
-            });
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
         }
 
-        if (Schema::hasTable('prescriptions') && !$this->hasIndex('prescriptions', 'prescriptions_family_tenant_status_index')) {
-            Schema::table('prescriptions', function (Blueprint $table) {
-                $table->index(['family_id', 'tenant_id', 'status'], 'prescriptions_family_tenant_status_index');
-            });
-        }
-
-        if (Schema::hasTable('doctor_visits') && !$this->hasIndex('doctor_visits', 'doctor_visits_family_tenant_index')) {
-            Schema::table('doctor_visits', function (Blueprint $table) {
-                $table->index(['family_id', 'tenant_id'], 'doctor_visits_family_tenant_index');
-            });
-        }
+        $this->safeAddIndex('medical_records', 'medical_records_family_tenant_index', ['family_id', 'tenant_id']);
+        $this->safeAddIndex('prescriptions', 'prescriptions_family_tenant_status_index', ['family_id', 'tenant_id', 'status']);
+        $this->safeAddIndex('doctor_visits', 'doctor_visits_family_tenant_index', ['family_id', 'tenant_id']);
     }
 
     /**
@@ -58,17 +48,45 @@ return new class extends Migration
         }
     }
 
+    private function safeAddIndex(string $tableName, string $indexName, array $columns): void
+    {
+        if (!Schema::hasTable($tableName) || $this->hasIndex($tableName, $indexName)) {
+            return;
+        }
+        try {
+            Schema::table($tableName, function (Blueprint $table) use ($indexName, $columns) {
+                $table->index($columns, $indexName);
+            });
+        } catch (\Throwable $e) {
+            if (str_contains($e->getMessage(), 'Duplicate') || str_contains($e->getMessage(), 'already exists') || str_contains($e->getMessage(), 'duplicate key')) {
+                return;
+            }
+            throw $e;
+        }
+    }
+
     private function hasIndex(string $tableName, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        if ($connection->getDriverName() === 'sqlite') {
+        $driver = $connection->getDriverName();
+        if ($driver === 'sqlite') {
             return false;
         }
-        $database = $connection->getDatabaseName();
-        $result = $connection->select(
-            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
-            [$database, $tableName, $indexName]
-        );
-        return count($result) > 0;
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            $database = $connection->getDatabaseName();
+            $result = $connection->select(
+                'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+                [$database, $tableName, $indexName]
+            );
+            return count($result) > 0;
+        }
+        if ($driver === 'pgsql') {
+            $result = $connection->select(
+                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ? AND indexname = ?",
+                [$tableName, $indexName]
+            );
+            return count($result) > 0;
+        }
+        return false;
     }
 };
