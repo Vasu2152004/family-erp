@@ -31,7 +31,6 @@ class DoctorVisit extends Model
         'diagnosis',
         'treatment_given',
         'notes',
-        'follow_up_at',
         'next_visit_date',
         'reminder_sent_at',
         'created_by',
@@ -43,7 +42,6 @@ class DoctorVisit extends Model
         return [
             'visit_date' => 'date',
             'visit_time' => 'datetime:H:i',
-            'follow_up_at' => 'date',
             'next_visit_date' => 'date',
             'reminder_sent_at' => 'datetime',
         ];

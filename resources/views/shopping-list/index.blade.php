@@ -272,8 +272,7 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script>
+    <script>
             function initInventorySelection() {
                 const inventorySelect = document.getElementById('inventory_item_id');
                 const nameInput = document.getElementById('name');
@@ -549,6 +548,5 @@
                 initShoppingList();
             }
         </script>
-    @endpush
 </x-app-layout>
 

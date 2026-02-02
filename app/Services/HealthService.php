@@ -117,8 +117,7 @@ class HealthService
                 'diagnosis' => $data['diagnosis'] ?? null,
                 'treatment_given' => $data['treatment_given'] ?? null,
                 'notes' => $data['notes'] ?? null,
-                'follow_up_at' => $data['follow_up_at'] ?? null,
-                'next_visit_date' => $data['next_visit_date'] ?? null,
+                'next_visit_date' => $data['next_visit_date'] ?? $data['follow_up_at'] ?? null,
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
@@ -149,8 +148,7 @@ class HealthService
                 'diagnosis' => $data['diagnosis'] ?? $visit->diagnosis,
                 'treatment_given' => $data['treatment_given'] ?? $visit->treatment_given,
                 'notes' => $data['notes'] ?? $visit->notes,
-                'follow_up_at' => $data['follow_up_at'] ?? $visit->follow_up_at,
-                'next_visit_date' => $data['next_visit_date'] ?? $visit->next_visit_date,
+                'next_visit_date' => $data['next_visit_date'] ?? $data['follow_up_at'] ?? $visit->next_visit_date,
                 'updated_by' => $userId,
             ]);
 

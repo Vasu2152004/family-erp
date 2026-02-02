@@ -3,21 +3,20 @@
         ['label' => 'Dashboard']
     ]" />
 
-    <!-- Welcome Section -->
-    <div class="mb-8">
-        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl p-8 text-white relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
-            <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+    <!-- Welcome Section - Compact -->
+    <div class="mb-6">
+        <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl shadow-lg p-5 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
             <div class="relative z-10">
-                <h1 class="text-4xl font-bold mb-2">Welcome back, {{ $user->name }}! 👋</h1>
-                <p class="text-blue-100 text-lg">Here's what's happening with your families today.</p>
+                <h1 class="text-2xl font-bold">Welcome back, {{ $user->name }}! 👋</h1>
+                <p class="text-blue-100 text-sm mt-0.5">Here's what's happening with your families today.</p>
             </div>
         </div>
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">
-        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-5 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-6">
+        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
             <div class="flex items-center justify-between mb-2">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,14 +29,14 @@
             <p class="text-sm text-gray-600">Families</p>
         </a>
 
-        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-5 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 relative">
+        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 relative">
             @if($pendingRequestsCount > 0)
                 <span class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{{ $pendingRequestsCount }}</span>
             @endif
             <div class="flex items-center justify-between mb-2">
                 <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
                 </div>
                 <svg class="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
@@ -48,7 +47,7 @@
 
         @if($familiesCount > 0)
             @if(!empty($financeSummary))
-                <a href="{{ route('finance.index', ['family_id' => $financeSummary[0]['family']->id]) }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-5 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                <a href="{{ route('finance.index', ['family_id' => $financeSummary[0]['family']->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +61,7 @@
                 </a>
             @endif
 
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-5">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-4">
                 <div class="flex items-center justify-between mb-2">
                     <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow">
                         <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +78,7 @@
 
             @php $totalTasks = ($taskCountsByStatus['pending'] ?? 0) + ($taskCountsByStatus['in_progress'] ?? 0) + ($taskCountsByStatus['done'] ?? 0); @endphp
             @if($totalTasks > 0 && $firstFamily)
-                <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-5 hover:shadow-xl hover:scale-[1.02] transition-all duration-300">
+                <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
                     <div class="flex items-center justify-between mb-2">
                         <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -95,7 +94,7 @@
         @endif
 
         @if($familiesCount === 0)
-            <div class="sm:col-span-2 lg:col-span-4 bg-white rounded-xl shadow-lg border border-gray-200 p-6 flex items-center justify-between">
+            <div class="col-span-2 sm:col-span-3 lg:col-span-6 bg-white rounded-xl shadow border border-gray-200 p-5 flex items-center justify-between">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mb-1">Get Started</h3>
                     <p class="text-sm text-gray-600 mb-3">Create your first family to access all features.</p>
@@ -108,92 +107,12 @@
         @endif
     </div>
 
-    <!-- 2-Column Layout: Alerts + Recent Activity -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        <!-- Left Column: Alerts -->
-        <div class="lg:col-span-1 space-y-6">
-            @if($budgetAlerts->count() > 0)
-            <div class="bg-red-50 rounded-xl shadow-lg p-5 border border-red-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-lg font-bold text-red-600">⚠️ Budget Alerts</h2>
-                    <a href="{{ route('notifications.index') }}" class="text-sm text-red-600 hover:text-red-800 font-semibold">View All</a>
-                </div>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                    @foreach($budgetAlerts->take(3) as $alert)
-                        <div class="bg-white/80 border-l-4 border-red-500 p-3 rounded-lg">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="font-semibold text-red-800 text-sm">{{ $alert->title }}</h3>
-                                    <p class="text-xs text-gray-700 truncate">{{ $alert->message }}</p>
-                                    @if($alert->data && isset($alert->data['family_id']) && $family = $familiesById->get($alert->data['family_id']))
-                                        <a href="{{ route('finance.budgets.index', ['family_id' => $family->id]) }}" class="text-xs text-red-600 hover:text-red-800 font-semibold mt-1 inline-block">View Budgets →</a>
-                                    @endif
-                                </div>
-                                <x-form method="POST" action="{{ route('notifications.read', $alert) }}" class="shrink-0">
-                                    @csrf
-                                    <button type="submit" class="text-gray-400 hover:text-gray-600 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                    </button>
-                                </x-form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            @if($expiringVehicles->count() > 0)
-            <div class="bg-amber-50 rounded-xl shadow-lg p-5 border border-amber-200">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-lg font-bold text-amber-600">Vehicle Expiry</h2>
-                    @if($expiringVehicles->isNotEmpty())
-                        <a href="{{ route('families.vehicles.index', ['family' => $expiringVehicles->first()->family_id, 'expiring_soon' => 1]) }}" class="text-sm text-amber-600 hover:text-amber-800 font-semibold">View All</a>
-                    @endif
-                </div>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                    @foreach($expiringVehicles->take(3) as $vehicle)
-                        <div class="bg-white/80 border-l-4 border-amber-500 p-3 rounded-lg">
-                            <h3 class="font-semibold text-amber-800 text-sm">{{ $vehicle->make }} {{ $vehicle->model }}</h3>
-                            <p class="text-xs text-gray-700">{{ $vehicle->registration_number }}</p>
-                            <a href="{{ route('families.vehicles.show', ['family' => $vehicle->family_id, 'vehicle' => $vehicle->id]) }}" class="text-xs text-amber-600 hover:text-amber-800 font-semibold mt-1 inline-block">View →</a>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            @if($otherNotifications->count() > 0)
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-lg font-bold text-gray-800">Notifications</h2>
-                    <a href="{{ route('notifications.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">View All</a>
-                </div>
-                <div class="space-y-2 max-h-40 overflow-y-auto">
-                    @foreach($otherNotifications->take(3) as $notification)
-                        <div class="bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="flex-1 min-w-0">
-                                    <h3 class="font-semibold text-gray-800 text-sm">{{ $notification->title }}</h3>
-                                    <p class="text-xs text-gray-600 truncate">{{ $notification->message }}</p>
-                                </div>
-                                <x-form method="POST" action="{{ route('notifications.read', $notification) }}" class="shrink-0">
-                                    @csrf
-                                    <button type="submit" class="text-gray-400 hover:text-gray-600 p-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                                </x-form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-        </div>
-
-        <!-- Right Column: Recent Activity -->
-        <div class="lg:col-span-2 space-y-6">
+    <!-- Main Content: Recent Activity (full width, no alerts at top) -->
+    <div class="space-y-6 mb-6">
             @if($familiesCount > 0)
             <!-- Recent Transactions -->
             @if($recentTransactions->isNotEmpty())
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-bold text-gray-800">Recent Transactions</h2>
                     <a href="{{ route('finance.index', $firstFamily ? ['family_id' => $firstFamily->id] : []) }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">View Finance</a>
@@ -216,7 +135,7 @@
 
             <!-- Finance Summary -->
             @if(!empty($financeSummary))
-            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+            <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                 <h2 class="text-lg font-bold text-gray-800 mb-4">Finance Summary</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach($financeSummary as $summary)
@@ -231,9 +150,9 @@
             @endif
 
             <!-- Upcoming Events & Doctor Visits -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @if($upcomingEvents->isNotEmpty())
-                <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Upcoming Events</h2>
                         @if($firstFamily)
@@ -252,7 +171,7 @@
                 @endif
 
                 @if($upcomingDoctorVisits->isNotEmpty())
-                <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Upcoming Doctor Visits</h2>
                         @if($firstFamily)
@@ -273,9 +192,9 @@
             </div>
 
             <!-- Low Stock & Task Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @if($lowStockItems->isNotEmpty())
-                <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Low Stock Items</h2>
                         <a href="{{ route('families.inventory.items.index', ['family' => $lowStockItems->first()->family_id]) }}" class="text-sm text-amber-600 hover:text-amber-800 font-semibold">View Inventory</a>
@@ -293,7 +212,7 @@
 
                 @php $totalTasks = ($taskCountsByStatus['pending'] ?? 0) + ($taskCountsByStatus['in_progress'] ?? 0) + ($taskCountsByStatus['done'] ?? 0); @endphp
                 @if($totalTasks > 0 && $firstFamily)
-                <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+                <div class="bg-white rounded-xl shadow border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-lg font-bold text-gray-800">Task Summary</h2>
                         <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">View Tasks</a>
@@ -316,15 +235,71 @@
                 @endif
             </div>
             @endif
-        </div>
     </div>
 
+    <!-- All Notifications - At Bottom -->
+    @php
+        $hasAnyAlerts = $budgetAlerts->count() > 0 || $expiringVehicles->count() > 0 || $otherNotifications->count() > 0;
+    @endphp
+    @if($hasAnyAlerts)
+    <div class="bg-white rounded-xl shadow border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-800">All Notifications</h2>
+            <a href="{{ route('notifications.index') }}" class="text-sm text-blue-600 hover:text-blue-800 font-semibold">View All</a>
+        </div>
+        <div class="space-y-3 max-h-80 overflow-y-auto">
+            @foreach($budgetAlerts as $alert)
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-red-800">{{ $alert->title }}</h3>
+                            <p class="text-sm text-gray-700 mt-1">{{ $alert->message }}</p>
+                            @if($alert->data && isset($alert->data['family_id']) && $family = $familiesById->get($alert->data['family_id']))
+                                <a href="{{ route('finance.budgets.index', ['family_id' => $family->id]) }}" class="text-xs text-red-600 hover:text-red-800 font-semibold mt-2 inline-block">View Budgets →</a>
+                            @endif
+                        </div>
+                        <x-form method="POST" action="{{ route('notifications.read', $alert) }}" class="shrink-0">
+                            @csrf
+                            <button type="submit" class="text-gray-400 hover:text-gray-600 p-1" title="Dismiss">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </x-form>
+                    </div>
+                </div>
+            @endforeach
+            @foreach($expiringVehicles as $vehicle)
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-lg">
+                    <h3 class="font-semibold text-amber-800">{{ $vehicle->make }} {{ $vehicle->model }} ({{ $vehicle->registration_number }})</h3>
+                    <p class="text-sm text-gray-700 mt-1">Vehicle documents expiring in next 30 days</p>
+                    <a href="{{ route('families.vehicles.show', ['family' => $vehicle->family_id, 'vehicle' => $vehicle->id]) }}" class="text-xs text-amber-600 hover:text-amber-800 font-semibold mt-2 inline-block">View Vehicle →</a>
+                </div>
+            @endforeach
+            @foreach($otherNotifications as $notification)
+                <div class="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-gray-800">{{ $notification->title }}</h3>
+                            <p class="text-sm text-gray-600 mt-1">{{ $notification->message }}</p>
+                        </div>
+                        <x-form method="POST" action="{{ route('notifications.read', $notification) }}" class="shrink-0">
+                            @csrf
+                            <button type="submit" class="text-gray-400 hover:text-gray-600 p-1" title="Dismiss">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </x-form>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <!-- Quick Links -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-8 hover:shadow-xl hover:scale-[1.01] transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
             <div class="flex items-start space-x-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                 </div>
@@ -341,11 +316,11 @@
             </div>
         </a>
 
-        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow-lg border border-gray-200 p-8 hover:shadow-xl hover:scale-[1.01] transition-all duration-300">
+        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-5 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
             <div class="flex items-start space-x-4">
-                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow group-hover:scale-110 transition-transform">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
                 </div>
                 <div class="flex-1">
