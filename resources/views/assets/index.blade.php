@@ -197,13 +197,18 @@
             <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
             <script src="{{ asset('js/asset-charts.js') }}"></script>
             <script>
-                (function() {
-                    const typeDistributionData = @json($typeDistributionData ?? []);
-                    const ownerDistributionData = @json($ownerDistributionData ?? []);
+                document.addEventListener('DOMContentLoaded', function() {
+                    var typeDistributionData = @json($typeDistributionData ?? []);
+                    var ownerDistributionData = @json($ownerDistributionData ?? []);
                     function run() {
                         if (typeof ApexCharts !== 'undefined' && typeof initAssetCharts === 'function') {
-                            initAssetCharts(typeDistributionData, [], ownerDistributionData, []);
-                            return true;
+                            var el = document.getElementById('assetTypeDistributionChart') || document.getElementById('assetOwnerDistributionChart');
+                            if (el && document.body.contains(el)) {
+                                requestAnimationFrame(function() {
+                                    initAssetCharts(typeDistributionData, [], ownerDistributionData, []);
+                                });
+                                return true;
+                            }
                         }
                         return false;
                     }
@@ -211,9 +216,9 @@
                     var attempts = 0;
                     var t = setInterval(function() {
                         if (run()) { clearInterval(t); return; }
-                        if (++attempts >= 50) { clearInterval(t); console.error('ApexCharts or initAssetCharts not loaded'); }
+                        if (++attempts >= 50) { clearInterval(t); }
                     }, 150);
-                })();
+                });
             </script>
         @endpush
     @endif

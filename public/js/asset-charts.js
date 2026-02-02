@@ -12,6 +12,21 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
         return;
     }
 
+    // Only render into nodes that are in the document (avoids "Node cannot be found" on CSP/SPA)
+    function nodeInDocument(el) {
+        return el && document.body && document.body.contains(el);
+    }
+    function safeRender(el, options, instanceKey) {
+        if (!nodeInDocument(el)) return;
+        try {
+            var chart = new ApexCharts(el, options);
+            assetChartInstances[instanceKey] = chart;
+            chart.render();
+        } catch (e) {
+            if (typeof console !== 'undefined' && console.warn) console.warn('Chart render skipped:', e.message);
+        }
+    }
+
     // Ensure data arrays exist
     typeDistributionData = typeDistributionData || [];
     profitLossTrendData = profitLossTrendData || [];
@@ -58,7 +73,7 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
 
     // Asset Type Distribution Chart (Donut Chart)
     const typeDistributionChartEl = document.getElementById('assetTypeDistributionChart');
-    if (typeDistributionChartEl && typeDistributionData.length > 0) {
+    if (nodeInDocument(typeDistributionChartEl) && typeDistributionData.length > 0) {
         const total = typeDistributionData.reduce((sum, item) => sum + item.total_value, 0);
 
         const typeDistributionOptions = {
@@ -115,13 +130,12 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
             }
         };
 
-        assetChartInstances.typeDistribution = new ApexCharts(typeDistributionChartEl, typeDistributionOptions);
-        assetChartInstances.typeDistribution.render();
+        safeRender(typeDistributionChartEl, typeDistributionOptions, 'typeDistribution');
     }
 
     // Asset Count by Type Chart (Bar Chart)
     const countByTypeChartEl = document.getElementById('assetCountByTypeChart');
-    if (countByTypeChartEl && countByTypeData.length > 0) {
+    if (nodeInDocument(countByTypeChartEl) && countByTypeData.length > 0) {
         const countByTypeOptions = {
             series: [{
                 name: 'Count',
@@ -194,13 +208,12 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
             colors: [colors.primary]
         };
 
-        assetChartInstances.countByType = new ApexCharts(countByTypeChartEl, countByTypeOptions);
-        assetChartInstances.countByType.render();
+        safeRender(countByTypeChartEl, countByTypeOptions, 'countByType');
     }
 
     // Profit/Loss Trend Chart (Column Chart - better for showing profit vs loss)
     const profitLossTrendChartEl = document.getElementById('assetProfitLossTrendChart');
-    if (profitLossTrendChartEl && profitLossTrendData.length > 0) {
+    if (nodeInDocument(profitLossTrendChartEl) && profitLossTrendData.length > 0) {
         // Sort by month to ensure chronological order
         const sortedData = [...profitLossTrendData].sort((a, b) => a.month.localeCompare(b.month));
         
@@ -328,13 +341,12 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
             }
         };
 
-        assetChartInstances.profitLossTrend = new ApexCharts(profitLossTrendChartEl, profitLossTrendOptions);
-        assetChartInstances.profitLossTrend.render();
+        safeRender(profitLossTrendChartEl, profitLossTrendOptions, 'profitLossTrend');
     }
 
     // Owner-wise Distribution Chart (Donut Chart)
     const ownerDistributionChartEl = document.getElementById('assetOwnerDistributionChart');
-    if (ownerDistributionChartEl && ownerDistributionData.length > 0) {
+    if (nodeInDocument(ownerDistributionChartEl) && ownerDistributionData.length > 0) {
         const total = ownerDistributionData.reduce((sum, item) => sum + item.total_value, 0);
 
         const ownerDistributionOptions = {
@@ -391,8 +403,7 @@ function initAssetCharts(typeDistributionData, profitLossTrendData, ownerDistrib
             }
         };
 
-        assetChartInstances.ownerDistribution = new ApexCharts(ownerDistributionChartEl, ownerDistributionOptions);
-        assetChartInstances.ownerDistribution.render();
+        safeRender(ownerDistributionChartEl, ownerDistributionOptions, 'ownerDistribution');
     }
 }
 
