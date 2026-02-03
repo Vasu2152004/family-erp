@@ -65,7 +65,7 @@ class ShoppingListController extends Controller
 
         // Only load inventory items that might be needed for the dropdown (limit to 100 most recent)
         $inventoryItems = InventoryItem::where('family_id', $family->id)
-            ->select('id', 'name', 'unit', 'family_id')
+            ->select('id', 'name', 'unit', 'qty', 'family_id')
             ->orderBy('name')
             ->limit(100)
             ->get();
