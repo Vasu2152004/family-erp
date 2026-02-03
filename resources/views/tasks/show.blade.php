@@ -116,7 +116,7 @@
             @if(once(fn () => auth()->user())->can('updateStatus', $task))
                 <div class="mt-8 pt-6 border-t border-[var(--color-border-primary)]">
                     <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Update Status</h3>
-                    <x-form method="PATCH" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" id="task-status-form" class="space-y-4">
+                    <x-form method="PATCH" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" id="task-status-form" :validate="false" class="space-y-4">
                         <div class="flex gap-3">
                             @if($task->status !== 'pending' && $task->canTransitionTo('pending'))
                                 <button type="submit" name="status" value="pending" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
