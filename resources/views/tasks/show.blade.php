@@ -116,29 +116,43 @@
             @if(once(fn () => auth()->user())->can('updateStatus', $task))
                 <div class="mt-8 pt-6 border-t border-[var(--color-border-primary)]">
                     <h3 class="text-lg font-semibold text-[var(--color-text-primary)] mb-4">Update Status</h3>
-                    <x-form method="PATCH" action="{{ route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]) }}" id="task-status-form" :validate="false" class="space-y-4">
-                        <div class="flex gap-3">
+                    @php
+                        $statusFormAction = route('families.tasks.update-status', ['family' => $family->id, 'task' => $task->id]);
+                    @endphp
+                    <div class="space-y-4">
+                        <div class="flex flex-wrap gap-3">
                             @if($task->status !== 'pending' && $task->canTransitionTo('pending'))
-                                <button type="submit" name="status" value="pending" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
-                                    Mark as Pending
-                                </button>
+                                <form method="POST" action="{{ $statusFormAction }}" class="inline" data-no-validate>
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="pending">
+                                    <button type="submit" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
+                                        Mark as Pending
+                                    </button>
+                                </form>
                             @endif
                             @if($task->status !== 'in_progress' && $task->canTransitionTo('in_progress'))
-                                <button type="submit" name="status" value="in_progress" class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors">
-                                    Start Task
-                                </button>
+                                <form method="POST" action="{{ $statusFormAction }}" class="inline" data-no-validate>
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="in_progress">
+                                    <button type="submit" class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors">
+                                        Start Task
+                                    </button>
+                                </form>
                             @endif
                             @if($task->status !== 'done' && $task->canTransitionTo('done'))
-                                <button type="submit" name="status" value="done" class="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors">
-                                    Mark as Done
-                                </button>
+                                <form method="POST" action="{{ $statusFormAction }}" class="inline" data-no-validate>
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="done">
+                                    <button type="submit" class="px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 transition-colors">
+                                        Mark as Done
+                                    </button>
+                                </form>
                             @endif
                         </div>
-                        <div>
-                            <label class="text-sm text-[var(--color-text-secondary)]">Notes (Optional)</label>
-                            <textarea name="notes" rows="2" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="Add notes about this status change..."></textarea>
-                        </div>
-                    </x-form>
+                    </div>
                 </div>
             @endcan
         </div>
