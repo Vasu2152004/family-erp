@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Vehicles\StoreFuelEntryRequest;
 use App\Http\Requests\Vehicles\UpdateFuelEntryRequest;
 use App\Models\Family;
+use App\Models\FinanceAccount;
 use App\Models\Vehicle;
 use App\Models\FuelEntry;
 use App\Models\Budget;
@@ -64,11 +65,13 @@ class FuelEntryController extends Controller
         $this->authorize('view', $vehicle);
 
         $budgets = $this->getBudgetsForFamily($family);
+        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
 
         return view('vehicles.fuel-entries.create', [
             'family' => $family,
             'vehicle' => $vehicle,
             'budgets' => $budgets,
+            'accounts' => $accounts,
         ]);
     }
 
@@ -93,12 +96,14 @@ class FuelEntryController extends Controller
         $this->authorize('view', $vehicle);
 
         $budgets = $this->getBudgetsForFamily($family);
+        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
 
         return view('vehicles.fuel-entries.edit', [
             'family' => $family,
             'vehicle' => $vehicle,
             'fuelEntry' => $fuelEntry,
             'budgets' => $budgets,
+            'accounts' => $accounts,
         ]);
     }
 

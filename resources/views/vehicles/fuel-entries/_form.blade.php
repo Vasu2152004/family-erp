@@ -56,19 +56,33 @@
             <input type="checkbox" name="create_transaction" id="create_transaction" value="1" {{ old('create_transaction') ? 'checked' : '' }} class="rounded border-[var(--color-border-primary)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]">
             <span class="text-sm font-medium text-[var(--color-text-primary)]">Create transaction for this expense</span>
         </label>
-        <div id="budget_field" class="mt-2" style="display: {{ old('create_transaction') ? 'block' : 'none' }};">
-            <x-label for="budget_id">Budget</x-label>
-            <select name="budget_id" id="budget_id" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
-                <option value="">Select budget</option>
-                @foreach($budgets as $budget)
-                    <option value="{{ $budget->id }}" {{ old('budget_id') == $budget->id ? 'selected' : '' }}>
-                        {{ $budget->category->name ?? 'Uncategorized' }}
-                        @if($budget->family_member_id)(Personal)@else(Family)@endif
-                        - ₹{{ number_format($budget->amount, 2) }}
-                    </option>
-                @endforeach
-            </select>
-            <x-error-message field="budget_id" />
+        <div id="budget_field" class="mt-2 space-y-3" style="display: {{ old('create_transaction') ? 'block' : 'none' }};">
+            @if(isset($accounts) && $accounts->isNotEmpty())
+            <div>
+                <x-label for="finance_account_id">Account</x-label>
+                <select name="finance_account_id" id="finance_account_id" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    <option value="">Select account</option>
+                    @foreach($accounts as $account)
+                        <option value="{{ $account->id }}" {{ old('finance_account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }} ({{ $account->type }})</option>
+                    @endforeach
+                </select>
+                <x-error-message field="finance_account_id" />
+            </div>
+            @endif
+            <div>
+                <x-label for="budget_id">Budget</x-label>
+                <select name="budget_id" id="budget_id" class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                    <option value="">Select budget</option>
+                    @foreach($budgets as $budget)
+                        <option value="{{ $budget->id }}" {{ old('budget_id') == $budget->id ? 'selected' : '' }}>
+                            {{ $budget->category->name ?? 'Uncategorized' }}
+                            @if($budget->family_member_id)(Personal)@else(Family)@endif
+                            - ₹{{ number_format($budget->amount, 2) }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-error-message field="budget_id" />
+            </div>
         </div>
         @endif
     </div>

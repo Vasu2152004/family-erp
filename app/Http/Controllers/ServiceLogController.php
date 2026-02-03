@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Vehicles\StoreServiceLogRequest;
 use App\Http\Requests\Vehicles\UpdateServiceLogRequest;
 use App\Models\Family;
+use App\Models\FinanceAccount;
 use App\Models\Vehicle;
 use App\Models\ServiceLog;
 use App\Models\Budget;
@@ -62,11 +63,13 @@ class ServiceLogController extends Controller
         $this->authorize('view', $vehicle);
 
         $budgets = $this->getBudgetsForFamily($family);
+        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
 
         return view('vehicles.service-logs.create', [
             'family' => $family,
             'vehicle' => $vehicle,
             'budgets' => $budgets,
+            'accounts' => $accounts,
         ]);
     }
 
@@ -91,12 +94,14 @@ class ServiceLogController extends Controller
         $this->authorize('view', $vehicle);
 
         $budgets = $this->getBudgetsForFamily($family);
+        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
 
         return view('vehicles.service-logs.edit', [
             'family' => $family,
             'vehicle' => $vehicle,
             'serviceLog' => $serviceLog,
             'budgets' => $budgets,
+            'accounts' => $accounts,
         ]);
     }
 

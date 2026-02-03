@@ -241,6 +241,19 @@
                     <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Leave empty if no transaction needed</p>
                 </div>
                 
+                @if(isset($accounts) && $accounts->isNotEmpty())
+                <div>
+                    <label for="finance_account_id" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Account</label>
+                    <select name="finance_account_id" id="finance_account_id" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                        <option value="">Select account</option>
+                        @foreach($accounts as $account)
+                            <option value="{{ $account->id }}">{{ $account->name }} ({{ $account->type }})</option>
+                        @endforeach
+                    </select>
+                    <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Required when amount is entered</p>
+                </div>
+                @endif
+                
                 <div>
                     <label for="budget_id" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Budget (Optional)</label>
                     <select name="budget_id" id="budget_id" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
@@ -389,8 +402,10 @@
                 
                 // Reset form fields
                 const amountInput = form.querySelector('#amount');
+                const accountSelect = form.querySelector('#finance_account_id');
                 const budgetSelect = form.querySelector('#budget_id');
                 if (amountInput) amountInput.value = '';
+                if (accountSelect) accountSelect.value = '';
                 if (budgetSelect) budgetSelect.value = '';
                 
                 console.log('Purchase modal opened for item:', itemId);

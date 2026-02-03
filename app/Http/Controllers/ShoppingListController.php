@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\HasFamilyContext;
 use App\Models\Family;
+use App\Models\FinanceAccount;
 use App\Models\ShoppingListItem;
 use App\Models\InventoryItem;
 use App\Models\Budget;
@@ -101,13 +102,17 @@ class ShoppingListController extends Controller
             })->get();
         }
 
+        $accounts = FinanceAccount::where('family_id', $family->id)
+            ->where('is_active', true)
+            ->get();
+
         $user = once(fn () => Auth::user());
         $pendingCanMarkPurchasedIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('markPurchased', $item))->pluck('id')->all();
         $pendingCanUpdateIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
         $pendingCanDeleteIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('delete', $item))->pluck('id')->all();
         $purchasedCanUpdateIds = $purchasedItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
 
-        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets', 'pendingCanMarkPurchasedIds', 'pendingCanUpdateIds', 'pendingCanDeleteIds', 'purchasedCanUpdateIds'));
+        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets', 'accounts', 'pendingCanMarkPurchasedIds', 'pendingCanUpdateIds', 'pendingCanDeleteIds', 'purchasedCanUpdateIds'));
     }
 
     /**
@@ -197,13 +202,31 @@ class ShoppingListController extends Controller
 
         $this->authorize('markPurchased', $item);
 
+        $amount = $request->has('amount') && $request->input('amount') !== '' && $request->input('amount') !== null
+            ? (float) $request->input('amount')
+            : null;
+
         $validated = $request->validate([
             'amount' => ['nullable', 'numeric', 'min:0'],
+            'finance_account_id' => [
+                'nullable',
+                'exists:finance_accounts,id',
+                \Illuminate\Validation\Rule::requiredIf($amount > 0),
+            ],
             'budget_id' => ['nullable', 'exists:budgets,id'],
         ]);
 
-        $amount = isset($validated['amount']) ? (float) $validated['amount'] : null;
         $budgetId = isset($validated['budget_id']) ? (int) $validated['budget_id'] : null;
+        $financeAccountId = isset($validated['finance_account_id']) ? (int) $validated['finance_account_id'] : null;
+
+        // If finance account is provided, validate it belongs to the family
+        if ($financeAccountId) {
+            $account = FinanceAccount::find($financeAccountId);
+            if (!$account || $account->family_id !== $family->id) {
+                return redirect()->route('shopping-list.index', ['family_id' => $family->id])
+                    ->with('error', 'Invalid account selected.');
+            }
+        }
 
         // If budget is provided, validate it belongs to the user
         if ($budgetId) {
@@ -226,7 +249,7 @@ class ShoppingListController extends Controller
             }
         }
 
-        $this->shoppingListService->markAsPurchased($item->id, Auth::id(), $amount, $budgetId);
+        $this->shoppingListService->markAsPurchased($item->id, Auth::id(), $amount, $budgetId, $financeAccountId);
 
         $message = $amount
             ? 'Item marked as purchased and transaction created successfully.'

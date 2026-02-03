@@ -14,7 +14,7 @@
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Add Fuel Entry</h2>
 
             <x-form method="POST" action="{{ route('families.vehicles.fuel-entries.store', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
-                @include('vehicles.fuel-entries._form', ['fuelEntry' => null, 'budgets' => $budgets ?? collect()])
+                @include('vehicles.fuel-entries._form', ['fuelEntry' => null, 'budgets' => $budgets ?? collect(), 'accounts' => $accounts ?? collect()])
                 <div class="mt-6 flex gap-3">
                     <x-button type="submit" variant="primary" size="md">Create Fuel Entry</x-button>
                     <a href="{{ route('families.vehicles.fuel-entries.index', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">

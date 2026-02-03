@@ -112,9 +112,9 @@ class ShoppingListService
     /**
      * Mark item as purchased.
      */
-    public function markAsPurchased(int $itemId, int $userId, ?float $amount = null, ?int $budgetId = null): ShoppingListItem
+    public function markAsPurchased(int $itemId, int $userId, ?float $amount = null, ?int $budgetId = null, ?int $financeAccountId = null): ShoppingListItem
     {
-        return DB::transaction(function () use ($itemId, $userId, $amount, $budgetId) {
+        return DB::transaction(function () use ($itemId, $userId, $amount, $budgetId, $financeAccountId) {
             $item = ShoppingListItem::findOrFail($itemId);
             $item->markAsPurchased($userId);
 
@@ -126,7 +126,7 @@ class ShoppingListService
             // Create transaction if amount is provided
             $transaction = null;
             if ($amount && $amount > 0) {
-                $transaction = $this->createPurchaseTransaction($item, $userId, $familyMember, $amount, $budgetId);
+                $transaction = $this->createPurchaseTransaction($item, $userId, $familyMember, $amount, $budgetId, $financeAccountId);
             }
 
             // Update item with purchase details
@@ -152,7 +152,7 @@ class ShoppingListService
     /**
      * Create transaction for purchased item.
      */
-    private function createPurchaseTransaction(ShoppingListItem $item, int $userId, ?FamilyMember $familyMember, float $amount, ?int $budgetId): Transaction
+    private function createPurchaseTransaction(ShoppingListItem $item, int $userId, ?FamilyMember $familyMember, float $amount, ?int $budgetId, ?int $financeAccountId = null): Transaction
     {
         // Get or create shopping category
         $category = TransactionCategory::firstOrCreate(
@@ -169,22 +169,28 @@ class ShoppingListService
             ]
         );
 
-        // Get default finance account
-        $financeAccount = FinanceAccount::where('family_id', $item->family_id)
-            ->where('is_active', true)
-            ->first();
+        // Use provided account or fallback to first active account
+        if ($financeAccountId) {
+            $financeAccount = FinanceAccount::where('id', $financeAccountId)
+                ->where('family_id', $item->family_id)
+                ->where('is_active', true)
+                ->firstOrFail();
+        } else {
+            $financeAccount = FinanceAccount::where('family_id', $item->family_id)
+                ->where('is_active', true)
+                ->first();
 
-        if (!$financeAccount) {
-            // Create a default cash account if none exists
-            $financeAccount = FinanceAccount::create([
-                'tenant_id' => $item->tenant_id,
-                'family_id' => $item->family_id,
-                'name' => 'Cash',
-                'type' => 'CASH',
-                'initial_balance' => 0,
-                'current_balance' => 0,
-                'is_active' => true,
-            ]);
+            if (!$financeAccount) {
+                $financeAccount = FinanceAccount::create([
+                    'tenant_id' => $item->tenant_id,
+                    'family_id' => $item->family_id,
+                    'name' => 'Cash',
+                    'type' => 'CASH',
+                    'initial_balance' => 0,
+                    'current_balance' => 0,
+                    'is_active' => true,
+                ]);
+            }
         }
 
         // Validate budget if provided

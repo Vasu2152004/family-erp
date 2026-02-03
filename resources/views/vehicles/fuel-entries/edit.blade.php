@@ -14,7 +14,7 @@
             <h2 class="text-2xl font-bold text-[var(--color-text-primary)] mb-6">Edit Fuel Entry</h2>
 
             <x-form method="PATCH" action="{{ route('families.vehicles.fuel-entries.update', ['family' => $family->id, 'vehicle' => $vehicle->id, 'fuelEntry' => $fuelEntry->id]) }}">
-                @include('vehicles.fuel-entries._form', ['budgets' => $budgets ?? collect()])
+                @include('vehicles.fuel-entries._form', ['budgets' => $budgets ?? collect(), 'accounts' => $accounts ?? collect()])
                 <div class="mt-6 flex gap-3">
                     <x-button type="submit" variant="primary" size="md">Update Fuel Entry</x-button>
                     <a href="{{ route('families.vehicles.fuel-entries.index', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}">
