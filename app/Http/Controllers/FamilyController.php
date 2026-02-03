@@ -150,8 +150,6 @@ class FamilyController extends Controller
 
         $this->checkAndPromoteIfNeeded($family, $user);
 
-        app(\App\Services\FamilyMemberService::class)->ensureOwnersHaveFamilyMembers($family);
-
         $family->load([
             'members' => fn ($q) => $q->orderBy('created_at', 'desc'),
             'roles.user',

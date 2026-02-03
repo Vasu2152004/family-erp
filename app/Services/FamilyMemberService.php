@@ -29,14 +29,14 @@ class FamilyMemberService
     }
 
     /**
-     * Get family members for selection dropdowns/filters, ensuring owners are included.
+     * Get family members for selection dropdowns/filters.
+     * Owners are included via migration (ensure_all_owners_have_family_members). No runtime ensure.
      *
      * @param  bool  $aliveOnly  When true, excludes deceased members (for forms like doctor visits, tasks).
      */
     public function getMembersForSelection(Family $family, bool $aliveOnly = false): \Illuminate\Support\Collection
     {
-        $this->ensureOwnersHaveFamilyMembers($family);
-        $query = $family->members()->with('user')->orderBy('first_name')->orderBy('last_name');
+        $query = $family->members()->with('user:id,name,email')->orderBy('first_name')->orderBy('last_name');
         if ($aliveOnly) {
             $query->alive();
         }

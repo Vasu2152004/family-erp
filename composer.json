@@ -69,7 +69,8 @@
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
-        "vercel":[
+        "vercel": [
+            "composer install --no-dev --optimize-autoloader",
             "npm run build",
             "mkdir -p /vercel/output/static",
             "cp -r public/build /vercel/output/static",

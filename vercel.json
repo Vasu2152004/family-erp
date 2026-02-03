@@ -9,5 +9,5 @@
     "rewrites": [
         {"source": "/(.*)", "destination": "/api/lambda.php?req_path=/$1"}
     ],
-    "buildCommand": "echo skip..."
+    "buildCommand": "composer run vercel"
 }
