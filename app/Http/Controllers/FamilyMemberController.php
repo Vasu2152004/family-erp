@@ -37,17 +37,32 @@ class FamilyMemberController extends Controller
             'roles.user',
         ]);
 
-        $ownerUserIds = $family->roles()->where('role', 'OWNER')->pluck('user_id')->flip();
+        $ownerRoles = $family->roles()->where('role', 'OWNER')->with('user:id,email')->get();
+        $ownerUserIds = $ownerRoles->pluck('user_id')->flip();
+        $ownerEmailsNormalized = $ownerRoles->pluck('user.email')->filter()->map(fn ($e) => strtolower(trim((string) $e)))->values()->all();
 
         $members = FamilyMember::where('family_id', $family->id)
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        $members->getCollection()->transform(function ($member) use ($ownerUserIds) {
-            $member->is_owner = $member->user_id && isset($ownerUserIds[$member->user_id]);
-            return $member;
-        });
+        $collection = $members->getCollection()
+            ->filter(function ($member) use ($ownerEmailsNormalized) {
+                // Exclude unlinked duplicates: user_id=null but email matches an owner (same person, duplicate record)
+                if ($member->user_id !== null) {
+                    return true; // Linked records always included
+                }
+                if (!$member->email) {
+                    return true; // No email - cannot determine duplicate, keep it
+                }
+                $emailNorm = strtolower(trim($member->email));
+                return !in_array($emailNorm, $ownerEmailsNormalized, true);
+            })
+            ->each(function ($member) use ($ownerUserIds) {
+                $member->is_owner = $member->user_id && isset($ownerUserIds[$member->user_id]);
+            });
+
+        $members->setCollection($collection->values());
 
         return view('family-members.index', compact('family', 'members'));
     }

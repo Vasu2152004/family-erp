@@ -34,6 +34,22 @@ class FamilyMemberService
             return null;
         }
 
+        // Link existing unlinked member with same email (prevents duplicate entries)
+        $unlinkedSameEmail = FamilyMember::where('family_id', $family->id)
+            ->whereNull('user_id')
+            ->where('email', $user->email)
+            ->first();
+
+        if ($unlinkedSameEmail) {
+            $unlinkedSameEmail->update([
+                'user_id' => $user->id,
+                'relation' => 'Owner',
+                'first_name' => preg_split('/\s+/', trim($user->name), 2)[0] ?? 'Owner',
+                'last_name' => preg_split('/\s+/', trim($user->name), 2)[1] ?? '',
+            ]);
+            return $unlinkedSameEmail->fresh();
+        }
+
         $nameParts = preg_split('/\s+/', trim($user->name), 2);
         $firstName = $nameParts[0] ?? 'Owner';
         $lastName = $nameParts[1] ?? '';
