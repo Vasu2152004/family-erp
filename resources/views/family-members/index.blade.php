@@ -22,11 +22,7 @@
                 @endcan
             </div>
 
-            @php
-                // Merge owners and members, sorted by creation date
-                $allMembers = $owners->merge($members->items())->sortByDesc('created_at');
-            @endphp
-            @if($allMembers->count() > 0)
+            @if($members->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-[var(--color-border-primary)]">
                         <thead class="bg-[var(--color-bg-secondary)]">
@@ -38,7 +34,7 @@
                             </tr>
                         </thead>
                         <tbody class="bg-[var(--color-bg-primary)] divide-y divide-[var(--color-border-primary)]">
-                            @foreach($allMembers as $member)
+                            @foreach($members as $member)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <div class="text-sm font-medium text-[var(--color-text-primary)]">
@@ -64,14 +60,12 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @if(isset($member->is_owner) && $member->is_owner)
-                                            <span class="text-[var(--color-text-secondary)]">—</span>
-                                        @else
-                                            <div class="flex gap-2">
-                                                <a href="{{ route('families.members.show', [$family, $member]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                    View
-                                                </a>
-                                                @can('manageFamily', $family)
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('families.members.show', [$family, $member]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
+                                                View
+                                            </a>
+                                            @can('manageFamily', $family)
+                                                @if(!($member->is_owner ?? false))
                                                     <x-form 
                                                         method="DELETE" 
                                                         action="{{ route('families.members.destroy', [$family, $member]) }}" 
@@ -84,9 +78,9 @@
                                                             Delete
                                                         </button>
                                                     </x-form>
-                                                @endcan
-                                            </div>
-                                        @endif
+                                                @endif
+                                            @endcan
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

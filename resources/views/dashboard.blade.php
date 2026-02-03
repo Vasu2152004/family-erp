@@ -46,23 +46,25 @@
         </a>
 
         @if($familiesCount > 0)
-            @if(!empty($financeSummary))
-                <a href="{{ route('finance.index', ['family_id' => $financeSummary[0]['family']->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            @php
+                $firstFinanceFamily = !empty($financeSummary) ? $financeSummary[0]['family'] : ($firstFamily ?? null);
+                $totalBalance = !empty($financeSummary) ? $financeSummary[0]['total_balance'] : 0;
+                $activeTasksCount = ($taskCountsByStatus['pending'] ?? 0) + ($taskCountsByStatus['in_progress'] ?? 0);
+            @endphp
+            <a href="{{ $firstFinanceFamily ? route('finance.index', ['family_id' => $firstFinanceFamily->id]) : route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-800 truncate">₹{{ number_format($financeSummary[0]['total_balance'], 0) }}</h3>
-                    <p class="text-xs text-gray-600">Total Balance</p>
-                </a>
-            @endif
+                    <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800 truncate">₹{{ number_format($totalBalance, 0) }}</h3>
+                <p class="text-xs text-gray-600">Total Balance</p>
+            </a>
 
-            @if($firstFamily)
-                <a href="{{ route('families.inventory.items.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <a href="{{ $firstFamily ? route('families.inventory.items.index', ['family' => $firstFamily->id]) : route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,10 +76,8 @@
                     <h3 class="text-xl font-bold text-gray-800 truncate">{{ $lowStockCount }}</h3>
                     <p class="text-xs text-gray-600">Low Stock Items</p>
                 </a>
-            @endif
 
-            @if($firstFamily)
-                <a href="{{ route('shopping-list.index', ['family_id' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <a href="{{ $firstFamily ? route('shopping-list.index', ['family_id' => $firstFamily->id]) : route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <div class="w-8 h-8 bg-gradient-to-br from-lime-500 to-green-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,11 +89,8 @@
                     <h3 class="text-xl font-bold text-gray-800 truncate">{{ $shoppingListPendingCount }}</h3>
                     <p class="text-xs text-gray-600">Shopping List</p>
                 </a>
-            @endif
 
-            @php $totalTasks = ($taskCountsByStatus['pending'] ?? 0) + ($taskCountsByStatus['in_progress'] ?? 0) + ($taskCountsByStatus['done'] ?? 0); @endphp
-            @if($totalTasks > 0 && $firstFamily)
-                <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <a href="{{ $firstFamily ? route('families.tasks.index', ['family' => $firstFamily->id]) : route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
                     <div class="flex items-center justify-between mb-1">
                         <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -102,10 +99,9 @@
                         </div>
                         <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-cyan-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $taskCountsByStatus['pending'] + $taskCountsByStatus['in_progress'] }}</h3>
+                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $activeTasksCount }}</h3>
                     <p class="text-xs text-gray-600">Active Tasks</p>
                 </a>
-            @endif
         @endif
 
         @if($familiesCount === 0)

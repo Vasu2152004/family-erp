@@ -37,30 +37,19 @@ class FamilyMemberController extends Controller
             'roles.user',
         ]);
 
-        // Get owner(s) to include in member list
-        $owners = $family->roles()
-            ->where('role', 'OWNER')
-            ->with('user')
-            ->get()
-            ->map(function ($role) {
-                return (object) [
-                    'id' => 'owner_' . $role->user_id,
-                    'first_name' => $role->user->name ?? 'Owner',
-                    'last_name' => '',
-                    'relation' => 'Owner',
-                    'is_deceased' => false,
-                    'is_owner' => true,
-                    'user' => $role->user,
-                    'created_at' => $role->created_at,
-                ];
-            });
+        $ownerUserIds = $family->roles()->where('role', 'OWNER')->pluck('user_id')->flip();
 
         $members = FamilyMember::where('family_id', $family->id)
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        return view('family-members.index', compact('family', 'members', 'owners'));
+        $members->getCollection()->transform(function ($member) use ($ownerUserIds) {
+            $member->is_owner = $member->user_id && isset($ownerUserIds[$member->user_id]);
+            return $member;
+        });
+
+        return view('family-members.index', compact('family', 'members'));
     }
 
     /**
