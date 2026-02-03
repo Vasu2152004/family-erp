@@ -536,7 +536,7 @@
                 }
             }
             
-            // Run init when DOM is ready (handles late script load from @push)
+            // Run init when DOM is ready (handles late script load from @@push)
             function initShoppingList() {
                 initInventorySelection();
                 initPurchaseForm();
