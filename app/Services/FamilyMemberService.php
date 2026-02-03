@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\Family;
 use App\Models\FamilyMember;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
@@ -12,6 +14,48 @@ use Illuminate\Validation\ValidationException;
 
 class FamilyMemberService
 {
+    /**
+     * Ensure a family owner has a FamilyMember record so they appear in member selection lists.
+     * Creates one if missing. Idempotent - safe to call multiple times.
+     * Note: user_id is unique globally in family_members - if user already has a record in another family, we skip.
+     */
+    public function ensureOwnerFamilyMember(Family $family, User $user): ?FamilyMember
+    {
+        $existing = FamilyMember::where('family_id', $family->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        // User can only have one FamilyMember globally (user_id unique) - skip if linked elsewhere
+        if (FamilyMember::where('user_id', $user->id)->where('family_id', '!=', $family->id)->exists()) {
+            return null;
+        }
+
+        $nameParts = preg_split('/\s+/', trim($user->name), 2);
+        $firstName = $nameParts[0] ?? 'Owner';
+        $lastName = $nameParts[1] ?? '';
+
+        try {
+            return FamilyMember::create([
+                'tenant_id' => $family->tenant_id,
+                'family_id' => $family->id,
+                'user_id' => $user->id,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'gender' => 'other',
+                'relation' => 'Owner',
+                'email' => $user->email,
+                'phone' => null,
+                'is_deceased' => false,
+            ]);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            return null;
+        }
+    }
+
     /**
      * Create a family member.
      */

@@ -142,6 +142,9 @@ class FamilyController extends Controller
             'is_backup_admin' => false,
         ]);
 
+        // Create FamilyMember for owner so they appear in member selection lists (tasks, investments, etc.)
+        app(FamilyMemberService::class)->ensureOwnerFamilyMember($family, $user);
+
         // Seed predefined transaction categories for this family
         $seeder = new \Database\Seeders\TransactionCategorySeeder();
         $seeder->seedForFamily($user->tenant_id, $family->id);

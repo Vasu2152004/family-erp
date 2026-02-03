@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\AdminRoleRequest;
+use App\Models\Family;
 use App\Models\FamilyUserRole;
+use App\Models\User;
+use App\Services\FamilyMemberService;
 use App\Notifications\AdminRoleRequestApproved;
 use App\Notifications\AdminRoleRequestNotification;
 use App\Notifications\AdminRoleRequestRejected;
@@ -19,7 +22,7 @@ class FamilyRoleService
     public function assignRole(int $userId, int $familyId, string $role, bool $isBackupAdmin = false): FamilyUserRole
     {
         return DB::transaction(function () use ($userId, $familyId, $role, $isBackupAdmin) {
-            $family = \App\Models\Family::findOrFail($familyId);
+            $family = Family::findOrFail($familyId);
 
             // Find existing role or create new one
             $userRole = FamilyUserRole::where('family_id', $familyId)
@@ -49,7 +52,15 @@ class FamilyRoleService
 
             // Clear all caches
             $this->clearRoleCache($userId, $familyId);
-            
+
+            // Ensure OWNER has a FamilyMember record so they appear in member selection lists
+            if ($role === 'OWNER') {
+                $ownerUser = User::find($userId);
+                if ($ownerUser) {
+                    app(FamilyMemberService::class)->ensureOwnerFamilyMember($family, $ownerUser);
+                }
+            }
+
             // Return fresh instance from database (not from model cache)
             return FamilyUserRole::where('family_id', $familyId)
                 ->where('user_id', $userId)
@@ -90,7 +101,7 @@ class FamilyRoleService
     public function requestAdminRole(int $userId, int $familyId): AdminRoleRequest
     {
         return DB::transaction(function () use ($userId, $familyId) {
-            $family = \App\Models\Family::findOrFail($familyId);
+            $family = Family::findOrFail($familyId);
 
             $request = AdminRoleRequest::where('family_id', $familyId)
                 ->where('user_id', $userId)
@@ -243,7 +254,7 @@ class FamilyRoleService
                             ->update(['role' => 'ADMIN', 'updated_at' => now()]);
                     } else {
                         // Create new
-                        $family = \App\Models\Family::findOrFail($familyId);
+                        $family = Family::findOrFail($familyId);
                         DB::table('family_user_roles')->insert([
                             'tenant_id' => $family->tenant_id,
                             'family_id' => $familyId,
