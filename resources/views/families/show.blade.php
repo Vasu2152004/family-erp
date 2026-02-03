@@ -55,7 +55,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-[var(--color-bg-secondary)] rounded-lg p-4 border border-[var(--color-border-primary)]">
                     <p class="text-sm text-[var(--color-text-secondary)]">Total Members</p>
-                    <p class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $family->members->count() + $owners->count() }}</p>
+                    <p class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $allMembers->count() }}</p>
                 </div>
                 <div class="bg-[var(--color-bg-secondary)] rounded-lg p-4 border border-[var(--color-border-primary)]">
                     <p class="text-sm text-[var(--color-text-secondary)]">Active Roles</p>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="bg-[var(--color-bg-secondary)] rounded-lg p-4 border border-[var(--color-border-primary)]">
                     <p class="text-sm text-[var(--color-text-secondary)]">Alive Members</p>
-                    <p class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $family->members->where('is_deceased', false)->count() + $owners->count() }}</p>
+                    <p class="text-2xl font-bold text-[var(--color-text-primary)]">{{ $allMembers->where('is_deceased', false)->count() }}</p>
                 </div>
             </div>
         </div>
@@ -79,10 +79,6 @@
                 @endcan
             </div>
 
-            @php
-                // Merge owners and members, sorted by creation date
-                $allMembers = $owners->merge($family->members)->sortByDesc('created_at');
-            @endphp
             @if($allMembers->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-[var(--color-border-primary)]">
@@ -121,13 +117,9 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        @if(isset($member->is_owner) && $member->is_owner)
-                                            <span class="text-[var(--color-text-secondary)]">—</span>
-                                        @else
-                                            <a href="{{ route('families.members.show', [$family, $member]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
-                                                View
-                                            </a>
-                                        @endif
+                                        <a href="{{ route('families.members.show', [$family, $member]) }}" class="text-[var(--color-primary)] hover:text-[var(--color-primary-dark)]">
+                                            View
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach

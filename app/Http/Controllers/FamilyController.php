@@ -39,21 +39,6 @@ class FamilyController extends Controller
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        $familyIdsList = $families->getCollection()->pluck('id')->all();
-        $ownerCounts = empty($familyIdsList)
-            ? []
-            : \App\Models\FamilyUserRole::whereIn('family_id', $familyIdsList)
-                ->where('role', 'OWNER')
-                ->selectRaw('family_id, count(*) as owner_count')
-                ->groupBy('family_id')
-                ->pluck('owner_count', 'family_id')
-                ->all();
-
-        $families->getCollection()->transform(function ($family) use ($ownerCounts) {
-            $family->members_count = $family->members_count + ($ownerCounts[$family->id] ?? 0);
-            return $family;
-        });
-
         $canUpdateIds = $families->getCollection()->filter(fn (Family $f) => Gate::forUser($user)->allows('update', $f))->pluck('id')->all();
 
         // Check if user is already part of any family
@@ -175,22 +160,22 @@ class FamilyController extends Controller
         $isOwnerOrAdmin = $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
         $isOwner = $userRole && $userRole->role === 'OWNER';
 
-        $owners = $family->roles()
-            ->where('role', 'OWNER')
-            ->with('user:id,name')
-            ->get()
-            ->map(function ($role) {
-                return (object) [
-                    'id' => 'owner_' . $role->user_id,
-                    'first_name' => $role->user->name ?? 'Owner',
-                    'last_name' => '',
-                    'relation' => 'Owner',
-                    'is_deceased' => false,
-                    'is_owner' => true,
-                    'user' => $role->user,
-                    'created_at' => $role->created_at,
-                ];
-            });
+        $ownerRoles = $family->roles()->where('role', 'OWNER')->with('user:id,email')->get();
+        $ownerUserIds = $ownerRoles->pluck('user_id')->flip();
+        $ownerEmailsNormalized = $ownerRoles->pluck('user.email')->filter()->map(fn ($e) => strtolower(trim((string) $e)))->values()->all();
+
+        $allMembers = $family->members->filter(function ($member) use ($ownerEmailsNormalized) {
+            if ($member->user_id !== null) {
+                return true;
+            }
+            if (!$member->email) {
+                return true;
+            }
+            $emailNorm = strtolower(trim($member->email));
+            return !in_array($emailNorm, $ownerEmailsNormalized, true);
+        })->each(function ($member) use ($ownerUserIds) {
+            $member->is_owner = $member->user_id && isset($ownerUserIds[$member->user_id]);
+        })->sortByDesc('created_at')->values();
 
         $pendingMemberRequests = \App\Models\FamilyMemberRequest::where('family_id', $family->id)
             ->where('requested_user_id', $user->id)
@@ -214,7 +199,7 @@ class FamilyController extends Controller
                 ->get();
         }
 
-        return view('families.show', compact('family', 'pendingMemberRequests', 'pendingAdminRequests', 'adminRequestsToReview', 'isOwnerOrAdmin', 'isOwner', 'owners'));
+        return view('families.show', compact('family', 'pendingMemberRequests', 'pendingAdminRequests', 'adminRequestsToReview', 'isOwnerOrAdmin', 'isOwner', 'allMembers'));
     }
     
     /**
