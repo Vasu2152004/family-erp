@@ -277,6 +277,8 @@ class FormValidation {
     // Static method to initialize all forms on page
     static initAll() {
         document.querySelectorAll('form.needs-validation, form[data-validate]').forEach(form => {
+            // Skip forms that explicitly opt out of validation
+            if (form.hasAttribute('data-no-validate')) return;
             new FormValidation(form);
         });
     }

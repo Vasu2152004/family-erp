@@ -198,7 +198,7 @@ class ShoppingListController extends Controller
         $this->authorize('markPurchased', $item);
 
         $validated = $request->validate([
-            'amount' => ['nullable', 'numeric', 'min:0.01'],
+            'amount' => ['nullable', 'numeric', 'min:0'],
             'budget_id' => ['nullable', 'exists:budgets,id'],
         ]);
 

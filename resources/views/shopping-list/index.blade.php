@@ -224,7 +224,7 @@
                 </button>
             </div>
             
-            <form method="POST" id="purchaseForm" class="space-y-4" data-validate="false" novalidate>
+            <form method="POST" id="purchaseForm" class="space-y-4" data-no-validate novalidate>
                 @csrf
                 @method('PATCH')
                 <input type="hidden" name="family_id" id="purchase_family_id" value="{{ $family->id }}">
@@ -237,7 +237,7 @@
                 
                 <div>
                     <label for="amount" class="block text-sm font-medium text-[var(--color-text-primary)] mb-1">Amount (₹)</label>
-                    <input type="number" name="amount" id="amount" step="0.01" min="0.01" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0.00">
+                    <input type="number" name="amount" id="amount" step="0.01" min="0" class="w-full rounded-lg border border-[var(--color-border-primary)] bg-[var(--color-bg-secondary)] px-3 py-2 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]" placeholder="0.00">
                     <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Leave empty if no transaction needed</p>
                 </div>
                 
@@ -349,9 +349,9 @@
                 modal.classList.add('flex');
                 document.getElementById('purchaseItemName').textContent = itemName;
                 
-                // Set form action correctly - use Laravel's url helper for correct base path
+                // Set form action using Laravel route helper for correct URL
                 const familyId = {{ $family->id }};
-                form.action = "{{ url('shopping-list') }}/" + itemId + "/purchased";
+                form.action = "{{ route('shopping-list.mark-purchased', ['item' => 0, 'family_id' => $family->id]) }}".replace('/0/purchased', '/' + itemId + '/purchased');
                 
                 // Ensure family_id is in the form
                 let familyIdInput = form.querySelector('input[name="family_id"]');
@@ -402,111 +402,14 @@
             function initPurchaseForm() {
                 const purchaseForm = document.getElementById('purchaseForm');
                 if (purchaseForm) {
-                    purchaseForm.addEventListener('submit', async function(e) {
-                        e.preventDefault(); // Prevent default form submission
-                        
+                    purchaseForm.addEventListener('submit', function() {
+                        // Show loading state - form will navigate away on success
                         const submitBtn = this.querySelector('button[type="submit"]');
-                        const originalText = submitBtn ? submitBtn.textContent : 'Mark Purchased';
-                        
-                        // Show loading state
                         if (submitBtn) {
                             submitBtn.disabled = true;
                             submitBtn.textContent = 'Processing...';
                         }
-                        
-                        try {
-                            // Get form data
-                            const formData = new FormData(this);
-                            
-                            // Get CSRF token
-                            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
-                                             this.querySelector('input[name="_token"]')?.value;
-                            
-                            // Get the action URL
-                            const actionUrl = this.action;
-                            
-                            if (!actionUrl || actionUrl === '' || actionUrl === window.location.pathname) {
-                                console.error('Invalid form action URL:', actionUrl);
-                                throw new Error('Form action URL is not set correctly');
-                            }
-                            
-                            console.log('=== Form Submission ===');
-                            console.log('Action URL:', actionUrl);
-                            console.log('Form data:', Object.fromEntries(formData.entries()));
-                            console.log('CSRF Token:', csrfToken ? 'Present' : 'Missing');
-                            
-                            // Submit using fetch
-                            const response = await fetch(actionUrl, {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRF-TOKEN': csrfToken,
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
-                                },
-                                body: formData
-                            });
-                            
-                            console.log('Response status:', response.status);
-                            console.log('Response ok:', response.ok);
-                            
-                            if (response.ok) {
-                                // Success - controller returns JSON for AJAX requests
-                                const contentType = response.headers.get('content-type');
-                                if (contentType && contentType.includes('application/json')) {
-                                    const result = await response.json().catch(() => null);
-                                    console.log('Success response:', result);
-                                }
-                                window.location.reload();
-                            } else {
-                                // Handle error
-                                let errorMessage = 'Failed to mark item as purchased';
-                                try {
-                                    const errorData = await response.json();
-                                    errorMessage = errorData.message || errorData.error || errorMessage;
-                                    console.error('Error response:', errorData);
-                                } catch (e) {
-                                    const text = await response.text();
-                                    console.error('Error response text:', text);
-                                }
-                                
-                                // Use window.showAlert if available, otherwise alert
-                                if (typeof window.showAlert === 'function') {
-                                    window.showAlert(errorMessage, 'error');
-                                } else if (typeof showAlert === 'function') {
-                                    showAlert(errorMessage, 'error');
-                                } else {
-                                    alert(errorMessage);
-                                }
-                                
-                                // Re-enable button
-                                if (submitBtn) {
-                                    submitBtn.disabled = false;
-                                    submitBtn.textContent = originalText;
-                                }
-                            }
-                        } catch (error) {
-                            console.error('=== Form Submission Error ===');
-                            console.error('Error:', error);
-                            console.error('Error message:', error.message);
-                            console.error('Error stack:', error.stack);
-                            
-                            const errorMessage = 'An error occurred while marking the item as purchased. Please try again.';
-                            
-                            // Use window.showAlert if available, otherwise alert
-                            if (typeof window.showAlert === 'function') {
-                                window.showAlert(errorMessage, 'error');
-                            } else if (typeof showAlert === 'function') {
-                                showAlert(errorMessage, 'error');
-                            } else {
-                                alert(errorMessage);
-                            }
-                            
-                            // Re-enable button
-                            if (submitBtn) {
-                                submitBtn.disabled = false;
-                                submitBtn.textContent = originalText;
-                            }
-                        }
+                        // Allow normal form submission - server will redirect on success
                     });
                 }
             }
