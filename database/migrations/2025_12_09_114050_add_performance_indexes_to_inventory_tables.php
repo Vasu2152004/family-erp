@@ -40,7 +40,7 @@ return new class extends Migration
             try {
                 $table->dropIndex('inventory_items_family_category_index');
             } catch (\Throwable $e) {
-                // ignore missing index in sqlite tests
+                // Index may not exist
             }
         });
 
@@ -48,7 +48,7 @@ return new class extends Migration
             try {
                 $table->dropIndex('inventory_item_batches_item_expiry_index');
             } catch (\Throwable $e) {
-                // ignore missing index in sqlite tests
+                // Index may not exist
             }
         });
 
@@ -56,7 +56,7 @@ return new class extends Migration
             try {
                 $table->dropIndex('shopping_list_items_family_purchased_index');
             } catch (\Throwable $e) {
-                // ignore missing index in sqlite tests
+                // Index may not exist
             }
         });
     }
@@ -67,10 +67,6 @@ return new class extends Migration
     private function indexExists(string $table, string $index): bool
     {
         $connection = Schema::getConnection();
-        if ($connection->getDriverName() === 'sqlite') {
-            return false;
-        }
-
         $database = $connection->getDatabaseName();
         $result = $connection->select(
             "SELECT COUNT(*) as count FROM information_schema.statistics 

@@ -64,9 +64,7 @@ class BudgetController extends Controller
         });
         $budgets->setCollection($budgetsWithStatus);
 
-        $categories = TransactionCategory::where('family_id', $family->id)
-            ->where('type', 'EXPENSE')
-            ->get();
+        $categories = $this->getCachedExpenseCategories($family->id);
 
         // Get analytics data for charts
         $budgetVsActualData = $this->analyticsService->getBudgetVsActual($family->id, $currentMonth, $currentYear);
@@ -88,11 +86,8 @@ class BudgetController extends Controller
 
         $this->authorize('create', [Budget::class, $family]);
 
-        $categories = TransactionCategory::where('family_id', $family->id)
-            ->where('type', 'EXPENSE')
-            ->get();
-
-        $members = $family->members()->with('user')->get();
+        $categories = $this->getCachedExpenseCategories($family->id);
+        $members = $this->getCachedFamilyMembers($family);
 
         return view('budgets.create', compact('family', 'categories', 'members'));
     }
@@ -148,11 +143,8 @@ class BudgetController extends Controller
 
         $this->authorize('update', $budget);
 
-        $categories = TransactionCategory::where('family_id', $family->id)
-            ->where('type', 'EXPENSE')
-            ->get();
-
-        $members = $family->members()->with('user')->get();
+        $categories = $this->getCachedExpenseCategories($family->id);
+        $members = $this->getCachedFamilyMembers($family);
 
         return view('budgets.edit', compact('family', 'budget', 'categories', 'members'));
     }
@@ -215,5 +207,23 @@ class BudgetController extends Controller
 
         return redirect()->route('finance.budgets.index', ['family_id' => $family->id])
             ->with('success', 'Budget deleted successfully.');
+    }
+
+    private function getCachedExpenseCategories(int $familyId)
+    {
+        $key = 'transaction_categories_expense_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, TransactionCategory::where('family_id', $familyId)->where('type', 'EXPENSE')->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedFamilyMembers(Family $family)
+    {
+        $key = 'family_members_' . $family->id;
+        if (!app()->bound($key)) {
+            app()->instance($key, $family->members()->with('user')->get());
+        }
+        return app($key);
     }
 }

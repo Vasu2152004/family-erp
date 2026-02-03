@@ -1,3 +1,4 @@
+@php $appName = config('app.name', 'Family ERP'); @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Authentication' }} - {{ config('app.name', 'Family ERP') }}</title>
+    <title>{{ $title ?? 'Authentication' }} - {{ $appName }}</title>
 
     <!-- Performance Optimizations -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
@@ -36,7 +37,7 @@
                 </svg>
             </div>
             <h1 class="text-3xl font-bold text-[var(--color-text-primary)]">
-                {{ config('app.name', 'Family ERP') }}
+                {{ $appName }}
             </h1>
             @if(isset($subtitle))
                 <p class="mt-1.5 text-sm text-[var(--color-text-secondary)] font-medium">

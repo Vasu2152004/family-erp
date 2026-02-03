@@ -1,9 +1,9 @@
-@props(['active' => ''])
+@props(['active' => '', 'appName' => null])
 
 @php
     $sidebarUser = once(fn () => auth()->user());
     if (!app()->bound('unread_notifications_count')) {
-        app()->instance('unread_notifications_count', auth()->user()->unreadNotifications()->count());
+        app()->instance('unread_notifications_count', $sidebarUser?->unreadNotifications()->count() ?? 0);
     }
     $sidebarUnreadCount = app('unread_notifications_count');
 @endphp
@@ -19,7 +19,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-[var(--color-text-primary)]">
-                    {{ config('app.name', 'Family ERP') }}
+                    {{ $appName ?? config('app.name', 'Family ERP') }}
                 </h1>
                 <p class="text-xs text-[var(--color-text-secondary)]">Home Management</p>
             </div>
@@ -49,12 +49,7 @@
         @php
             $routeName = request()->route()?->getName();
             $user = $sidebarUser;
-            $accessibleFamilies = once(function () use ($user) {
-                $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)->pluck('family_id');
-                $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)->pluck('family_id');
-                $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
-                return \App\Models\Family::whereIn('id', $familyIds)->orderBy('name')->get();
-            });
+            $accessibleFamilies = \App\Helpers\PerformanceHelper::getAccessibleFamilies($user?->id);
 
             $routeFamily = request()->route('family');
             if ($routeFamily instanceof \App\Models\Family) {

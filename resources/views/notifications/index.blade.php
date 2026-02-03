@@ -64,7 +64,7 @@
                                         <span>{{ $notification->created_at->diffForHumans() }}</span>
                                         @if($notification->data && isset($notification->data['family_id']))
                                             @php
-                                                $family = \App\Models\Family::find($notification->data['family_id']);
+                                                $family = $familiesById[$notification->data['family_id']] ?? null;
                                             @endphp
                                             @if($family)
                                                 <span class="font-semibold">
@@ -87,7 +87,7 @@
                                                 @endif
                                                 @if($isInvestmentUnlockRequest && isset($notification->data['request_id']) && !$notification->read_at)
                                                     @php
-                                                        $unlockRequest = \App\Models\InvestmentUnlockRequest::find($notification->data['request_id']);
+                                                        $unlockRequest = $unlockRequestsById[$notification->data['request_id']] ?? null;
                                                     @endphp
                                                     @if($unlockRequest && $unlockRequest->status === 'pending')
                                                         <div class="flex gap-2 mt-3">

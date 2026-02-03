@@ -20,12 +20,14 @@ class HealthController extends Controller
      */
     public function index(Request $request, Family $family): View
     {
-        $user = $request->user();
+        $user = once(fn () => $request->user());
 
-        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
-            || $family->members()->where('user_id', $user->id)->exists();
-
-        if (!$hasAccess) {
+        $accessKey = 'health_access_' . $family->id . '_' . $user->id;
+        if (!app()->bound($accessKey)) {
+            app()->instance($accessKey, $family->roles()->where('user_id', $user->id)->exists()
+                || $family->members()->where('user_id', $user->id)->exists());
+        }
+        if (!app($accessKey)) {
             abort(403, 'You do not have access to this family.');
         }
 

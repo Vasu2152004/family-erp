@@ -17,7 +17,7 @@ class EnsureTenantAccess
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
 
         if (!$user) {
             return $next($request);

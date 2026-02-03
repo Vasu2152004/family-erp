@@ -87,10 +87,10 @@ class TransactionController extends Controller
             ->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        // Get filter options
-        $accounts = FinanceAccount::where('family_id', $family->id)->get();
-        $categories = TransactionCategory::where('family_id', $family->id)->get();
-        $members = $family->members()->with('user')->get();
+        // Get filter options (request-level cached)
+        $accounts = $this->getCachedFinanceAccounts($family->id);
+        $categories = $this->getCachedTransactionCategories($family->id);
+        $members = $this->getCachedFamilyMembers($family);
 
         $user = once(fn () => Auth::user());
         $canUpdateIds = $transactions->getCollection()->filter(fn (Transaction $t) => Gate::forUser($user)->allows('update', $t))->pluck('id')->all();
@@ -113,19 +113,15 @@ class TransactionController extends Controller
 
         $this->authorize('create', [Transaction::class, $family]);
 
-        $accounts = FinanceAccount::where('family_id', $family->id)
-            ->where('is_active', true)
-            ->get();
-        $categories = TransactionCategory::where('family_id', $family->id)->get();
-        
-        // Auto-create categories if none exist
+        $accounts = $this->getCachedActiveFinanceAccounts($family->id);
+        $categories = $this->getCachedTransactionCategories($family->id);
         if ($categories->isEmpty()) {
             $seeder = new \Database\Seeders\TransactionCategorySeeder();
             $seeder->seedForFamily($family->tenant_id, $family->id);
-            $categories = TransactionCategory::where('family_id', $family->id)->get();
+            app()->forgetInstance('transaction_categories_' . $family->id);
+            $categories = $this->getCachedTransactionCategories($family->id);
         }
-        
-        $members = $family->members()->with('user')->get();
+        $members = $this->getCachedFamilyMembers($family);
         
         // Get active budgets for the current month/year
         // Filter: Show family budgets + only personal budgets that belong to current user
@@ -133,14 +129,16 @@ class TransactionController extends Controller
         $currentYear = now()->year;
         
         // Check user role
+        $user = once(fn () => Auth::user());
         $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->first();
         $isAdminOrOwner = $userRole && in_array($userRole->role, ['OWNER', 'ADMIN']);
-        
+        $isMember = $userRole && $userRole->role === 'MEMBER';
+
         // Get current user's family member record
         $currentUserMember = \App\Models\FamilyMember::where('family_id', $family->id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', $user->id)
             ->first();
         
         $budgetsQuery = Budget::where('family_id', $family->id)
@@ -162,7 +160,7 @@ class TransactionController extends Controller
             $budgets = $budgetsQuery->with(['category', 'familyMember.user'])->get();
         }
 
-        return view('transactions.create', compact('family', 'accounts', 'categories', 'members', 'budgets'));
+        return view('transactions.create', compact('family', 'accounts', 'categories', 'members', 'budgets', 'isMember'));
     }
 
     /**
@@ -223,11 +221,9 @@ class TransactionController extends Controller
 
         $this->authorize('update', $transaction);
 
-        $accounts = FinanceAccount::where('family_id', $family->id)
-            ->where('is_active', true)
-            ->get();
-        $categories = TransactionCategory::where('family_id', $family->id)->get();
-        $members = $family->members()->with('user')->get();
+        $accounts = $this->getCachedActiveFinanceAccounts($family->id);
+        $categories = $this->getCachedTransactionCategories($family->id);
+        $members = $this->getCachedFamilyMembers($family);
         
         // Get active budgets for the transaction's month/year
         // Filter: Show family budgets + only personal budgets that belong to current user
@@ -326,5 +322,41 @@ class TransactionController extends Controller
 
         return redirect()->route('finance.transactions.index', ['family_id' => $family->id])
             ->with('success', 'Transaction deleted successfully.');
+    }
+
+    private function getCachedFinanceAccounts(int $familyId)
+    {
+        $key = 'finance_accounts_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, FinanceAccount::where('family_id', $familyId)->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedActiveFinanceAccounts(int $familyId)
+    {
+        $key = 'finance_accounts_active_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, FinanceAccount::where('family_id', $familyId)->where('is_active', true)->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedTransactionCategories(int $familyId)
+    {
+        $key = 'transaction_categories_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, TransactionCategory::where('family_id', $familyId)->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedFamilyMembers(Family $family)
+    {
+        $key = 'family_members_' . $family->id;
+        if (!app()->bound($key)) {
+            app()->instance($key, $family->members()->with('user')->get());
+        }
+        return app($key);
     }
 }

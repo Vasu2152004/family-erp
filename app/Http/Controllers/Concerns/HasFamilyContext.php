@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Concerns;
 
+use App\Helpers\PerformanceHelper;
 use App\Models\Family;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,25 +15,9 @@ trait HasFamilyContext
      */
     protected function getAccessibleFamilies()
     {
-        $key = 'accessible_families_' . (auth()->id() ?? 'guest');
+        $user = once(fn () => Auth::user());
 
-        if (!app()->bound($key)) {
-            $user = Auth::user();
-            if (!$user) {
-                app()->instance($key, collect());
-            } else {
-                $familyIdsFromRoles = \App\Models\FamilyUserRole::where('user_id', $user->id)
-                    ->pluck('family_id')
-                    ->unique();
-                $familyIdsFromMembers = \App\Models\FamilyMember::where('user_id', $user->id)
-                    ->pluck('family_id')
-                    ->unique();
-                $familyIds = $familyIdsFromRoles->merge($familyIdsFromMembers)->unique()->values();
-                app()->instance($key, Family::whereIn('id', $familyIds)->orderBy('name')->get());
-            }
-        }
-
-        return app($key);
+        return PerformanceHelper::getAccessibleFamilies($user?->id);
     }
 
     /**

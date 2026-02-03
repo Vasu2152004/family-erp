@@ -185,10 +185,7 @@
                                 <x-label for="user_id" required>Select User</x-label>
                                 <select name="user_id" id="user_id" required class="mt-1 block w-full rounded-xl border border-[var(--color-border-primary)] px-4 py-3 text-[var(--color-text-primary)] bg-[var(--color-surface)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
                                     <option value="">Select a user...</option>
-                                    @php
-                                        $allUsers = \App\Models\User::orderBy('name')->get();
-                                    @endphp
-                                    @foreach($allUsers as $user)
+                                    @foreach($allUsers ?? [] as $user)
                                         <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
                                     @endforeach
                                 </select>

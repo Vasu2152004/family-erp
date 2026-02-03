@@ -207,7 +207,7 @@ class InvestmentController extends Controller
 
         $investment->load(['familyMember', 'createdBy', 'createdBy.familyMember']);
 
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
         $isUnlocked = !$investment->is_hidden || $investment->isUnlockedFor($user);
         $canRequestUnlock = $investment->canBeRequestedForUnlock($user);
         $unlockRequests = $investment->getUnlockRequestsFor($user);
@@ -315,7 +315,8 @@ class InvestmentController extends Controller
         $this->investmentService->updateInvestment($investment->id, $validated);
 
         // Log access
-        $this->investmentService->logAccess($investment->id, Auth::user(), 'edit');
+        $user = once(fn () => Auth::user());
+        $this->investmentService->logAccess($investment->id, $user, 'edit');
 
         return redirect()->route('investments.show', ['investment' => $investment->id, 'family_id' => $family->id])
             ->with('success', 'Investment updated successfully.');
@@ -382,13 +383,14 @@ class InvestmentController extends Controller
             'pin' => ['required', 'string', 'min:4', 'max:20'],
         ]);
 
+        $user = once(fn () => Auth::user());
         try {
-            $this->investmentService->unlockInvestment($investment->id, Auth::user(), $validated['pin']);
+            $this->investmentService->unlockInvestment($investment->id, $user, $validated['pin']);
 
             // Create manual unlock access
             \App\Models\InvestmentUnlockAccess::create([
                 'investment_id' => $investment->id,
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
                 'unlocked_at' => now(),
                 'unlocked_via' => 'manual',
                 'request_id' => null,
@@ -398,7 +400,7 @@ class InvestmentController extends Controller
                 ->with('success', 'Investment unlocked successfully.');
         } catch (\InvalidArgumentException $e) {
             // Log failed attempt
-            $this->investmentService->logAccess($investment->id, Auth::user(), 'unlock_attempt', [
+            $this->investmentService->logAccess($investment->id, $user, 'unlock_attempt', [
                 'notes' => 'Failed PIN attempt'
             ]);
 

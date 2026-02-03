@@ -13,10 +13,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::getConnection()->getDriverName() === 'sqlite') {
-            return;
-        }
-
         $this->safeAddIndex('shopping_list_items', 'shopping_list_items_family_id_is_purchased_index', ['family_id', 'is_purchased']);
         $this->safeAddIndex('shopping_list_items', 'shopping_list_items_inventory_item_id_index', ['inventory_item_id']);
         $this->safeAddIndex('inventory_items', 'inventory_items_family_id_min_qty_index', ['family_id', 'min_qty']);
@@ -82,34 +78,20 @@ return new class extends Migration
     private function hasIndex(string $table, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        $driver = $connection->getDriverName();
-        if ($driver === 'sqlite') {
-            return false;
+        $database = $connection->getDatabaseName();
+        $indexes = $connection->select(
+            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+            [$database, $table, $indexName]
+        );
+        if (count($indexes) > 0) {
+            return true;
         }
-        if ($driver === 'mysql' || $driver === 'mariadb') {
-            $database = $connection->getDatabaseName();
-            $indexes = $connection->select(
-                "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
-                [$database, $table, $indexName]
-            );
-            if (count($indexes) > 0) {
-                return true;
-            }
-            $prefix = $table . '_';
-            $indexes = $connection->select(
-                "SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?",
-                [$database, $table, $prefix . $indexName]
-            );
-            return count($indexes) > 0;
-        }
-        if ($driver === 'pgsql') {
-            $indexes = $connection->select(
-                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ? AND indexname = ?",
-                [$table, $indexName]
-            );
-            return count($indexes) > 0;
-        }
-        return false;
+        $prefix = $table . '_';
+        $indexes = $connection->select(
+            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+            [$database, $table, $prefix . $indexName]
+        );
+        return count($indexes) > 0;
     }
 };
 

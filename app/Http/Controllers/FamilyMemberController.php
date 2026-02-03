@@ -104,7 +104,7 @@ class FamilyMemberController extends Controller
 
             $this->requestService->createRequest(
                 $validated,
-                Auth::user()->tenant_id,
+                once(fn () => Auth::user())->tenant_id,
                 $family->id,
                 Auth::id(),
                 $requestedUserId
@@ -127,9 +127,15 @@ class FamilyMemberController extends Controller
         $this->authorize('view', $family);
         $member->load('user:id,name,email');
 
+        $user = once(fn () => Auth::user());
         $votes = FamilyMemberDeceasedVote::where('family_member_id', $member->id)->get();
         $voteCounts = $this->deceasedService->counts($member);
-        $myVote = $votes->firstWhere('user_id', Auth::id());
+        $myVote = $votes->firstWhere('user_id', $user->id);
+
+        $allUsers = collect();
+        if (!$member->user && $user->can('manageFamily', $family)) {
+            $allUsers = \App\Models\User::orderBy('name')->get();
+        }
 
         return view('family-members.show', [
             'family' => $family,
@@ -137,6 +143,7 @@ class FamilyMemberController extends Controller
             'votes' => $votes,
             'voteCounts' => $voteCounts,
             'myVote' => $myVote,
+            'allUsers' => $allUsers,
         ]);
     }
 

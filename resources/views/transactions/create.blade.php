@@ -20,11 +20,6 @@
             <input type="hidden" name="family_id" value="{{ $family->id }}">
 
             @php
-                $txUser = once(fn () => auth()->user());
-                $userRole = \App\Models\FamilyUserRole::where('family_id', $family->id)
-                    ->where('user_id', $txUser->id)
-                    ->first();
-                $isMember = $userRole && $userRole->role === 'MEMBER';
                 $preSelectedType = request()->input('type') ?? old('type');
             @endphp
             <div>
@@ -39,7 +34,7 @@
                         <option value="">Select type...</option>
                         <option value="INCOME" {{ old('type') == 'INCOME' ? 'selected' : '' }}>Income</option>
                         <option value="EXPENSE" {{ old('type') == 'EXPENSE' ? 'selected' : '' }}>Expense</option>
-                        @if(!$isMember)
+                        @if(!($isMember ?? false))
                             <option value="TRANSFER" {{ old('type') == 'TRANSFER' ? 'selected' : '' }}>Transfer</option>
                         @endif
                     </select>
@@ -61,7 +56,7 @@
                 <x-error-message field="finance_account_id" />
             </div>
 
-            @if(!$isMember)
+            @if(!($isMember ?? false))
                 <div id="transfer_to_account_field" style="display: none;">
                     <x-label for="transfer_to_account_id">Transfer To Account</x-label>
                     <select name="transfer_to_account_id" id="transfer_to_account_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">

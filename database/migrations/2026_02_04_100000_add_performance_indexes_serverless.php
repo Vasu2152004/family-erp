@@ -9,13 +9,14 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Add composite indexes for frequent WHERE (family_id, tenant_id) and similar filters.
+     * Add composite indexes for common query patterns (dashboard/reports, membership lookups).
+     * MySQL/MariaDB only.
      */
     public function up(): void
     {
-        $this->safeAddIndex('medical_records', 'medical_records_family_tenant_index', ['family_id', 'tenant_id']);
-        $this->safeAddIndex('prescriptions', 'prescriptions_family_tenant_status_index', ['family_id', 'tenant_id', 'status']);
-        $this->safeAddIndex('doctor_visits', 'doctor_visits_family_tenant_index', ['family_id', 'tenant_id']);
+        $this->safeAddIndex('transactions', 'transactions_family_id_transaction_date_index', ['family_id', 'transaction_date']);
+        $this->safeAddIndex('doctor_visits', 'doctor_visits_family_id_visit_date_index', ['family_id', 'visit_date']);
+        $this->safeAddIndex('family_members', 'family_members_family_id_user_id_index', ['family_id', 'user_id']);
     }
 
     /**
@@ -24,9 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         $drops = [
-            'medical_records' => ['medical_records_family_tenant_index'],
-            'prescriptions' => ['prescriptions_family_tenant_status_index'],
-            'doctor_visits' => ['doctor_visits_family_tenant_index'],
+            'transactions' => ['transactions_family_id_transaction_date_index'],
+            'doctor_visits' => ['doctor_visits_family_id_visit_date_index'],
+            'family_members' => ['family_members_family_id_user_id_index'],
         ];
 
         foreach ($drops as $table => $indexes) {

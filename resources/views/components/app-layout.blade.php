@@ -1,3 +1,4 @@
+@php $appName = config('app.name', 'Family ERP'); @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'Dashboard' }} - {{ config('app.name', 'Family ERP') }}</title>
+    <title>{{ $title ?? 'Dashboard' }} - {{ $appName }}</title>
 
     <!-- Performance Optimizations -->
     <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
@@ -18,7 +19,7 @@
 </head>
 <body class="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
     <!-- Sidebar -->
-    <x-sidebar />
+    <x-sidebar :app-name="$appName" />
 
     <!-- Main Content Area -->
     <div class="lg:pl-64 min-h-screen min-w-0 overflow-x-hidden">

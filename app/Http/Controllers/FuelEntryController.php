@@ -64,8 +64,8 @@ class FuelEntryController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $budgets = $this->getBudgetsForFamily($family);
-        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
+        $budgets = $this->getCachedBudgetsForFamily($family);
+        $accounts = $this->getCachedActiveAccounts($family->id);
 
         return view('vehicles.fuel-entries.create', [
             'family' => $family,
@@ -95,8 +95,8 @@ class FuelEntryController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $budgets = $this->getBudgetsForFamily($family);
-        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
+        $budgets = $this->getCachedBudgetsForFamily($family);
+        $accounts = $this->getCachedActiveAccounts($family->id);
 
         return view('vehicles.fuel-entries.edit', [
             'family' => $family,
@@ -157,6 +157,25 @@ class FuelEntryController extends Controller
 
         return redirect()->route('families.vehicles.fuel-entries.index', ['family' => $family->id, 'vehicle' => $vehicle->id])
             ->with('success', 'Fuel entry deleted successfully.');
+    }
+
+    private function getCachedActiveAccounts(int $familyId): \Illuminate\Support\Collection
+    {
+        $key = 'vehicle_accounts_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, FinanceAccount::where('family_id', $familyId)->where('is_active', true)->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedBudgetsForFamily(Family $family): \Illuminate\Support\Collection
+    {
+        $userId = Auth::id();
+        $key = 'vehicle_budgets_' . $family->id . '_' . $userId;
+        if (!app()->bound($key)) {
+            app()->instance($key, $this->getBudgetsForFamily($family));
+        }
+        return app($key);
     }
 
     private function getBudgetsForFamily(Family $family): \Illuminate\Support\Collection

@@ -162,8 +162,9 @@ class DocumentController extends Controller
 
     public function update(UpdateDocumentRequest $request, Family $family, Document $document): RedirectResponse
     {
-        $family = $this->resolveFamilyForUser($family, $request->user());
-        $this->ensureFamilyContext($family, $document);
+        $user = once(fn () => $request->user());
+        $family = $this->resolveFamilyForUser($family, $user);
+        $this->ensureFamilyContext($family, $document, $user);
 
         $this->documentService->updateMetadata($document, $request->validated());
 
@@ -174,8 +175,9 @@ class DocumentController extends Controller
 
     public function destroy(Request $request, Family $family, Document $document): RedirectResponse
     {
-        $family = $this->resolveFamilyForUser($family, $request->user());
-        $this->ensureFamilyContext($family, $document);
+        $user = once(fn () => $request->user());
+        $family = $this->resolveFamilyForUser($family, $user);
+        $this->ensureFamilyContext($family, $document, $user);
         $this->authorize('delete', $document);
 
         $this->documentService->delete($document);
@@ -187,8 +189,9 @@ class DocumentController extends Controller
 
     public function verifyPassword(VerifyDocumentPasswordRequest $request, Family $family, Document $document)
     {
-        $family = $this->resolveFamilyForUser($family, $request->user());
-        $this->ensureFamilyContext($family, $document);
+        $user = once(fn () => $request->user());
+        $family = $this->resolveFamilyForUser($family, $user);
+        $this->ensureFamilyContext($family, $document, $user);
 
         if (!$document->verifyPassword($request->validated('password'))) {
             return response()->json(['message' => 'Incorrect password.'], 422);
@@ -201,8 +204,9 @@ class DocumentController extends Controller
 
     public function download(Request $request, Family $family, Document $document)
     {
-        $family = $this->resolveFamilyForUser($family, $request->user());
-        $this->ensureFamilyContext($family, $document);
+        $user = once(fn () => $request->user());
+        $family = $this->resolveFamilyForUser($family, $user);
+        $this->ensureFamilyContext($family, $document, $user);
         $this->authorize('download', $document);
 
         // Check if password is required and not yet verified
@@ -227,9 +231,9 @@ class DocumentController extends Controller
         return redirect($url);
     }
 
-    private function ensureFamilyContext(Family $family, Document $document): void
+    private function ensureFamilyContext(Family $family, Document $document, $user): void
     {
-        if ($document->family_id !== $family->id || $document->tenant_id !== auth()->user()?->tenant_id) {
+        if ($document->family_id !== $family->id || $document->tenant_id !== $user?->tenant_id) {
             abort(404);
         }
     }

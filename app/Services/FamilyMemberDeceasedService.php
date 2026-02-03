@@ -34,9 +34,6 @@ class FamilyMemberDeceasedService
                 'date_of_death' => $dateOfDeath ?: $member->date_of_death,
             ]);
 
-            // Count total family members (including owners)
-            $totalMembers = $this->countTotalFamilyMembers($member->family_id);
-            
             // Exclude the deceased person themselves from voting
             $excludeUserId = $member->user_id;
             $voterIds = $this->resolveVoters($member->family_id, $excludeUserId);
@@ -45,8 +42,8 @@ class FamilyMemberDeceasedService
                 throw ValidationException::withMessages(['member' => 'No eligible voters found for this family.']);
             }
 
-            // Calculate required votes: X-1 (where X is total members)
-            $requiredVotes = max(1, $totalMembers - 1);
+            // Calculate required votes: n - died - 1 (eligible voters - 1)
+            $requiredVotes = $this->calculateRequiredVotes($member->family_id, $voterIds);
 
             foreach ($voterIds as $voterId) {
                 FamilyMemberDeceasedVote::create([
@@ -121,9 +118,9 @@ class FamilyMemberDeceasedService
                         return;
                     }
 
-                    // Count total family members (X) and calculate required votes (X-1)
-                    $totalMembers = $this->countTotalFamilyMembers($member->family_id);
-                    $requiredApprovedVotes = max(1, $totalMembers - 1);
+                    // Calculate required votes: n - died - 1 (eligible voters - 1)
+                    $voterIds = $this->resolveVoters($member->family_id, $member->user_id);
+                    $requiredApprovedVotes = $this->calculateRequiredVotes($member->family_id, $voterIds);
                     
                     // Count approved votes
                     $approvedCount = FamilyMemberDeceasedVote::where('family_member_id', $member->id)
@@ -192,7 +189,7 @@ class FamilyMemberDeceasedService
 
     /**
      * Resolve eligible voters: users linked to this family via roles or member linkage.
-     * Excludes the member being voted on (if they have a user_id).
+     * Excludes the member being voted on (if they have a user_id) and deceased members.
      */
     private function resolveVoters(int $familyId, ?int $excludeUserId = null): array
     {
@@ -200,14 +197,36 @@ class FamilyMemberDeceasedService
             ->when($excludeUserId, fn($q) => $q->where('user_id', '!=', $excludeUserId))
             ->pluck('user_id')
             ->toArray();
-        
+
         $memberUserIds = Family::find($familyId)?->members()
+            ->where('is_deceased', false)
             ->whereNotNull('user_id')
             ->when($excludeUserId, fn($q) => $q->where('user_id', '!=', $excludeUserId))
             ->pluck('user_id')
             ->toArray() ?? [];
 
-        return array_values(array_unique(array_filter(array_merge($roleUserIds, $memberUserIds))));
+        $deceasedUserIds = FamilyMember::where('family_id', $familyId)
+            ->where('is_deceased', true)
+            ->whereNotNull('user_id')
+            ->pluck('user_id')
+            ->toArray();
+
+        $merged = array_diff(
+            array_unique(array_filter(array_merge($roleUserIds, $memberUserIds))),
+            $deceasedUserIds
+        );
+
+        return array_values($merged);
+    }
+
+    /**
+     * Calculate required approval votes: n - died - 1, i.e. (eligible voters - 1).
+     * Ensures voting can succeed when multiple members are already deceased.
+     */
+    private function calculateRequiredVotes(int $familyId, array $eligibleVoterIds): int
+    {
+        $eligibleCount = count($eligibleVoterIds);
+        return max(1, $eligibleCount - 1);
     }
 
     /**

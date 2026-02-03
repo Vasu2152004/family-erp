@@ -14,11 +14,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $driver = Schema::getConnection()->getDriverName();
-        if ($driver === 'sqlite') {
-            return;
-        }
-
         $this->addIndexIfMissing('vehicles', 'vehicles_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('tasks', 'tasks_family_created_index', ['family_id', 'created_at']);
         $this->addIndexIfMissing('documents', 'documents_family_created_index', ['family_id', 'created_at']);
@@ -60,7 +55,7 @@ return new class extends Migration
                         try {
                             $table->dropIndex($indexName);
                         } catch (\Throwable $e) {
-                            // Index may not exist (e.g. SQLite)
+                            // Index may not exist
                         }
                     }
                 });
@@ -92,37 +87,19 @@ return new class extends Migration
     private function hasIndex(string $tableName, string $indexName): bool
     {
         $connection = Schema::getConnection();
-        $driver = $connection->getDriverName();
-
-        if ($driver === 'sqlite') {
-            return false;
+        $database = $connection->getDatabaseName();
+        $result = $connection->select(
+            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+            [$database, $tableName, $indexName]
+        );
+        if (count($result) > 0) {
+            return true;
         }
-
-        if ($driver === 'mysql' || $driver === 'mariadb') {
-            $database = $connection->getDatabaseName();
-            $result = $connection->select(
-                'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
-                [$database, $tableName, $indexName]
-            );
-            if (count($result) > 0) {
-                return true;
-            }
-            $prefix = $tableName . '_';
-            $result = $connection->select(
-                'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
-                [$database, $tableName, $prefix . $indexName]
-            );
-            return count($result) > 0;
-        }
-
-        if ($driver === 'pgsql') {
-            $result = $connection->select(
-                "SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND tablename = ? AND indexname = ?",
-                [$tableName, $indexName]
-            );
-            return count($result) > 0;
-        }
-
-        return false;
+        $prefix = $tableName . '_';
+        $result = $connection->select(
+            'SELECT INDEX_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+            [$database, $tableName, $prefix . $indexName]
+        );
+        return count($result) > 0;
     }
 };

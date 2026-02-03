@@ -13,7 +13,6 @@ use App\Services\VehicleService;
 use App\Services\VehicleAnalyticsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Carbon\Carbon;
@@ -28,12 +27,8 @@ class VehicleController extends Controller
 
     public function index(Request $request, Family $family): View
     {
-        $user = $request->user();
-        
-        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
-            || $family->members()->where('user_id', $user->id)->exists();
-        
-        if (!$hasAccess) {
+        $user = once(fn () => $request->user());
+        if (!$this->hasVehicleFamilyAccess($family, $user)) {
             abort(403, 'You do not have access to this family.');
         }
 
@@ -68,7 +63,6 @@ class VehicleController extends Controller
 
         $vehicles = $query->simplePaginate(10)->appends($request->query());
 
-        $user = once(fn () => $request->user());
         $canDeleteIds = $vehicles->getCollection()->filter(fn (Vehicle $v) => Gate::forUser($user)->allows('delete', $v))->pluck('id')->all();
 
         $members = FamilyMember::where('family_id', $family->id)
@@ -92,12 +86,8 @@ class VehicleController extends Controller
 
     public function create(Request $request, Family $family): View
     {
-        $user = $request->user();
-        
-        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
-            || $family->members()->where('user_id', $user->id)->exists();
-        
-        if (!$hasAccess) {
+        $user = once(fn () => $request->user());
+        if (!$this->hasVehicleFamilyAccess($family, $user)) {
             abort(403, 'You do not have access to this family.');
         }
 
@@ -133,12 +123,8 @@ class VehicleController extends Controller
 
     public function show(Request $request, Family $family, Vehicle $vehicle): View
     {
-        $user = $request->user();
-        
-        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
-            || $family->members()->where('user_id', $user->id)->exists();
-        
-        if (!$hasAccess) {
+        $user = once(fn () => $request->user());
+        if (!$this->hasVehicleFamilyAccess($family, $user)) {
             abort(403, 'You do not have access to this family.');
         }
 
@@ -183,12 +169,8 @@ class VehicleController extends Controller
 
     public function edit(Request $request, Family $family, Vehicle $vehicle): View
     {
-        $user = $request->user();
-        
-        $hasAccess = $family->roles()->where('user_id', $user->id)->exists()
-            || $family->members()->where('user_id', $user->id)->exists();
-        
-        if (!$hasAccess) {
+        $user = once(fn () => $request->user());
+        if (!$this->hasVehicleFamilyAccess($family, $user)) {
             abort(403, 'You do not have access to this family.');
         }
 
@@ -252,6 +234,19 @@ class VehicleController extends Controller
 
         return redirect()->route('families.vehicles.index', ['family' => $family->id])
             ->with('success', $message);
+    }
+
+    private function hasVehicleFamilyAccess(Family $family, $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+        $key = 'vehicle_access_' . $family->id . '_' . $user->id;
+        if (!app()->bound($key)) {
+            app()->instance($key, $family->roles()->where('user_id', $user->id)->exists()
+                || $family->members()->where('user_id', $user->id)->exists());
+        }
+        return app($key);
     }
 }
 

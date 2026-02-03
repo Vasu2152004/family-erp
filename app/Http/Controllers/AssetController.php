@@ -168,7 +168,7 @@ class AssetController extends Controller
             $asset->refresh();
         }
 
-        $user = Auth::user();
+        $user = once(fn () => Auth::user());
 
         // Treat as unlocked only if asset is not locked or current session PIN unlock
         $isUnlocked = !$asset->is_locked
@@ -180,7 +180,7 @@ class AssetController extends Controller
         }
 
         $pendingRequest = AssetUnlockRequest::where('asset_id', $asset->id)
-            ->where('requested_by', Auth::id())
+            ->where('requested_by', $user->id)
             ->where('status', 'pending')
             ->first();
 

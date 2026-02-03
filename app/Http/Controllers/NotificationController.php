@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Family;
+use App\Models\InvestmentUnlockRequest;
 use App\Models\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,8 +25,31 @@ class NotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->simplePaginate(15);
 
+        // Pre-fetch families and unlock requests to avoid N+1 in view
+        $familyIds = $notifications->getCollection()
+            ->pluck('data')
+            ->filter()
+            ->map(fn ($data) => $data['family_id'] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $familiesById = $familyIds ? Family::whereIn('id', $familyIds)->get()->keyBy('id') : collect();
+
+        $requestIds = $notifications->getCollection()
+            ->pluck('data')
+            ->filter()
+            ->map(fn ($data) => $data['request_id'] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+        $unlockRequestsById = $requestIds ? InvestmentUnlockRequest::whereIn('id', $requestIds)->get()->keyBy('id') : collect();
+
         return view('notifications.index', [
             'notifications' => $notifications,
+            'familiesById' => $familiesById,
+            'unlockRequestsById' => $unlockRequestsById,
         ]);
     }
 

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PerformanceHelper;
 use App\Models\CalendarEvent;
 use App\Models\DoctorVisit;
 use App\Models\Family;
-use App\Models\FamilyMember;
 use App\Models\FamilyMemberRequest;
-use App\Models\FamilyUserRole;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
 use App\Models\ShoppingListItem;
@@ -31,11 +30,8 @@ class DashboardController extends Controller
 
         $key = 'dashboard_data_' . $user->id;
         if (!app()->bound($key)) {
-            $familyIds = FamilyUserRole::where('user_id', $user->id)
-                ->pluck('family_id')
-                ->merge(FamilyMember::where('user_id', $user->id)->pluck('family_id'))
-                ->unique()
-                ->values();
+            $accessibleFamilies = PerformanceHelper::getAccessibleFamilies($user->id);
+            $familyIds = $accessibleFamilies->pluck('id');
 
             $familiesCount = $familyIds->count();
             $pendingRequestsCount = FamilyMemberRequest::where('requested_user_id', $user->id)
@@ -94,12 +90,9 @@ class DashboardController extends Controller
                     ->where('tenant_id', $user->tenant_id)
                     ->lowStock()
                     ->with('family:id,name')
-                    ->limit(5)
                     ->get();
-                $lowStockCount = InventoryItem::whereIn('family_id', $familyIds)
-                    ->where('tenant_id', $user->tenant_id)
-                    ->lowStock()
-                    ->count();
+                $lowStockCount = $lowStockItems->count();
+                $lowStockItems = $lowStockItems->take(5)->values();
 
                 $upcomingEvents = CalendarEvent::whereIn('family_id', $familyIds)
                     ->where('tenant_id', $user->tenant_id)
@@ -134,26 +127,39 @@ class DashboardController extends Controller
 
                 $currentMonthStart = Carbon::now()->startOfMonth();
                 $currentMonthEnd = Carbon::now()->endOfMonth();
-                $families = Family::whereIn('id', $familyIds)->get(['id', 'name']);
+                $families = $accessibleFamilies;
+                $familyIdsArr = $familyIds->all();
 
-                foreach ($families as $family) {
-                    $totalBalance = FinanceAccount::where('family_id', $family->id)
+                $balancesByFamily = empty($familyIdsArr)
+                    ? collect()
+                    : FinanceAccount::whereIn('family_id', $familyIdsArr)
                         ->where('is_active', true)
-                        ->sum('current_balance');
-                    $monthlyIncome = Transaction::where('family_id', $family->id)
+                        ->selectRaw('family_id, SUM(current_balance) as total')
+                        ->groupBy('family_id')
+                        ->pluck('total', 'family_id');
+                $incomeByFamily = empty($familyIdsArr)
+                    ? collect()
+                    : Transaction::whereIn('family_id', $familyIdsArr)
                         ->where('type', 'INCOME')
                         ->whereBetween('transaction_date', [$currentMonthStart, $currentMonthEnd])
-                        ->sum('amount');
-                    $monthlyExpense = Transaction::where('family_id', $family->id)
+                        ->selectRaw('family_id, SUM(amount) as total')
+                        ->groupBy('family_id')
+                        ->pluck('total', 'family_id');
+                $expenseByFamily = empty($familyIdsArr)
+                    ? collect()
+                    : Transaction::whereIn('family_id', $familyIdsArr)
                         ->where('type', 'EXPENSE')
                         ->whereBetween('transaction_date', [$currentMonthStart, $currentMonthEnd])
-                        ->sum('amount');
+                        ->selectRaw('family_id, SUM(amount) as total')
+                        ->groupBy('family_id')
+                        ->pluck('total', 'family_id');
 
+                foreach ($families as $family) {
                     $financeSummary[] = [
                         'family' => $family,
-                        'total_balance' => (float) $totalBalance,
-                        'monthly_income' => (float) $monthlyIncome,
-                        'monthly_expense' => (float) $monthlyExpense,
+                        'total_balance' => (float) ($balancesByFamily[$family->id] ?? 0),
+                        'monthly_income' => (float) ($incomeByFamily[$family->id] ?? 0),
+                        'monthly_expense' => (float) ($expenseByFamily[$family->id] ?? 0),
                     ];
                 }
                 $firstFamily = $families->first();

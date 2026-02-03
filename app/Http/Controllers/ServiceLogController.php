@@ -62,8 +62,8 @@ class ServiceLogController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $budgets = $this->getBudgetsForFamily($family);
-        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
+        $budgets = $this->getCachedBudgetsForFamily($family);
+        $accounts = $this->getCachedActiveAccounts($family->id);
 
         return view('vehicles.service-logs.create', [
             'family' => $family,
@@ -93,8 +93,8 @@ class ServiceLogController extends Controller
     {
         $this->authorize('view', $vehicle);
 
-        $budgets = $this->getBudgetsForFamily($family);
-        $accounts = FinanceAccount::where('family_id', $family->id)->where('is_active', true)->get();
+        $budgets = $this->getCachedBudgetsForFamily($family);
+        $accounts = $this->getCachedActiveAccounts($family->id);
 
         return view('vehicles.service-logs.edit', [
             'family' => $family,
@@ -127,6 +127,25 @@ class ServiceLogController extends Controller
 
         return redirect()->route('families.vehicles.service-logs.index', ['family' => $family->id, 'vehicle' => $vehicle->id])
             ->with('success', 'Service log deleted successfully.');
+    }
+
+    private function getCachedActiveAccounts(int $familyId): \Illuminate\Support\Collection
+    {
+        $key = 'vehicle_accounts_' . $familyId;
+        if (!app()->bound($key)) {
+            app()->instance($key, FinanceAccount::where('family_id', $familyId)->where('is_active', true)->get());
+        }
+        return app($key);
+    }
+
+    private function getCachedBudgetsForFamily(Family $family): \Illuminate\Support\Collection
+    {
+        $userId = Auth::id();
+        $key = 'vehicle_budgets_' . $family->id . '_' . $userId;
+        if (!app()->bound($key)) {
+            app()->instance($key, $this->getBudgetsForFamily($family));
+        }
+        return app($key);
     }
 
     private function getBudgetsForFamily(Family $family): \Illuminate\Support\Collection
