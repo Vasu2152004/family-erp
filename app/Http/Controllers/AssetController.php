@@ -62,9 +62,7 @@ class AssetController extends Controller
         $assets = $query->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         // Get analytics data for charts (excluding locked assets)
         $typeDistributionData = $this->analyticsService->getAssetTypeDistribution($family->id);
@@ -102,9 +100,7 @@ class AssetController extends Controller
 
         $this->authorize('create', [Asset::class, $family]);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         return view('assets.create', compact('family', 'members'));
     }
@@ -234,9 +230,7 @@ class AssetController extends Controller
                 ->with('error', 'Unlock this asset with PIN before editing.');
         }
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         return view('assets.edit', compact('family', 'asset', 'members'));
     }

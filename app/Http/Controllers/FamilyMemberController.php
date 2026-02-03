@@ -37,6 +37,8 @@ class FamilyMemberController extends Controller
             'roles.user',
         ]);
 
+        $this->familyMemberService->ensureOwnersHaveFamilyMembers($family);
+
         $ownerRoles = $family->roles()->where('role', 'OWNER')->with('user:id,email')->get();
         $ownerUserIds = $ownerRoles->pluck('user_id')->flip();
         $ownerEmailsNormalized = $ownerRoles->pluck('user.email')->filter()->map(fn ($e) => strtolower(trim((string) $e)))->values()->all();

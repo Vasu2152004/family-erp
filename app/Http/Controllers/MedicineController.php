@@ -77,11 +77,7 @@ class MedicineController extends Controller
 
         $medicines = $query->simplePaginate(10)->appends($request->query());
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $authUser = once(fn () => Auth::user());
         $canUpdateIds = $medicines->getCollection()->filter(fn (Medicine $m) => Gate::forUser($authUser)->allows('update', $m))->pluck('id')->all();
@@ -110,11 +106,7 @@ class MedicineController extends Controller
 
         $this->authorize('create', Medicine::class);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         // Get active prescriptions for optional linking
         $prescriptions = Prescription::where('family_id', $family->id)
@@ -200,11 +192,7 @@ class MedicineController extends Controller
 
         $this->authorize('update', $medicine);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $prescriptions = Prescription::where('family_id', $family->id)
             ->where('status', 'active')

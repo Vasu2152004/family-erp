@@ -70,11 +70,7 @@ class TaskController extends Controller
         $user = once(fn () => $request->user());
         $canDeleteIds = $tasks->getCollection()->filter(fn (Task $t) => Gate::forUser($user)->allows('delete', $t))->pluck('id')->all();
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         // Get analytics data for charts
         $taskStatusData = $this->analyticsService->getTaskStatusDistribution($family->id);
@@ -103,11 +99,7 @@ class TaskController extends Controller
 
         $this->authorize('create', Task::class);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('tasks.create', [
             'family' => $family,
@@ -146,11 +138,7 @@ class TaskController extends Controller
 
         $task->load(['familyMember', 'createdBy', 'updatedBy', 'logs.changedBy']);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('tasks.show', [
             'family' => $family,
@@ -173,11 +161,7 @@ class TaskController extends Controller
 
         $this->authorize('update', $task);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('tasks.edit', [
             'family' => $family,

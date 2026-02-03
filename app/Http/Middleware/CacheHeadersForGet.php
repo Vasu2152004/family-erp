@@ -13,7 +13,8 @@ class CacheHeadersForGet
     private const MAX_AGE = 60;
 
     /**
-     * Route names that are safe to cache with short-lived public cache.
+     * Route names that are safe to cache with short-lived private cache (user-specific).
+     * Serverless: reduces repeat requests within max-age window.
      */
     private const CACHEABLE_ROUTE_NAMES = [
         'dashboard',
@@ -23,14 +24,24 @@ class CacheHeadersForGet
         'families.health.index',
         'families.tasks.index',
         'families.calendar.index',
+        'families.vehicles.index',
+        'families.medicines.index',
+        'families.notes.index',
+        'families.documents.index',
+        'families.inventory.categories.index',
+        'families.inventory.items.index',
+        'families.health.records.index',
+        'families.health.visits.index',
         'finance.index',
         'finance.accounts.index',
         'finance.transactions.index',
         'finance.budgets.index',
+        'finance.analytics.dashboard',
         'notifications.index',
         'family-member-requests.index',
         'assets.index',
         'investments.index',
+        'shopping-list.index',
     ];
 
     public function handle(Request $request, Closure $next): Response

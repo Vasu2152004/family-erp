@@ -76,11 +76,7 @@ class DoctorVisitController extends Controller
 
         $visits = $query->simplePaginate(10)->appends($request->query());
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('health.visits.index', [
             'family' => $family,
@@ -94,11 +90,7 @@ class DoctorVisitController extends Controller
     {
         $this->authorize('create', DoctorVisit::class);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $medicalRecords = MedicalRecord::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)
@@ -134,11 +126,7 @@ class DoctorVisitController extends Controller
 
         $visit->load(['familyMember', 'medicalRecord', 'createdBy', 'updatedBy', 'prescriptions.familyMember', 'prescriptions.reminders']);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('health.visits.show', [
             'family' => $family,
@@ -151,11 +139,7 @@ class DoctorVisitController extends Controller
     {
         $this->authorize('update', $visit);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $medicalRecords = MedicalRecord::where('family_id', $family->id)
             ->where('tenant_id', $family->tenant_id)

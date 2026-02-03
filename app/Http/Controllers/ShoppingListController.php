@@ -44,6 +44,8 @@ class ShoppingListController extends Controller
 
         $this->authorize('viewAny', [ShoppingListItem::class, $family]);
 
+        app(\App\Services\FamilyMemberService::class)->ensureOwnersHaveFamilyMembers($family);
+
         $pendingItems = ShoppingListItem::where('family_id', $family->id)
             ->pending()
             ->with([

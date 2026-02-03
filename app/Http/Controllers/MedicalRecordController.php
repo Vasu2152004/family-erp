@@ -49,11 +49,7 @@ class MedicalRecordController extends Controller
 
         $records = $query->simplePaginate(10)->appends($request->query());
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('health.records.index', [
             'family' => $family,
@@ -67,11 +63,7 @@ class MedicalRecordController extends Controller
     {
         $this->authorize('create', MedicalRecord::class);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('health.records.create', [
             'family' => $family,
@@ -110,11 +102,7 @@ class MedicalRecordController extends Controller
     {
         $this->authorize('update', $record);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('health.records.edit', [
             'family' => $family,

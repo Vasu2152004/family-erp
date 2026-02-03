@@ -65,11 +65,7 @@ class VehicleController extends Controller
 
         $canDeleteIds = $vehicles->getCollection()->filter(fn (Vehicle $v) => Gate::forUser($user)->allows('delete', $v))->pluck('id')->all();
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         // Get analytics data for charts
         $fuelConsumptionData = $this->analyticsService->getFuelConsumptionTrends($family->id, 12);
@@ -93,11 +89,7 @@ class VehicleController extends Controller
 
         $this->authorize('create', Vehicle::class);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('vehicles.create', [
             'family' => $family,
@@ -176,11 +168,7 @@ class VehicleController extends Controller
 
         $this->authorize('update', $vehicle);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $family->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         return view('vehicles.edit', [
             'family' => $family,

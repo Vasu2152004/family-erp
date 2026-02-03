@@ -355,7 +355,8 @@ class TransactionController extends Controller
     {
         $key = 'family_members_' . $family->id;
         if (!app()->bound($key)) {
-            app()->instance($key, $family->members()->with('user')->get());
+            $service = app(\App\Services\FamilyMemberService::class);
+            app()->instance($key, $service->getMembersForSelection($family));
         }
         return app($key);
     }

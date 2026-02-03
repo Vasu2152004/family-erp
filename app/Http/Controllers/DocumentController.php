@@ -72,11 +72,7 @@ class DocumentController extends Controller
         $user = once(fn () => $request->user());
         $canDeleteIds = $documents->getCollection()->filter(fn (Document $doc) => Gate::forUser($user)->allows('delete', $doc))->pluck('id')->all();
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $builtInTypes = collect(Document::TYPES)->map(fn($type) => [
             'value' => $type,
@@ -111,11 +107,7 @@ class DocumentController extends Controller
         $family = $this->resolveFamilyForUser($family, $request->user());
         Gate::authorize('create', [Document::class, $family->id]);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->where('tenant_id', $request->user()->tenant_id)
-            ->alive()
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
 
         $builtInTypes = collect(Document::TYPES)->map(fn($type) => [
             'value' => $type,

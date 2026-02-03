@@ -15,6 +15,35 @@ use Illuminate\Validation\ValidationException;
 class FamilyMemberService
 {
     /**
+     * Ensure all family owners have FamilyMember records so they appear in member selection lists.
+     * Call this before loading members for dropdowns/filters. Idempotent.
+     */
+    public function ensureOwnersHaveFamilyMembers(Family $family): void
+    {
+        $ownerRoles = $family->roles()->where('role', 'OWNER')->with('user')->get();
+        foreach ($ownerRoles as $role) {
+            if ($role->user) {
+                $this->ensureOwnerFamilyMember($family, $role->user);
+            }
+        }
+    }
+
+    /**
+     * Get family members for selection dropdowns/filters, ensuring owners are included.
+     *
+     * @param  bool  $aliveOnly  When true, excludes deceased members (for forms like doctor visits, tasks).
+     */
+    public function getMembersForSelection(Family $family, bool $aliveOnly = false): \Illuminate\Support\Collection
+    {
+        $this->ensureOwnersHaveFamilyMembers($family);
+        $query = $family->members()->with('user')->orderBy('first_name')->orderBy('last_name');
+        if ($aliveOnly) {
+            $query->alive();
+        }
+        return $query->get();
+    }
+
+    /**
      * Ensure a family owner has a FamilyMember record so they appear in member selection lists.
      * Creates one if missing. Idempotent - safe to call multiple times.
      * Note: user_id is unique globally in family_members - if user already has a record in another family, we skip.

@@ -27,6 +27,8 @@ class FamilyRoleController extends Controller
     {
         $this->authorize('view', $family);
 
+        app(\App\Services\FamilyMemberService::class)->ensureOwnersHaveFamilyMembers($family);
+
         $user = once(fn () => Auth::user());
         $userId = $user->id;
 

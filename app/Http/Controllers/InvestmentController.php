@@ -95,9 +95,7 @@ class InvestmentController extends Controller
         $investments = $query->orderBy('created_at', 'desc')
             ->simplePaginate(10);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         // Get analytics data for charts (excluding hidden investments)
         $typeDistributionData = $this->analyticsService->getInvestmentTypeDistribution($family->id);
@@ -141,9 +139,7 @@ class InvestmentController extends Controller
 
         $this->authorize('create', [Investment::class, $family]);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         return view('investments.create', compact('family', 'members'));
     }
@@ -266,9 +262,7 @@ class InvestmentController extends Controller
 
         $this->authorize('update', $investment);
 
-        $members = FamilyMember::where('family_id', $family->id)
-            ->orderBy('first_name')
-            ->get();
+        $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family);
 
         return view('investments.edit', compact('family', 'investment', 'members'));
     }
