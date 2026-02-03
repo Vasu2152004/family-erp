@@ -8,6 +8,7 @@ use App\Http\Controllers\Concerns\HasFamilyContext;
 use App\Models\Family;
 use App\Models\FinanceAccount;
 use App\Models\ShoppingListItem;
+use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\Budget;
 use App\Models\FamilyMember;
@@ -70,6 +71,10 @@ class ShoppingListController extends Controller
             ->limit(100)
             ->get();
 
+        $inventoryCategories = InventoryCategory::where('family_id', $family->id)
+            ->orderBy('name')
+            ->get();
+
         // Get budgets for current user (personal budgets + family budgets) - optimize with single query
         $currentMonth = now()->month;
         $currentYear = now()->year;
@@ -112,7 +117,7 @@ class ShoppingListController extends Controller
         $pendingCanDeleteIds = $pendingItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('delete', $item))->pluck('id')->all();
         $purchasedCanUpdateIds = $purchasedItems->getCollection()->filter(fn ($item) => Gate::forUser($user)->allows('update', $item))->pluck('id')->all();
 
-        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'budgets', 'accounts', 'pendingCanMarkPurchasedIds', 'pendingCanUpdateIds', 'pendingCanDeleteIds', 'purchasedCanUpdateIds'));
+        return view('shopping-list.index', compact('family', 'pendingItems', 'purchasedItems', 'inventoryItems', 'inventoryCategories', 'budgets', 'accounts', 'pendingCanMarkPurchasedIds', 'pendingCanUpdateIds', 'pendingCanDeleteIds', 'purchasedCanUpdateIds'));
     }
 
     /**
@@ -131,6 +136,11 @@ class ShoppingListController extends Controller
 
         $validated = $request->validate([
             'inventory_item_id' => ['nullable', 'exists:inventory_items,id'],
+            'inventory_category_id' => [
+                'required_if:inventory_item_id,',
+                'nullable',
+                \Illuminate\Validation\Rule::exists('inventory_categories', 'id')->where('family_id', $family->id),
+            ],
             'name' => ['required_without:inventory_item_id', 'string', 'max:255'],
             'qty' => ['required', 'numeric', 'min:0.01'],
             'unit' => ['required', 'in:piece,kg,liter,gram,ml,pack,box,bottle,other'],

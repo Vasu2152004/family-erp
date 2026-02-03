@@ -18,6 +18,7 @@ class ShoppingListItem extends Model
         'tenant_id',
         'family_id',
         'inventory_item_id',
+        'inventory_category_id',
         'name',
         'qty',
         'unit',
@@ -56,6 +57,11 @@ class ShoppingListItem extends Model
     public function inventoryItem(): BelongsTo
     {
         return $this->belongsTo(InventoryItem::class, 'inventory_item_id');
+    }
+
+    public function inventoryCategory(): BelongsTo
+    {
+        return $this->belongsTo(InventoryCategory::class, 'inventory_category_id');
     }
 
     public function addedBy(): BelongsTo

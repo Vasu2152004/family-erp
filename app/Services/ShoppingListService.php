@@ -31,6 +31,7 @@ class ShoppingListService
                 'tenant_id' => $tenantId,
                 'family_id' => $familyId,
                 'inventory_item_id' => $data['inventory_item_id'] ?? null,
+                'inventory_category_id' => $data['inventory_category_id'] ?? null,
                 'name' => $data['name'],
                 'qty' => $data['qty'] ?? 1,
                 'unit' => $data['unit'] ?? 'piece',
@@ -129,16 +130,34 @@ class ShoppingListService
                 $transaction = $this->createPurchaseTransaction($item, $userId, $familyMember, $amount, $budgetId, $financeAccountId);
             }
 
-            // Update item with purchase details
-            $item->update([
+            // For manual entry with category: create new inventory item and link it
+            $newInventoryItemId = null;
+            if (!$item->inventory_item_id && $item->inventory_category_id) {
+                $newInventoryItem = $this->inventoryService->createItem([
+                    'category_id' => $item->inventory_category_id,
+                    'name' => $item->name,
+                    'qty' => 0,
+                    'unit' => $item->unit,
+                    'created_by' => $userId,
+                ], $item->tenant_id, $item->family_id);
+                $newInventoryItemId = $newInventoryItem->id;
+            }
+
+            // Update item with purchase details (and new inventory_item_id if created for manual entry)
+            $updateData = [
                 'amount' => $amount,
                 'budget_id' => $budgetId,
                 'transaction_id' => $transaction?->id,
-            ]);
+            ];
+            if ($newInventoryItemId !== null) {
+                $updateData['inventory_item_id'] = $newInventoryItemId;
+            }
+            $item->update($updateData);
 
             // If item is linked to inventory, update inventory quantity
-            if ($item->inventory_item_id) {
-                $inventoryItem = InventoryItem::find($item->inventory_item_id);
+            $inventoryItemId = $newInventoryItemId ?? $item->inventory_item_id;
+            if ($inventoryItemId) {
+                $inventoryItem = InventoryItem::find($inventoryItemId);
                 if ($inventoryItem) {
                     $newQty = $inventoryItem->qty + $item->qty;
                     $this->inventoryService->updateQuantity($inventoryItem->id, $newQty, $userId);
@@ -237,6 +256,9 @@ class ShoppingListService
     {
         return DB::transaction(function () use ($itemId) {
             $item = ShoppingListItem::findOrFail($itemId);
+            $hadInventoryLink = $item->inventory_item_id && $item->is_purchased;
+            $inventoryItemId = $item->inventory_item_id;
+            $itemQty = $item->qty;
             
             // Delete transaction if exists
             if ($item->transaction_id) {
@@ -265,10 +287,10 @@ class ShoppingListService
             ]);
 
             // If item was purchased and linked to inventory, reverse the quantity update
-            if ($item->inventory_item_id && $item->purchased_at) {
-                $inventoryItem = InventoryItem::find($item->inventory_item_id);
+            if ($hadInventoryLink && $inventoryItemId) {
+                $inventoryItem = InventoryItem::find($inventoryItemId);
                 if ($inventoryItem) {
-                    $newQty = max(0, $inventoryItem->qty - $item->qty);
+                    $newQty = max(0, $inventoryItem->qty - $itemQty);
                     $this->inventoryService->updateQuantity($inventoryItem->id, $newQty);
                 }
             }

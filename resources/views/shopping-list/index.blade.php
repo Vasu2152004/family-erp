@@ -91,6 +91,18 @@
                                 </select>
                                 <x-error-message field="inventory_item_id" />
                             </div>
+
+                            <div id="inventory_category_wrapper" class="{{ old('inventory_item_id') ? 'hidden' : '' }}">
+                                <x-label for="inventory_category_id">Add to Category</x-label>
+                                <select name="inventory_category_id" id="inventory_category_id" class="mt-1 block w-full rounded-lg border border-[var(--color-border-primary)] px-4 py-2.5 text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]">
+                                    <option value="">Select category</option>
+                                    @foreach($inventoryCategories ?? [] as $cat)
+                                        <option value="{{ $cat->id }}" {{ old('inventory_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                    @endforeach
+                                </select>
+                                <p class="mt-1 text-xs text-[var(--color-text-secondary)]">Required for manual entry – item will be added to inventory when purchased</p>
+                                <x-error-message field="inventory_category_id" />
+                            </div>
                         </div>
 
                         <div>
@@ -290,6 +302,23 @@
                 const inventorySelect = document.getElementById('inventory_item_id');
                 const nameInput = document.getElementById('name');
                 const unitSelect = document.getElementById('unit');
+                const categoryWrapper = document.getElementById('inventory_category_wrapper');
+                const categorySelect = document.getElementById('inventory_category_id');
+                
+                function toggleCategoryVisibility() {
+                    const isManualEntry = !inventorySelect?.value;
+                    if (categoryWrapper) {
+                        categoryWrapper.classList.toggle('hidden', !isManualEntry);
+                    }
+                    if (categorySelect) {
+                        if (isManualEntry) {
+                            categorySelect.setAttribute('required', 'required');
+                        } else {
+                            categorySelect.removeAttribute('required');
+                            categorySelect.value = '';
+                        }
+                    }
+                }
                 
                 if (inventorySelect && nameInput && unitSelect) {
                     inventorySelect.addEventListener('change', function() {
@@ -304,28 +333,28 @@
                                 nameInput.value = itemName;
                                 nameInput.readOnly = true;
                                 nameInput.classList.add('bg-gray-100', 'cursor-not-allowed');
-                                // Remove required attribute since value is set
                                 nameInput.removeAttribute('required');
                             }
                             
                             if (itemUnit) {
-                                // Set unit if it matches one of the options
                                 const unitOption = Array.from(unitSelect.options).find(opt => opt.value === itemUnit);
                                 if (unitOption) {
                                     unitSelect.value = itemUnit;
                                 }
                             }
+                            toggleCategoryVisibility();
                         } else {
                             // Manual entry - enable name field
                             nameInput.readOnly = false;
                             nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
-                            // Re-add required attribute for manual entry
                             nameInput.setAttribute('required', 'required');
                             if (!nameInput.value) {
                                 nameInput.value = '';
                             }
+                            toggleCategoryVisibility();
                         }
                     });
+                    toggleCategoryVisibility();
                 }
             }
             

@@ -14,81 +14,96 @@
         </div>
     </div>
 
-    <!-- Stats Grid - Responsive: 1 col mobile, 2 sm, 3 md, 4 lg, 5 xl - no horizontal scroll -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 mb-6 w-full min-w-0">
-        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-            <div class="flex items-center justify-between mb-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Stats Grid - Compact, responsive: 2 cols mobile, 3 sm, 4 md, 5 lg, 6 xl -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mb-6 w-full min-w-0">
+        <a href="{{ route('families.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+            <div class="flex items-center justify-between mb-1">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                 </div>
-                <svg class="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-blue-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-800">{{ $familiesCount }}</h3>
-            <p class="text-sm text-gray-600">Families</p>
+            <h3 class="text-xl font-bold text-gray-800 truncate">{{ $familiesCount }}</h3>
+            <p class="text-xs text-gray-600">Families</p>
         </a>
 
-        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 relative">
+        <a href="{{ route('family-member-requests.index') }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 relative min-w-0">
             @if($pendingRequestsCount > 0)
-                <span class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse">{{ $pendingRequestsCount }}</span>
+                <span class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full animate-pulse">{{ $pendingRequestsCount }}</span>
             @endif
-            <div class="flex items-center justify-between mb-2">
-                <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center justify-between mb-1">
+                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                     </svg>
                 </div>
-                <svg class="w-4 h-4 text-gray-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-purple-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </div>
-            <h3 class="text-2xl font-bold text-gray-800">{{ $pendingRequestsCount }}</h3>
-            <p class="text-sm text-gray-600">Pending Requests</p>
+            <h3 class="text-xl font-bold text-gray-800 truncate">{{ $pendingRequestsCount }}</h3>
+            <p class="text-xs text-gray-600">Pending Requests</p>
         </a>
 
         @if($familiesCount > 0)
             @if(!empty($financeSummary))
-                <a href="{{ route('finance.index', ['family_id' => $financeSummary[0]['family']->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('finance.index', ['family_id' => $financeSummary[0]['family']->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
-                        <svg class="w-4 h-4 text-gray-400 group-hover:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-800">₹{{ number_format($financeSummary[0]['total_balance'], 0) }}</h3>
-                    <p class="text-sm text-gray-600">Total Balance</p>
+                    <h3 class="text-lg font-bold text-gray-800 truncate">₹{{ number_format($financeSummary[0]['total_balance'], 0) }}</h3>
+                    <p class="text-xs text-gray-600">Total Balance</p>
                 </a>
             @endif
 
-            <div class="bg-white rounded-xl shadow border border-gray-200 p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
+            @if($firstFamily)
+                <a href="{{ route('families.inventory.items.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-amber-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800">{{ $lowStockCount }}</h3>
-                <p class="text-sm text-gray-600">Low Stock Items</p>
-                @if($lowStockCount > 0 && $lowStockItems->isNotEmpty())
-                    <a href="{{ route('families.inventory.items.index', ['family' => $lowStockItems->first()->family_id]) }}" class="text-xs text-amber-600 hover:text-amber-800 font-semibold mt-1 inline-block">View Inventory →</a>
-                @endif
-            </div>
+                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $lowStockCount }}</h3>
+                    <p class="text-xs text-gray-600">Low Stock Items</p>
+                </a>
+            @endif
+
+            @if($firstFamily)
+                <a href="{{ route('shopping-list.index', ['family_id' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="w-8 h-8 bg-gradient-to-br from-lime-500 to-green-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-lime-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $shoppingListPendingCount }}</h3>
+                    <p class="text-xs text-gray-600">Shopping List</p>
+                </a>
+            @endif
 
             @php $totalTasks = ($taskCountsByStatus['pending'] ?? 0) + ($taskCountsByStatus['in_progress'] ?? 0) + ($taskCountsByStatus['done'] ?? 0); @endphp
             @if($totalTasks > 0 && $firstFamily)
-                <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-4 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="{{ route('families.tasks.index', ['family' => $firstFamily->id]) }}" class="group bg-white rounded-xl shadow border border-gray-200 p-3 hover:shadow-lg hover:scale-[1.01] transition-all duration-300 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shadow group-hover:scale-110 transition-transform shrink-0">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                             </svg>
                         </div>
-                        <svg class="w-4 h-4 text-gray-400 group-hover:text-cyan-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="w-3.5 h-3.5 text-gray-400 group-hover:text-cyan-600 transition-colors shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </div>
-                    <h3 class="text-2xl font-bold text-gray-800">{{ $taskCountsByStatus['pending'] + $taskCountsByStatus['in_progress'] }}</h3>
-                    <p class="text-sm text-gray-600">Active Tasks</p>
+                    <h3 class="text-xl font-bold text-gray-800 truncate">{{ $taskCountsByStatus['pending'] + $taskCountsByStatus['in_progress'] }}</h3>
+                    <p class="text-xs text-gray-600">Active Tasks</p>
                 </a>
             @endif
         @endif

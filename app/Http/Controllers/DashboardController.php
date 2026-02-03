@@ -12,6 +12,7 @@ use App\Models\FamilyMemberRequest;
 use App\Models\FamilyUserRole;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
+use App\Models\ShoppingListItem;
 use App\Models\Task;
 use App\Models\Transaction;
 use App\Models\Vehicle;
@@ -78,6 +79,7 @@ class DashboardController extends Controller
             $taskCountsByStatus = ['pending' => 0, 'in_progress' => 0, 'done' => 0];
             $financeSummary = [];
             $firstFamily = null;
+            $shoppingListPendingCount = 0;
 
             if ($familyIds->isNotEmpty()) {
                 $recentTransactions = Transaction::whereIn('family_id', $familyIds)
@@ -155,6 +157,9 @@ class DashboardController extends Controller
                     ];
                 }
                 $firstFamily = $families->first();
+                $shoppingListPendingCount = ShoppingListItem::whereIn('family_id', $familyIds)
+                    ->pending()
+                    ->count();
             } else {
                 $firstFamily = null;
             }
@@ -175,6 +180,7 @@ class DashboardController extends Controller
                 'taskCountsByStatus' => $taskCountsByStatus,
                 'financeSummary' => $financeSummary,
                 'firstFamily' => $firstFamily ?? null,
+                'shoppingListPendingCount' => $shoppingListPendingCount,
             ]);
         }
 
@@ -196,6 +202,7 @@ class DashboardController extends Controller
             'taskCountsByStatus' => $data['taskCountsByStatus'],
             'financeSummary' => $data['financeSummary'],
             'firstFamily' => $data['firstFamily'] ?? null,
+            'shoppingListPendingCount' => $data['shoppingListPendingCount'] ?? 0,
         ]);
     }
 }
