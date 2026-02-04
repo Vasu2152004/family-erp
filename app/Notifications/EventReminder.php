@@ -47,7 +47,9 @@ class EventReminder extends Notification
                 'actionUrl' => route('families.calendar.index', ['family' => $this->event->family_id]),
                 'actionText' => 'View Calendar',
                 'outroLines' => [
-                    "This reminder was set {$this->event->reminder_before_minutes} minutes before the event.",
+                    'This reminder was set ' . ($this->event->reminder_before_minutes >= 1440
+                        ? (int) ($this->event->reminder_before_minutes / 1440) . ' day(s) before the event.'
+                        : $this->event->reminder_before_minutes . ' minutes before the event.'),
                     'Don\'t forget to attend!',
                 ],
                 'salutation' => 'Best regards,<br>Family ERP Team',

@@ -63,6 +63,7 @@ class VehicleController extends Controller
 
         $vehicles = $query->simplePaginate(10)->appends($request->query());
 
+        $canEditIds = $vehicles->getCollection()->filter(fn (Vehicle $v) => Gate::forUser($user)->allows('update', $v))->pluck('id')->all();
         $canDeleteIds = $vehicles->getCollection()->filter(fn (Vehicle $v) => Gate::forUser($user)->allows('delete', $v))->pluck('id')->all();
 
         $members = app(\App\Services\FamilyMemberService::class)->getMembersForSelection($family, true);
@@ -74,6 +75,7 @@ class VehicleController extends Controller
             'family' => $family,
             'vehicles' => $vehicles,
             'members' => $members,
+            'canEditIds' => $canEditIds,
             'canDeleteIds' => $canDeleteIds,
             'filters' => $request->only(['search', 'family_member_id', 'expiring_soon']),
             'fuelConsumptionData' => $fuelConsumptionData,

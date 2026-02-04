@@ -44,7 +44,8 @@ class DocumentPolicy
             return false;
         }
 
-        return $user->isFamilyAdmin($document->family_id);
+        // Family admin or linked member (owner) can update
+        return $user->isFamilyAdmin($document->family_id) || $document->isLinkedMember($user);
     }
 
     public function delete(User $user, Document $document): bool

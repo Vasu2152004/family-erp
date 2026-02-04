@@ -42,17 +42,13 @@ class VehiclePolicy
             return false;
         }
 
-        // OWNER/ADMIN can update all
+        // Family admin can update all
         if ($user->isFamilyAdmin($vehicle->family_id)) {
             return true;
         }
 
-        // MEMBER can update if they own the vehicle or created it
-        if ($role && $role->role === 'member') {
-            return $this->isVehicleOwner($user, $vehicle) || $vehicle->created_by === $user->id;
-        }
-
-        return false;
+        // Vehicle owner (linked family member) or creator can update
+        return $this->isVehicleOwner($user, $vehicle) || $vehicle->created_by === $user->id;
     }
 
     public function delete(User $user, Vehicle $vehicle): bool
@@ -61,8 +57,8 @@ class VehiclePolicy
             return false;
         }
 
-        // Only OWNER/ADMIN can delete
-        return $user->isFamilyAdmin($vehicle->family_id);
+        // Family admin or vehicle owner can delete
+        return $user->isFamilyAdmin($vehicle->family_id) || $this->isVehicleOwner($user, $vehicle);
     }
 
     private function belongsToFamily(User $user, Vehicle $vehicle): bool

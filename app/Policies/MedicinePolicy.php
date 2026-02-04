@@ -43,7 +43,7 @@ class MedicinePolicy
 
     /**
      * Determine if the user can update the medicine.
-     * All family members can update medicines in their family.
+     * Family admin, medicine owner (family_member), creator, or any family member can update.
      */
     public function update(User $user, Medicine $medicine): bool
     {
@@ -51,12 +51,26 @@ class MedicinePolicy
             return false;
         }
 
-        return $this->belongsToFamily($user, $medicine);
+        if (!$this->belongsToFamily($user, $medicine)) {
+            return false;
+        }
+
+        // Family admin or medicine owner (family_member) or creator can update
+        if ($user->isFamilyAdmin($medicine->family_id)) {
+            return true;
+        }
+        if ($medicine->familyMember && $medicine->familyMember->user_id === $user->id) {
+            return true;
+        }
+        if ($medicine->created_by === $user->id) {
+            return true;
+        }
+
+        return true; // All family members can update (shared medicine cabinet)
     }
 
     /**
      * Determine if the user can delete the medicine.
-     * All family members can delete medicines in their family.
      */
     public function delete(User $user, Medicine $medicine): bool
     {

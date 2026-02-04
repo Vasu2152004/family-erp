@@ -104,6 +104,11 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                         </svg>
                                     </a>
+                                    @if(in_array($vehicle->id, $canEditIds ?? []))
+                                        <a href="{{ route('families.vehicles.edit', ['family' => $family->id, 'vehicle' => $vehicle->id]) }}" title="Edit Vehicle">
+                                            <x-button variant="outline" size="sm">Edit</x-button>
+                                        </a>
+                                    @endif
                                     @if(in_array($vehicle->id, $canDeleteIds ?? []))
                                         <button type="button" onclick="openDeleteModal({{ $vehicle->id }}, '{{ addslashes($vehicle->make) }} {{ addslashes($vehicle->model) }}', '{{ $vehicle->registration_number }}')" title="Delete Vehicle">
                                             <x-button variant="danger-outline" size="sm">

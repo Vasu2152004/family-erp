@@ -44,9 +44,9 @@
                     <x-label for="reminder_before_minutes">Reminder</x-label>
                     <x-select id="reminder_before_minutes" name="reminder_before_minutes" class="mt-1 w-full">
                         <option value="">No reminder</option>
-                        @foreach([5, 10, 15, 30, 60, 120, 1440] as $minutes)
+                        @foreach([1 => 1440, 2 => 2880, 3 => 4320, 4 => 5760, 5 => 7200, 7 => 10080] as $days => $minutes)
                             <option value="{{ $minutes }}" {{ old('reminder_before_minutes') == $minutes ? 'selected' : '' }}>
-                                {{ $minutes >= 60 ? $minutes / 60 . ' hour(s)' : $minutes . ' minutes' }} before
+                                {{ $days }} day{{ $days > 1 ? 's' : '' }} before event
                             </option>
                         @endforeach
                     </x-select>

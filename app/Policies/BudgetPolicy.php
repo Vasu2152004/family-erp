@@ -102,12 +102,24 @@ class BudgetPolicy
      */
     public function update(User $user, Budget $budget): bool
     {
-        // OWNER/ADMIN can update budgets
         $userRole = \App\Models\FamilyUserRole::where('family_id', $budget->family_id)
             ->where('user_id', $user->id)
             ->first();
 
-        return $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+        // OWNER/ADMIN can update all budgets
+        if ($userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN')) {
+            return true;
+        }
+
+        // Personal budget owner (family_member) can update their own
+        if ($budget->family_member_id) {
+            $member = \App\Models\FamilyMember::find($budget->family_member_id);
+            if ($member && $member->user_id === $user->id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -115,11 +127,6 @@ class BudgetPolicy
      */
     public function delete(User $user, Budget $budget): bool
     {
-        // OWNER/ADMIN can delete budgets
-        $userRole = \App\Models\FamilyUserRole::where('family_id', $budget->family_id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        return $userRole && ($userRole->role === 'OWNER' || $userRole->role === 'ADMIN');
+        return $this->update($user, $budget);
     }
 }

@@ -72,8 +72,10 @@ class TaskPolicy
             return false;
         }
 
-        // Only OWNER/ADMIN can delete
-        return $user->isFamilyAdmin($task->family_id);
+        // Family admin, assigned member (owner), or creator can delete
+        return $user->isFamilyAdmin($task->family_id)
+            || $this->isAssignedToUser($user, $task)
+            || $task->created_by === $user->id;
     }
 
     /**
