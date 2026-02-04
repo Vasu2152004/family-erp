@@ -15,15 +15,15 @@ class GenericNotificationMail extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public string $subject,
-        public string $message
+        private readonly string $mailSubject,
+        private readonly string $mailBody
     ) {
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: $this->subject,
+            subject: $this->mailSubject,
         );
     }
 
@@ -31,6 +31,10 @@ class GenericNotificationMail extends Mailable
     {
         return new Content(
             view: 'emails.generic-notification',
+            with: [
+                'subject' => $this->mailSubject,
+                'message' => $this->mailBody,
+            ],
         );
     }
 }
