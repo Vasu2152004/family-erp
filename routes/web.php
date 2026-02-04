@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\DB;
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
+
+// Cron endpoints (protected by CRON_SECRET - Vercel sends Authorization: Bearer, manual uses ?token=)
+Route::get('/cron', [CronController::class, 'run'])->name('cron.run');
+Route::get('/cron/test-mail', [CronController::class, 'testMail'])->name('cron.test-mail');
 
 // TEMPORARY: Test Brevo email delivery - remove before production deploy
 if (app()->environment('local')) {

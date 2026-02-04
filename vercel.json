@@ -9,5 +9,11 @@
     "rewrites": [
         {"source": "/(.*)", "destination": "/api/lambda.php?req_path=/$1"}
     ],
-    "buildCommand": "echo skip..."
+    "buildCommand": "echo skip...",
+    "crons": [
+        {
+            "path": "/cron",
+            "schedule": "30 2 * * *"
+        }
+    ]
 }
