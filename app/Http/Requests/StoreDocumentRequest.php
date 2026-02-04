@@ -6,6 +6,8 @@ namespace App\Http\Requests;
 
 use App\Models\Document;
 use App\Models\DocumentType;
+use App\Models\Family;
+use App\Models\FamilyMember;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,13 +17,26 @@ class StoreDocumentRequest extends FormRequest
     {
         $family = $this->route('family');
 
-        if (!$family) {
+        if (!$family || !$this->user()) {
             return false;
         }
 
         $familyId = is_numeric($family) ? (int) $family : (int) ($family->id ?? 0);
+        if ($familyId <= 0) {
+            return false;
+        }
 
-        return $familyId > 0 && ($this->user()?->isFamilyAdmin($familyId) ?? false);
+        $familyModel = Family::find($familyId);
+        if (!$familyModel || $this->user()->tenant_id !== $familyModel->tenant_id) {
+            return false;
+        }
+
+        $role = $this->user()->getFamilyRole($familyId);
+        $isMember = FamilyMember::where('family_id', $familyId)
+            ->where('user_id', $this->user()->id)
+            ->exists();
+
+        return $role !== null || $isMember;
     }
 
     public function rules(): array

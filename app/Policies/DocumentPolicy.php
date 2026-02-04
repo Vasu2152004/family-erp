@@ -54,7 +54,15 @@ class DocumentPolicy
 
     public function create(User $user, int $familyId): bool
     {
-        return $user->isFamilyAdmin($familyId);
+        if ($user->tenant_id !== \App\Models\Family::find($familyId)?->tenant_id) {
+            return false;
+        }
+        $role = $user->getFamilyRole($familyId);
+        $isMember = FamilyMember::where('family_id', $familyId)
+            ->where('user_id', $user->id)
+            ->exists();
+
+        return $role !== null || $isMember;
     }
 
     private function belongsToFamily(User $user, Document $document): bool
