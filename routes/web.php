@@ -13,6 +13,23 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
+// TEMPORARY: Test Brevo email delivery - remove before production deploy
+if (app()->environment('local')) {
+    Route::get('/test-mail', function () {
+        $email = request()->query('to');
+        if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return response('Invalid or missing "to" query parameter (valid email required)', 400);
+        }
+        \Illuminate\Support\Facades\Mail::to($email)->send(
+            new \App\Mail\GenericNotificationMail(
+                'Brevo Test Email',
+                'This is a test email from Family ERP. If you received this, Brevo SMTP is working correctly.'
+            )
+        );
+        return 'Test email sent to ' . $email;
+    })->name('test-mail');
+}
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     // Login Routes - Rate limiting handled by LoginRequest (email+IP based, more secure)
