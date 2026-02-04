@@ -27,7 +27,7 @@
                         <td style="padding: 40px;">
                             <div style="background-color: #f7fafc; border-left: 4px solid #667eea; padding: 20px; border-radius: 8px;">
                                 <p style="margin: 0; color: #2d3748; font-size: 16px; line-height: 1.6;">
-                                    {{ $message }}
+                                    {{ $body ?? '' }}
                                 </p>
                             </div>
                         </td>
