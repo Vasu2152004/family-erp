@@ -61,6 +61,40 @@ class CronController extends Controller
     }
 
     /**
+     * Run 8am reminder commands on demand (for testing).
+     * Bypasses schedule time - use to verify emails work.
+     * Usage: GET /cron/test-reminders?token=CRON_SECRET
+     */
+    public function testReminders(): JsonResponse
+    {
+        if (!$this->authorizeCron()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $commands = [
+            'documents:send-expiry-reminders',
+            'vehicles:send-expiry-reminders',
+            'medicines:send-expiry-reminders',
+            'health:send-doctor-visit-reminders',
+        ];
+
+        foreach ($commands as $command) {
+            Artisan::call($command);
+        }
+
+        Artisan::call('queue:work', [
+            '--stop-when-empty' => true,
+            '--max-time' => 50,
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Reminder commands executed. Check your inbox if you have expiring items.',
+            'commands_run' => $commands,
+        ]);
+    }
+
+    /**
      * Verify cron request: Authorization Bearer or ?token=CRON_SECRET
      */
     private function authorizeCron(): bool

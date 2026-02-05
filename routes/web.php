@@ -17,6 +17,7 @@ Route::get('/', function () {
 // Cron endpoints (protected by CRON_SECRET - Vercel sends Authorization: Bearer, manual uses ?token=)
 Route::get('/cron', [CronController::class, 'run'])->name('cron.run');
 Route::get('/cron/test-mail', [CronController::class, 'testMail'])->name('cron.test-mail');
+Route::get('/cron/test-reminders', [CronController::class, 'testReminders'])->name('cron.test-reminders');
 
 // TEMPORARY: Test Brevo email delivery - remove before production deploy
 if (app()->environment('local')) {
